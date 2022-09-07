@@ -45,6 +45,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/qs", "npm:6.9.7"],\
             ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.2"],\
             ["fast-deep-equal", "npm:3.1.3"],\
             ["fastify", "npm:4.5.3"],\
             ["fs-extra", "npm:10.1.0"],\
@@ -1330,6 +1331,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/qs", "npm:6.9.7"],\
             ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.2"],\
             ["fast-deep-equal", "npm:3.1.3"],\
             ["fastify", "npm:4.5.3"],\
             ["fs-extra", "npm:10.1.0"],\
@@ -2422,6 +2424,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/diff-sequences-npm-29.0.0-1a0fe796f4-2c084a3db0.zip/node_modules/diff-sequences/",\
           "packageDependencies": [\
             ["diff-sequences", "npm:29.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["dotenv", [\
+        ["npm:16.0.2", {\
+          "packageLocation": "./.yarn/cache/dotenv-npm-16.0.2-80af4821b1-ca8f9ca2d6.zip/node_modules/dotenv/",\
+          "packageDependencies": [\
+            ["dotenv", "npm:16.0.2"]\
           ],\
           "linkType": "HARD"\
         }]\

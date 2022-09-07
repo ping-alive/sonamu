@@ -836,6 +836,7 @@ __metadata:
     "@types/qs": ^6.9.7
     "@types/uuid": ^8.3.4
     chalk: ^4.1.2
+    dotenv: ^16.0.2
     fast-deep-equal: ^3.1.3
     fastify: ^4.5.3
     fs-extra: ^10.1.0
@@ -1722,6 +1723,13 @@ __metadata:
   version: 29.0.0
   resolution: "diff-sequences@npm:29.0.0"
   checksum: 2c084a3db03ecde26f649f6f2559974e01e174451debeb301a7e17199e73423a8e8ddeb9a35ae38638c084b4fa51296a4a20fa7f44f3db0c0ba566bdc704ed3d
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.0.2":
+  version: 16.0.2
+  resolution: "dotenv@npm:16.0.2"
+  checksum: ca8f9ca2d67929c7771069f4c31b4e46b9932621009e658e5afd655dde2d69b77642bf36dbc9e72bc170523dfd908a9ee41c26f034c1fdc605ace3b1b4b10faf
   languageName: node
   linkType: hard
 
