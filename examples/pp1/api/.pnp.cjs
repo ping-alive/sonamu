@@ -46,6 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/passport", "npm:1.0.10"],\
             ["@types/passport-local", "npm:1.0.34"],\
             ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.2"],\
             ["fastify", "npm:4.5.3"],\
             ["fastify-file-upload", "npm:4.0.0"],\
             ["fastify-qs", "npm:4.0.0"],\
@@ -1320,6 +1321,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@sonamu/core", "portal:../../../modules/core::locator=pp1-api%40workspace%3A."],\
             ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.2"],\
             ["fast-deep-equal", "npm:3.1.3"],\
             ["fastify", "npm:4.5.3"],\
             ["fs-extra", "npm:10.1.0"],\
@@ -2677,6 +2679,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["domexception", "npm:2.0.1"],\
             ["webidl-conversions", "npm:5.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["dotenv", [\
+        ["npm:16.0.2", {\
+          "packageLocation": "./.yarn/cache/dotenv-npm-16.0.2-80af4821b1-ca8f9ca2d6.zip/node_modules/dotenv/",\
+          "packageDependencies": [\
+            ["dotenv", "npm:16.0.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -5414,6 +5425,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/passport", "npm:1.0.10"],\
             ["@types/passport-local", "npm:1.0.34"],\
             ["chalk", "npm:4.1.2"],\
+            ["dotenv", "npm:16.0.2"],\
             ["fastify", "npm:4.5.3"],\
             ["fastify-file-upload", "npm:4.0.0"],\
             ["fastify-qs", "npm:4.0.0"],\

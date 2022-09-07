@@ -837,6 +837,7 @@ __metadata:
   resolution: "@sonamu/core@portal:../../../modules/core::locator=pp1-api%40workspace%3A."
   dependencies:
     chalk: ^4.1.2
+    dotenv: ^16.0.2
     fast-deep-equal: ^3.1.3
     fastify: ^4.5.3
     fs-extra: ^10.1.0
@@ -1951,6 +1952,13 @@ __metadata:
   dependencies:
     webidl-conversions: ^5.0.0
   checksum: d638e9cb05c52999f1b2eb87c374b03311ea5b1d69c2f875bc92da73e17db60c12142b45c950228642ff7f845c536b65305483350d080df59003a653da80b691
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.0.2":
+  version: 16.0.2
+  resolution: "dotenv@npm:16.0.2"
+  checksum: ca8f9ca2d67929c7771069f4c31b4e46b9932621009e658e5afd655dde2d69b77642bf36dbc9e72bc170523dfd908a9ee41c26f034c1fdc605ace3b1b4b10faf
   languageName: node
   linkType: hard
 
@@ -4317,6 +4325,7 @@ __metadata:
     "@types/passport": ^1.0.7
     "@types/passport-local": ^1.0.34
     chalk: ^4.1.2
+    dotenv: ^16.0.2
     fastify: ^4.5.3
     fastify-file-upload: 4.0.0
     fastify-qs: ^4.0.0
