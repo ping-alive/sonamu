@@ -124,9 +124,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sonamu/react-sui@workspace:.":
+"@sonamu-kit/react-sui@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@sonamu/react-sui@workspace:."
+  resolution: "@sonamu-kit/react-sui@workspace:."
   dependencies:
     "@dnd-kit/core": ^4.0.3
     "@dnd-kit/sortable": ^5.1.0
