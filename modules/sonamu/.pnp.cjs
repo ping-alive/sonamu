@@ -62,6 +62,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["qs", "npm:6.11.0"],\
             ["source-map-support", "npm:0.5.21"],\
             ["ts-jest", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:28.0.8"],\
+            ["tsicli", "npm:1.0.5"],\
             ["typescript", "patch:typescript@npm%3A4.8.2#~builtin<compat/typescript>::version=4.8.2&hash=a1c5e5"],\
             ["uuid", "npm:8.3.2"],\
             ["zod", "npm:3.18.0"]\
@@ -5154,6 +5155,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["qs", "npm:6.11.0"],\
             ["source-map-support", "npm:0.5.21"],\
             ["ts-jest", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:28.0.8"],\
+            ["tsicli", "npm:1.0.5"],\
             ["typescript", "patch:typescript@npm%3A4.8.2#~builtin<compat/typescript>::version=4.8.2&hash=a1c5e5"],\
             ["uuid", "npm:8.3.2"],\
             ["zod", "npm:3.18.0"]\
@@ -5522,6 +5524,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "esbuild",\
             "jest",\
             "typescript"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["tsicli", [\
+        ["npm:1.0.5", {\
+          "packageLocation": "./.yarn/cache/tsicli-npm-1.0.5-1ca6da571f-9ac2236ecf.zip/node_modules/tsicli/",\
+          "packageDependencies": [\
+            ["tsicli", "npm:1.0.5"],\
+            ["chalk", "npm:4.1.2"],\
+            ["prompts", "npm:2.4.2"]\
           ],\
           "linkType": "HARD"\
         }]\
