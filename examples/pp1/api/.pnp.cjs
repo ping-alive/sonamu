@@ -51,7 +51,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["passport-local", "npm:1.0.0"],\
             ["prettier", "npm:2.8.8"],\
             ["rollup", "npm:3.28.0"],\
-            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A."],\
+            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:0.0.42"],\
             ["source-map-support", "npm:0.5.21"],\
             ["tsc-watch", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:6.0.4"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -2753,7 +2753,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["passport-local", "npm:1.0.0"],\
             ["prettier", "npm:2.8.8"],\
             ["rollup", "npm:3.28.0"],\
-            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A."],\
+            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:0.0.42"],\
             ["source-map-support", "npm:0.5.21"],\
             ["tsc-watch", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:6.0.4"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -3246,17 +3246,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["sonamu", [\
-        ["portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A.", {\
-          "packageLocation": "../../../modules/sonamu/",\
+        ["npm:0.0.42", {\
+          "packageLocation": "./.yarn/cache/sonamu-npm-0.0.42-4f7df34e47-6d967ed624.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A."]\
+            ["sonamu", "npm:0.0.42"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A.", {\
-          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-a4726270f4/4/modules/sonamu/",\
+        ["virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:0.0.42", {\
+          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-3e55fde028/0/cache/sonamu-npm-0.0.42-4f7df34e47-6d967ed624.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A."],\
+            ["sonamu", "virtual:60bf5c6cc839718141b87a8348f0d01ff0eca4ce5f19735a1d1fd1783d9ec9b07998926f46e0344a6abfa95cfe57692f1b447130330e64633fb840024f3425e5#npm:0.0.42"],\
             ["@types/fastify", null],\
             ["@types/knex", null],\
             ["@types/mysql2", null],\
@@ -3285,7 +3285,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "knex",\
             "mysql2"\
           ],\
-          "linkType": "SOFT"\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["sonic-boom", [\

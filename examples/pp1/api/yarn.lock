@@ -2406,7 +2406,7 @@ __metadata:
     passport-local: ^1.0.0
     prettier: ^2.7.1
     rollup: ^3.28.0
-    sonamu: ^0.0.41
+    sonamu: ^0.0.42
     source-map-support: ^0.5.21
     tsc-watch: ^6.0.4
     typescript: ^5.1.6
@@ -2847,9 +2847,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonamu@portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "sonamu@portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=pp1-api%40workspace%3A."
+"sonamu@npm:^0.0.42":
+  version: 0.0.42
+  resolution: "sonamu@npm:0.0.42"
   dependencies:
     chalk: ^4.1.2
     dotenv: ^16.0.2
@@ -2872,9 +2872,10 @@ __metadata:
     knex: ^2.3.0
     mysql2: ^2.3.3
   bin:
-    sonamu: ./dist/bin/cli.js
+    sonamu: dist/bin/cli.js
+  checksum: 6d967ed6244ff2abf301a6cc96d701ca19cb1918d7c2280a076ee4ca634fbb62285c79ac98566f1013f9920969083936da2d3a3d717eafdec133142d813d74ec
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "sonic-boom@npm:^3.1.0":
   version: 3.2.0
