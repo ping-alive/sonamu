@@ -34,6 +34,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rollup/plugin-json", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.0"],\
             ["@rollup/plugin-node-resolve", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:15.1.0"],\
             ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.0.12"],\
+            ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/node", "npm:20.5.0"],\
             ["@types/qs", "npm:6.9.8"],\
@@ -45,6 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.3.1"],\
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
+            ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["lodash", "npm:4.17.21"],\
             ["npm-run-all", "npm:4.1.5"],\
@@ -1330,6 +1332,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rollup/plugin-json", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.0"],\
             ["@rollup/plugin-node-resolve", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:15.1.0"],\
             ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.0.12"],\
+            ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/node", "npm:20.5.0"],\
             ["@types/qs", "npm:6.9.8"],\
@@ -1341,6 +1344,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.3.1"],\
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
+            ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["lodash", "npm:4.17.21"],\
             ["npm-run-all", "npm:4.1.5"],\
@@ -1382,6 +1386,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-estree-npm-1.0.1-4c9469c165-e9aa175eac.zip/node_modules/@types/estree/",\
           "packageDependencies": [\
             ["@types/estree", "npm:1.0.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@types/inflection", [\
+        ["npm:1.13.0", {\
+          "packageLocation": "./.yarn/cache/@types-inflection-npm-1.13.0-2f47b4de5b-0c7cb5b31d.zip/node_modules/@types/inflection/",\
+          "packageDependencies": [\
+            ["@types/inflection", "npm:1.13.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -3253,6 +3266,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/inflection-npm-1.13.4-102169ecb5-6744feede9.zip/node_modules/inflection/",\
           "packageDependencies": [\
             ["inflection", "npm:1.13.4"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:2.0.1", {\
+          "packageLocation": "./.yarn/cache/inflection-npm-2.0.1-c08c5f0aa7-bb095b495e.zip/node_modules/inflection/",\
+          "packageDependencies": [\
+            ["inflection", "npm:2.0.1"]\
           ],\
           "linkType": "HARD"\
         }]\
