@@ -48,6 +48,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fastify", "npm:4.21.0"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
+            ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["npm-run-all", "npm:4.1.5"],\
             ["prettier", "npm:2.7.1"],\
@@ -1346,6 +1347,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fastify", "npm:4.21.0"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
+            ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["npm-run-all", "npm:4.1.5"],\
             ["prettier", "npm:2.7.1"],\
@@ -3741,10 +3743,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:ae2e3cb82683c2dd89063a93858f18b05c95b8883fae21f5ec684b2624b3bbcac87d71c55ea50cfc001b217b59a196b2ebba471846c231739a6ae00eb46a3594#npm:2.5.1", {\
-          "packageLocation": "./.yarn/__virtual__/knex-virtual-9992103c19/0/cache/knex-npm-2.5.1-b988b29845-4f2da7fda5.zip/node_modules/knex/",\
+        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1", {\
+          "packageLocation": "./.yarn/__virtual__/knex-virtual-eb43260014/0/cache/knex-npm-2.5.1-b988b29845-4f2da7fda5.zip/node_modules/knex/",\
           "packageDependencies": [\
-            ["knex", "virtual:ae2e3cb82683c2dd89063a93858f18b05c95b8883fae21f5ec684b2624b3bbcac87d71c55ea50cfc001b217b59a196b2ebba471846c231739a6ae00eb46a3594#npm:2.5.1"],\
+            ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
             ["@types/better-sqlite3", null],\
             ["@types/mysql", null],\
             ["@types/mysql2", null],\
@@ -3763,7 +3765,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["interpret", "npm:2.2.0"],\
             ["lodash", "npm:4.17.21"],\
             ["mysql", null],\
-            ["mysql2", "npm:2.3.3"],\
+            ["mysql2", null],\
             ["pg", null],\
             ["pg-connection-string", "npm:2.6.1"],\
             ["pg-native", null],\
@@ -5415,7 +5417,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fs-extra", "npm:10.1.0"],\
             ["glob", "npm:8.1.0"],\
             ["inflection", "npm:1.13.4"],\
-            ["knex", "virtual:ae2e3cb82683c2dd89063a93858f18b05c95b8883fae21f5ec684b2624b3bbcac87d71c55ea50cfc001b217b59a196b2ebba471846c231739a6ae00eb46a3594#npm:2.5.1"],\
+            ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.4.0"],\
             ["mysql2", "npm:2.3.3"],\
@@ -5429,7 +5431,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "@types/fastify",\
             "@types/knex",\
             "@types/mysql2",\
-            "fastify"\
+            "fastify",\
+            "knex"\
           ],\
           "linkType": "SOFT"\
         }]\
