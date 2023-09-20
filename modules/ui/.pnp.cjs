@@ -36,7 +36,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.0.12"],\
             ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
-            ["@types/node", "npm:20.5.0"],\
+            ["@types/node", "npm:20.6.3"],\
             ["@types/qs", "npm:6.9.8"],\
             ["@types/react", "npm:18.2.20"],\
             ["@types/react-dom", "npm:18.2.7"],\
@@ -68,7 +68,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
-            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"],\
             ["vite", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.4.9"],\
             ["zod", "npm:3.22.2"]\
           ],\
@@ -1335,7 +1335,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.0.12"],\
             ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
-            ["@types/node", "npm:20.5.0"],\
+            ["@types/node", "npm:20.6.3"],\
             ["@types/qs", "npm:6.9.8"],\
             ["@types/react", "npm:18.2.20"],\
             ["@types/react-dom", "npm:18.2.7"],\
@@ -1367,7 +1367,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
-            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
+            ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"],\
             ["vite", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.4.9"],\
             ["zod", "npm:3.22.2"]\
           ],\
@@ -1411,10 +1411,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@types/node", [\
-        ["npm:20.5.0", {\
-          "packageLocation": "./.yarn/cache/@types-node-npm-20.5.0-ea170d5dd7-659bc5fc93.zip/node_modules/@types/node/",\
+        ["npm:20.6.3", {\
+          "packageLocation": "./.yarn/cache/@types-node-npm-20.6.3-7542470c42-444a6f1f41.zip/node_modules/@types/node/",\
           "packageDependencies": [\
-            ["@types/node", "npm:20.5.0"]\
+            ["@types/node", "npm:20.6.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -5021,7 +5021,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/typescript", null],\
             ["magic-string", "npm:0.30.2"],\
             ["rollup", "npm:3.28.0"],\
-            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"]\
+            ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"]\
           ],\
           "packagePeers": [\
             "@types/rollup",\
@@ -5866,7 +5866,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["node-cleanup", "npm:2.1.2"],\
             ["ps-tree", "npm:1.2.0"],\
             ["string-argv", "npm:0.3.2"],\
-            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"]\
+            ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"]\
           ],\
           "packagePeers": [\
             "@types/typescript",\
@@ -5947,10 +5947,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["typescript", [\
-        ["patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071", {\
-          "packageLocation": "./.yarn/cache/typescript-patch-bd21d74a9d-f53bfe97f7.zip/node_modules/typescript/",\
+        ["patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441", {\
+          "packageLocation": "./.yarn/cache/typescript-patch-2e8dbfb8ab-0f4da2f15e.zip/node_modules/typescript/",\
           "packageDependencies": [\
-            ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"]\
+            ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6096,7 +6096,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["vite", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.4.9"],\
             ["@types/less", null],\
             ["@types/lightningcss", null],\
-            ["@types/node", "npm:20.5.0"],\
+            ["@types/node", "npm:20.6.3"],\
             ["@types/sass", null],\
             ["@types/stylus", null],\
             ["@types/sugarss", null],\
