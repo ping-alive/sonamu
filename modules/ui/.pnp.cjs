@@ -3839,10 +3839,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["long", [\
-        ["npm:4.0.0", {\
-          "packageLocation": "./.yarn/cache/long-npm-4.0.0-ecd96a31ed-16afbe8f74.zip/node_modules/long/",\
+        ["npm:5.2.3", {\
+          "packageLocation": "./.yarn/cache/long-npm-5.2.3-61dddb7586-885ede7c3d.zip/node_modules/long/",\
           "packageDependencies": [\
-            ["long", "npm:4.0.0"]\
+            ["long", "npm:5.2.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -3885,6 +3885,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/lru-cache-npm-7.18.3-e68be5b11c-e550d77238.zip/node_modules/lru-cache/",\
           "packageDependencies": [\
             ["lru-cache", "npm:7.18.3"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:8.0.5", {\
+          "packageLocation": "./.yarn/cache/lru-cache-npm-8.0.5-bb030cd93e-87d72196d8.zip/node_modules/lru-cache/",\
+          "packageDependencies": [\
+            ["lru-cache", "npm:8.0.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -4126,15 +4133,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["mysql2", [\
-        ["npm:2.3.3", {\
-          "packageLocation": "./.yarn/cache/mysql2-npm-2.3.3-fa543fff43-45e479d0cb.zip/node_modules/mysql2/",\
+        ["npm:3.6.1", {\
+          "packageLocation": "./.yarn/cache/mysql2-npm-3.6.1-6407ec06ef-29892b9810.zip/node_modules/mysql2/",\
           "packageDependencies": [\
-            ["mysql2", "npm:2.3.3"],\
+            ["mysql2", "npm:3.6.1"],\
             ["denque", "npm:2.1.0"],\
             ["generate-function", "npm:2.3.1"],\
             ["iconv-lite", "npm:0.6.3"],\
-            ["long", "npm:4.0.0"],\
-            ["lru-cache", "npm:6.0.0"],\
+            ["long", "npm:5.2.3"],\
+            ["lru-cache", "npm:8.0.5"],\
             ["named-placeholders", "npm:1.1.3"],\
             ["seq-queue", "npm:0.0.5"],\
             ["sqlstring", "npm:2.3.3"]\
@@ -5420,7 +5427,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.4.0"],\
-            ["mysql2", "npm:2.3.3"],\
+            ["mysql2", "npm:3.6.1"],\
             ["prompts", "npm:2.4.2"],\
             ["qs", "npm:6.11.2"],\
             ["tsicli", "npm:1.0.5"],\
