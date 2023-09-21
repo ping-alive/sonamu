@@ -28,6 +28,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
+            ["@fastify/cors", "npm:8.4.0"],\
             ["@fastify/static", "npm:6.10.2"],\
             ["@rollup/plugin-alias", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:5.0.0"],\
             ["@rollup/plugin-commonjs", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:25.0.4"],\
@@ -899,6 +900,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@fastify/cors", [\
+        ["npm:8.4.0", {\
+          "packageLocation": "./.yarn/cache/@fastify-cors-npm-8.4.0-e200dfef5d-4fe9962391.zip/node_modules/@fastify/cors/",\
+          "packageDependencies": [\
+            ["@fastify/cors", "npm:8.4.0"],\
+            ["fastify-plugin", "npm:4.5.1"],\
+            ["mnemonist", "npm:0.39.5"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@fastify/deepmerge", [\
         ["npm:1.3.0", {\
           "packageLocation": "./.yarn/cache/@fastify-deepmerge-npm-1.3.0-72eb1f634c-33ec927905.zip/node_modules/@fastify/deepmerge/",\
@@ -1327,6 +1339,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["@sonamu-kit/ui", "workspace:."],\
+            ["@fastify/cors", "npm:8.4.0"],\
             ["@fastify/static", "npm:6.10.2"],\
             ["@rollup/plugin-alias", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:5.0.0"],\
             ["@rollup/plugin-commonjs", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:25.0.4"],\
@@ -4116,6 +4129,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["mnemonist", [\
+        ["npm:0.39.5", {\
+          "packageLocation": "./.yarn/cache/mnemonist-npm-0.39.5-cbd4ee161e-6669d687a4.zip/node_modules/mnemonist/",\
+          "packageDependencies": [\
+            ["mnemonist", "npm:0.39.5"],\
+            ["obliterator", "npm:2.0.4"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["ms", [\
         ["npm:2.1.2", {\
           "packageLocation": "./.yarn/cache/ms-npm-2.1.2-ec0c1512ff-673cdb2c31.zip/node_modules/ms/",\
@@ -4323,6 +4346,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["define-properties", "npm:1.2.0"],\
             ["has-symbols", "npm:1.0.3"],\
             ["object-keys", "npm:1.1.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["obliterator", [\
+        ["npm:2.0.4", {\
+          "packageLocation": "./.yarn/cache/obliterator-npm-2.0.4-b21b355294-f28ad35b6d.zip/node_modules/obliterator/",\
+          "packageDependencies": [\
+            ["obliterator", "npm:2.0.4"]\
           ],\
           "linkType": "HARD"\
         }]\
