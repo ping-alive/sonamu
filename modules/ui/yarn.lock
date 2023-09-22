@@ -1014,7 +1014,7 @@ __metadata:
     vite: ^4.4.5
     zod: ^3.22.2
   peerDependencies:
-    sonamu: "*"
+    sonamu: ^0.1.0
   languageName: unknown
   linkType: soft
 
