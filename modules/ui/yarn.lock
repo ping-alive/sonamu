@@ -1006,7 +1006,7 @@ __metadata:
     sass: ^1.65.1
     semantic-ui-css: ^2.5.0
     semantic-ui-react: ^2.1.4
-    sonamu: ^0.0.41
+    sonamu: ^0.1.2
     source-map-support: ^0.5.21
     swr: ^2.2.2
     tsc-watch: ^6.0.4
@@ -1014,7 +1014,7 @@ __metadata:
     vite: ^4.4.5
     zod: ^3.22.2
   peerDependencies:
-    sonamu: ^0.1.0
+    sonamu: ^0.1.2
   languageName: unknown
   linkType: soft
 
