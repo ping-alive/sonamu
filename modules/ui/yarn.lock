@@ -988,6 +988,7 @@ __metadata:
     dotenv: ^16.3.1
     esbuild: ^0.19.2
     fastify: ^4.21.0
+    fastify-qs: ^4.0.2
     inflection: ^2.0.1
     jotai: ^2.4.2
     knex: ^2.5.1
@@ -2206,10 +2207,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify-plugin@npm:^4.0.0":
+"fastify-plugin@npm:^4.0.0, fastify-plugin@npm:^4.5.0":
   version: 4.5.1
   resolution: "fastify-plugin@npm:4.5.1"
   checksum: ddd1b2d470c3acd9397c2617b5842dcf71a6f9a32f05d02be1c12e8d37b8fc03af656900cec38e2afef5e9a3dfe5f994317810f4c5e9960b127b1ca179b56f73
+  languageName: node
+  linkType: hard
+
+"fastify-qs@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "fastify-qs@npm:4.0.2"
+  dependencies:
+    fastify-plugin: ^4.5.0
+    qs: ^6.11.1
+  checksum: 6b895afb9dd7e9f2ccf4ec02ff253c0639a913683a206fa515e70a36fb566f97ef08f2675d4fffb7a7a96ff2b337de40a23cc65da8c8195690d2d2bda315f741
   languageName: node
   linkType: hard
 
@@ -3982,7 +3993,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.11.0, qs@npm:^6.11.2":
+"qs@npm:^6.11.0, qs@npm:^6.11.1, qs@npm:^6.11.2":
   version: 6.11.2
   resolution: "qs@npm:6.11.2"
   dependencies:

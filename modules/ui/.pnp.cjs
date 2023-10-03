@@ -47,6 +47,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.3.1"],\
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
+            ["fastify-qs", "npm:4.0.2"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
@@ -1358,6 +1359,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.3.1"],\
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
+            ["fastify-qs", "npm:4.0.2"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
@@ -2710,6 +2712,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/fastify-plugin-npm-4.5.1-902caad25f-ddd1b2d470.zip/node_modules/fastify-plugin/",\
           "packageDependencies": [\
             ["fastify-plugin", "npm:4.5.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["fastify-qs", [\
+        ["npm:4.0.2", {\
+          "packageLocation": "./.yarn/cache/fastify-qs-npm-4.0.2-a854bfcb22-6b895afb9d.zip/node_modules/fastify-qs/",\
+          "packageDependencies": [\
+            ["fastify-qs", "npm:4.0.2"],\
+            ["fastify-plugin", "npm:4.5.1"],\
+            ["qs", "npm:6.11.2"]\
           ],\
           "linkType": "HARD"\
         }]\
