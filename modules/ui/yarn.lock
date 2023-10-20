@@ -936,9 +936,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sonamu-kit/react-sui@npm:^0.0.12":
-  version: 0.0.12
-  resolution: "@sonamu-kit/react-sui@npm:0.0.12"
+"@sonamu-kit/react-sui@npm:^0.0.14":
+  version: 0.0.14
+  resolution: "@sonamu-kit/react-sui@npm:0.0.14"
   dependencies:
     "@dnd-kit/core": ^4.0.3
     "@dnd-kit/sortable": ^5.1.0
@@ -961,7 +961,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.4.0
-  checksum: 5982a6cb1d6e5a75ac71fd20c264801c577b2d38769124885d2fac85cce62d7213766da235df422c0cd172b9e2fae888ee4f3ced70910b8357ef0f12daed6b8e
+  checksum: 29d72f5e0a0c9b3238e9ac403b8f865755b9b12b2ed059bcaad58d1f45ea258f113c08162321efed9b96fd083afa8b713b72dffc7d924b4a07ce30b5f460b0aa
   languageName: node
   linkType: hard
 
@@ -975,7 +975,7 @@ __metadata:
     "@rollup/plugin-commonjs": ^25.0.4
     "@rollup/plugin-json": ^6.0.0
     "@rollup/plugin-node-resolve": ^15.1.0
-    "@sonamu-kit/react-sui": ^0.0.12
+    "@sonamu-kit/react-sui": ^0.0.14
     "@types/inflection": ^1.13.0
     "@types/lodash": ^4.14.198
     "@types/node": ^20.6.3
@@ -1007,7 +1007,7 @@ __metadata:
     sass: ^1.65.1
     semantic-ui-css: ^2.5.0
     semantic-ui-react: ^2.1.4
-    sonamu: ^0.1.2
+    sonamu: ^0.2.4
     source-map-support: ^0.5.21
     swr: ^2.2.2
     tsc-watch: ^6.0.4
@@ -1015,7 +1015,7 @@ __metadata:
     vite: ^4.4.5
     zod: ^3.22.2
   peerDependencies:
-    sonamu: ^0.1.2
+    sonamu: ^0.2.4
   languageName: unknown
   linkType: soft
 
@@ -4640,9 +4640,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonamu@portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=%40sonamu-kit%2Fui%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "sonamu@portal:/Users/minsangk/Development/sonamu/modules/sonamu::locator=%40sonamu-kit%2Fui%40workspace%3A."
+"sonamu@npm:^0.2.4":
+  version: 0.2.4
+  resolution: "sonamu@npm:0.2.4"
   dependencies:
     chalk: ^4.1.2
     dotenv: ^16.0.2
@@ -4665,9 +4665,10 @@ __metadata:
     knex: ^2.3.0
     mysql2: ^2.3.3
   bin:
-    sonamu: ./dist/bin/cli.js
+    sonamu: dist/bin/cli.js
+  checksum: 99be7f5863f82fef667cc3b2b2d46a20208d66726c6e04483eb1ae6ae4dbfaefdbcf48a67d45ae572f388317c644bfcda2f3063f96ef97de5064d3a1e518d274
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "sonic-boom@npm:^3.1.0":
   version: 3.3.0
