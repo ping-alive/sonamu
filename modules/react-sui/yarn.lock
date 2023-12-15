@@ -659,10 +659,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.0.0":
-  version: 1.0.0
-  resolution: "@remix-run/router@npm:1.0.0"
-  checksum: 376b14f694a2331438ab23ead08eb29a0eb6c97a3e94f8fb760030ba05ab8d7e8d5512165e6e12af79bc0b7340b59f1188690f1b09ae14044a469bdbcc5c2fac
+"@remix-run/router@npm:1.14.0":
+  version: 1.14.0
+  resolution: "@remix-run/router@npm:1.14.0"
+  checksum: 1a64439087ed77b4eec804f55ba9bbb63275eb756f0c6ef8cfa7d92609e29bb8d87d03f3b5446586130d12d2bd59f799baed167044ee80f6dce5456609c317d4
   languageName: node
   linkType: hard
 
@@ -836,7 +836,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^5.1.0"
     "@dnd-kit/utilities": "npm:^3.0.2"
     "@types/inflection": "npm:^1.13.0"
-    "@types/lodash": "npm:^4.14.198"
+    "@types/lodash-es": "npm:^4.17.12"
     "@types/luxon": "npm:^3.0.1"
     "@types/node": "npm:^20.6.3"
     "@types/prop-types": "npm:^15"
@@ -848,14 +848,14 @@ __metadata:
     classnames: "npm:^2.3.2"
     fast-deep-equal: "npm:^3.1.3"
     inflection: "npm:^1.13.2"
-    lodash: "npm:^4.17.21"
+    lodash-es: "npm:^4.17.21"
     luxon: "npm:^3.0.3"
     prettier: "npm:^3.1.1"
     prop-types: "npm:^15.8.1"
     qs: "npm:^6.11.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    react-router-dom: "npm:6.4.0"
+    react-router-dom: "npm:^6.3.0"
     react-semantic-ui-datepickers: "npm:^2.17.1"
     scss: "npm:^0.2.4"
     semantic-ui-react: "npm:^2.1.3"
@@ -868,7 +868,8 @@ __metadata:
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-router-dom: 6.4.0
+    react-router-dom: ^6.3.0
+    react-semantic-ui-datepickers: ^2.17.1
   languageName: unknown
   linkType: soft
 
@@ -934,7 +935,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.198":
+"@types/lodash-es@npm:^4.17.12":
+  version: 4.17.12
+  resolution: "@types/lodash-es@npm:4.17.12"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 5d12d2cede07f07ab067541371ed1b838a33edb3c35cb81b73284e93c6fd0c4bbeaefee984e69294bffb53f62d7272c5d679fdba8e595ff71e11d00f2601dde0
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
   version: 4.14.202
   resolution: "@types/lodash@npm:4.14.202"
   checksum: 6064d43c8f454170841bd67c8266cc9069d9e570a72ca63f06bceb484cb4a3ee60c9c1f305c1b9e3a87826049fd41124b8ef265c4dd08b00f6766609c7fe9973
@@ -2499,26 +2509,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.4.0":
-  version: 6.4.0
-  resolution: "react-router-dom@npm:6.4.0"
+"react-router-dom@npm:^6.3.0":
+  version: 6.21.0
+  resolution: "react-router-dom@npm:6.21.0"
   dependencies:
-    react-router: "npm:6.4.0"
+    "@remix-run/router": "npm:1.14.0"
+    react-router: "npm:6.21.0"
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 3d781240458900a356177e61fe28e4d0c423d72ed31ac067341acbf2c3771c9059b3a8b9024a804ee38e415ad5862f754adae7210bd506664f8a85d4ebb6c573
+  checksum: 635b233dd993599954f82fba9f4baa915061a75bfac79fff142aecdfa4ed418efd7de32e0455b50715fc11250951f049bbd3ead4cb55cfe09fe35c1948717359
   languageName: node
   linkType: hard
 
-"react-router@npm:6.4.0":
-  version: 6.4.0
-  resolution: "react-router@npm:6.4.0"
+"react-router@npm:6.21.0":
+  version: 6.21.0
+  resolution: "react-router@npm:6.21.0"
   dependencies:
-    "@remix-run/router": "npm:1.0.0"
+    "@remix-run/router": "npm:1.14.0"
   peerDependencies:
     react: ">=16.8"
-  checksum: 03212c23a178a28a75fd04304f73f7496f5a64f7c41386bf73f9520c47543daaec47e2b4861fbc72c06b6c0d4f3fb5ce74991de035b7804aa4bee6526bffb370
+  checksum: ff499df6994353b79ddd4abf35004c4dce944668fa16b18896a72ba255447d3f5ca50018d90f3034abbe08b87a5757141b09144f8eb17e4f375d8850373a11c3
   languageName: node
   linkType: hard
 
