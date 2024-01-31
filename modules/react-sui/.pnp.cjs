@@ -52,6 +52,7 @@ const RAW_RUNTIME_STATE =
           ["react-router-dom", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:6.21.0"],\
           ["react-semantic-ui-datepickers", "npm:2.17.2"],\
           ["scss", "npm:0.2.4"],\
+          ["semantic-ui-css", "npm:2.5.0"],\
           ["semantic-ui-react", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:2.1.5"],\
           ["swr", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:1.3.0"],\
           ["typescript", "patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"],\
@@ -1199,6 +1200,7 @@ const RAW_RUNTIME_STATE =
           ["react-router-dom", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:6.21.0"],\
           ["react-semantic-ui-datepickers", "npm:2.17.2"],\
           ["scss", "npm:0.2.4"],\
+          ["semantic-ui-css", "npm:2.5.0"],\
           ["semantic-ui-react", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:2.1.5"],\
           ["swr", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:1.3.0"],\
           ["typescript", "patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"],\
@@ -2464,6 +2466,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["jquery", [\
+      ["npm:3.7.1", {\
+        "packageLocation": "../../../../.yarn/berry/cache/jquery-npm-3.7.1-eeeac0f21e-10c0.zip/node_modules/jquery/",\
+        "packageDependencies": [\
+          ["jquery", "npm:3.7.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["js-tokens", [\
       ["npm:4.0.0", {\
         "packageLocation": "../../../../.yarn/berry/cache/js-tokens-npm-4.0.0-0ac852e9e2-10c0.zip/node_modules/js-tokens/",\
@@ -3253,6 +3264,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["scss", "npm:0.2.4"],\
           ["ometa", "npm:0.2.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["semantic-ui-css", [\
+      ["npm:2.5.0", {\
+        "packageLocation": "../../../../.yarn/berry/cache/semantic-ui-css-npm-2.5.0-b745898d9d-10c0.zip/node_modules/semantic-ui-css/",\
+        "packageDependencies": [\
+          ["semantic-ui-css", "npm:2.5.0"],\
+          ["jquery", "npm:3.7.1"]\
         ],\
         "linkType": "HARD"\
       }]\

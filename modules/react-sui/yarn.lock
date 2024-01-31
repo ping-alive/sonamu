@@ -858,6 +858,7 @@ __metadata:
     react-router-dom: "npm:^6.3.0"
     react-semantic-ui-datepickers: "npm:^2.17.1"
     scss: "npm:^0.2.4"
+    semantic-ui-css: "npm:^2.5.0"
     semantic-ui-react: "npm:^2.1.3"
     swr: "npm:^1.3.0"
     typescript: "npm:^5.2.2"
@@ -1976,6 +1977,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jquery@npm:x.*":
+  version: 3.7.1
+  resolution: "jquery@npm:3.7.1"
+  checksum: 808cfbfb758438560224bf26e17fcd5afc7419170230c810dd11f5c1792e2263e2970cca8d659eb84fcd9acc301edb6d310096e450277d54be4f57071b0c82d9
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -2692,6 +2700,15 @@ __metadata:
   dependencies:
     ometa: "npm:0.2.2"
   checksum: 41aa26a7d6baaa1b264c3bc6005f865ceb895050ef62563368491db12b63fda7fc73a46dbe129f68255abdc8aab9c6ef83f8a5dfda0f57857e8cf96846e92f3e
+  languageName: node
+  linkType: hard
+
+"semantic-ui-css@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "semantic-ui-css@npm:2.5.0"
+  dependencies:
+    jquery: "npm:x.*"
+  checksum: e127afb9de9b40495aa412bcb973b70ea64f8146234415a3a355ff6fbfa0e034f63b6db78458755e64db7f439eb7de76309bf23ff743f550604e69fe2014b79e
   languageName: node
   linkType: hard
 
