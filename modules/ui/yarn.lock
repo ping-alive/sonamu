@@ -834,10 +834,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.9.0":
-  version: 1.9.0
-  resolution: "@remix-run/router@npm:1.9.0"
-  checksum: 0537b0ff29879ac85077cb4c42eaca4a295b9efd71477848984c2f2dfa5741c9b83d3106a7bb72994a51a9adfeeab3b0f5a40f2dee8be3f0750feeeca2a6d513
+"@remix-run/router@npm:1.16.1":
+  version: 1.16.1
+  resolution: "@remix-run/router@npm:1.16.1"
+  checksum: 69068815832b30d2a5c063ac1c75365c45cf5b484dab65e1b3129fdbb3c2a7b866401733f766e550dbca1eaf0b84bc772a9c55310f4dd21eb53e62eb1b4625d0
   languageName: node
   linkType: hard
 
@@ -936,9 +936,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sonamu-kit/react-sui@npm:^0.0.14":
-  version: 0.0.14
-  resolution: "@sonamu-kit/react-sui@npm:0.0.14"
+"@sonamu-kit/react-sui@npm:^0.1.13":
+  version: 0.1.13
+  resolution: "@sonamu-kit/react-sui@npm:0.1.13"
   dependencies:
     "@dnd-kit/core": ^4.0.3
     "@dnd-kit/sortable": ^5.1.0
@@ -947,21 +947,24 @@ __metadata:
     classnames: ^2.3.2
     fast-deep-equal: ^3.1.3
     inflection: ^1.13.2
-    lodash: ^4.17.21
+    lodash-es: ^4.17.21
     luxon: ^3.0.3
+    prop-types: ^15.8.1
     qs: ^6.11.0
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-router-dom: ^6.4.0
+    react-router-dom: ^6.3.0
     react-semantic-ui-datepickers: ^2.17.1
     semantic-ui-react: ^2.1.3
     swr: ^1.3.0
-    zod: ^3.19.1
+    zod: ^3.22.4
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0
-    react-router-dom: ^6.4.0
-  checksum: 29d72f5e0a0c9b3238e9ac403b8f865755b9b12b2ed059bcaad58d1f45ea258f113c08162321efed9b96fd083afa8b713b72dffc7d924b4a07ce30b5f460b0aa
+    react-router-dom: ^6.3.0
+    react-semantic-ui-datepickers: ^2.17.1
+    zod: ^3.22.4
+  checksum: af37bdfbbd15431ea4f0ad23e1b4f7d89bbe149c523225f91aa9ff40d8c573b453102fe497a9253f797556a0426cb1545b9c74a86d75d537707c48c1056ca1a5
   languageName: node
   linkType: hard
 
@@ -975,7 +978,7 @@ __metadata:
     "@rollup/plugin-commonjs": ^25.0.4
     "@rollup/plugin-json": ^6.0.0
     "@rollup/plugin-node-resolve": ^15.1.0
-    "@sonamu-kit/react-sui": ^0.0.14
+    "@sonamu-kit/react-sui": ^0.1.13
     "@types/inflection": ^1.13.0
     "@types/lodash": ^4.14.198
     "@types/node": ^20.6.3
@@ -4103,27 +4106,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.4.0":
-  version: 6.16.0
-  resolution: "react-router-dom@npm:6.16.0"
+"react-router-dom@npm:^6.3.0":
+  version: 6.23.1
+  resolution: "react-router-dom@npm:6.23.1"
   dependencies:
-    "@remix-run/router": 1.9.0
-    react-router: 6.16.0
+    "@remix-run/router": 1.16.1
+    react-router: 6.23.1
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 18b398924bb0f0d97cf2f71dab71d860b960a7a267b2f77388990c662bb6d8738bdc3042d92f713fd63d269ae9ad90df39c8e97661b6ba758bbb7386b9f20ae0
+  checksum: e87b5cf85019496f499286d466a4ad9cf5efe729f1420502fc5d16093d525462803253538418ea5b0da7ab5671a16caefee67848b373008e567629c2d667dc44
   languageName: node
   linkType: hard
 
-"react-router@npm:6.16.0":
-  version: 6.16.0
-  resolution: "react-router@npm:6.16.0"
+"react-router@npm:6.23.1":
+  version: 6.23.1
+  resolution: "react-router@npm:6.23.1"
   dependencies:
-    "@remix-run/router": 1.9.0
+    "@remix-run/router": 1.16.1
   peerDependencies:
     react: ">=16.8"
-  checksum: b31c187e3fdcdf7294ffdad6ff834e14d012840c94d8ee8c7fbe451062a8fcb6e31e8bc7827fb1ff45445dd40fad2b8c96a7e98f0ac1c3eb1d716c257a0821c9
+  checksum: d5d43ccb908a95d2b7345f2a13315c38bf094e25bcf97d5a6c3f353b1ea88602de15726c3570cd7f07c53b19a3519af2b6739bf6929ec355012795611d739cff
   languageName: node
   linkType: hard
 
@@ -5397,9 +5400,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.19.1, zod@npm:^3.22.2":
+"zod@npm:^3.22.2":
   version: 3.22.2
   resolution: "zod@npm:3.22.2"
   checksum: 231e2180c8eabb56e88680d80baff5cf6cbe6d64df3c44c50ebe52f73081ecd0229b1c7215b9552537f537a36d9e36afac2737ddd86dc14e3519bdbc777e82b9
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.22.4":
+  version: 3.23.8
+  resolution: "zod@npm:3.23.8"
+  checksum: 15949ff82118f59c893dacd9d3c766d02b6fa2e71cf474d5aa888570c469dbf5446ac5ad562bb035bf7ac9650da94f290655c194f4a6de3e766f43febd432c5c
   languageName: node
   linkType: hard
