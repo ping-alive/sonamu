@@ -34,7 +34,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/luxon", "npm:3.0.1"],\
             ["@types/node", "npm:20.6.3"],\
-            ["@types/prettier", "npm:2.7.0"],\
+            ["@types/prettier", "npm:3.0.0"],\
             ["@types/prompts", "npm:2.4.0"],\
             ["@types/qs", "npm:6.9.7"],\
             ["@types/uuid", "npm:8.3.4"],\
@@ -49,7 +49,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
-            ["prettier", "npm:2.7.1"],\
+            ["prettier", "npm:3.2.5"],\
             ["prompts", "npm:2.4.2"],\
             ["qs", "npm:6.11.0"],\
             ["source-map-support", "npm:0.5.21"],\
@@ -175,10 +175,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@types/prettier", [\
-        ["npm:2.7.0", {\
-          "packageLocation": "./.yarn/cache/@types-prettier-npm-2.7.0-5da1b0a357-bf5d0c7c12.zip/node_modules/@types/prettier/",\
+        ["npm:3.0.0", {\
+          "packageLocation": "./.yarn/cache/@types-prettier-npm-3.0.0-6c770110eb-a2a512d304.zip/node_modules/@types/prettier/",\
           "packageDependencies": [\
-            ["@types/prettier", "npm:2.7.0"]\
+            ["@types/prettier", "npm:3.0.0"],\
+            ["prettier", "npm:3.2.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -1100,10 +1101,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["prettier", [\
-        ["npm:2.7.1", {\
-          "packageLocation": "./.yarn/cache/prettier-npm-2.7.1-d1f40f5e1a-55a4409182.zip/node_modules/prettier/",\
+        ["npm:3.2.5", {\
+          "packageLocation": "./.yarn/unplugged/prettier-npm-3.2.5-6859110d6a/node_modules/prettier/",\
           "packageDependencies": [\
-            ["prettier", "npm:2.7.1"]\
+            ["prettier", "npm:3.2.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -1357,7 +1358,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/luxon", "npm:3.0.1"],\
             ["@types/node", "npm:20.6.3"],\
-            ["@types/prettier", "npm:2.7.0"],\
+            ["@types/prettier", "npm:3.0.0"],\
             ["@types/prompts", "npm:2.4.0"],\
             ["@types/qs", "npm:6.9.7"],\
             ["@types/uuid", "npm:8.3.4"],\
@@ -1372,7 +1373,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
-            ["prettier", "npm:2.7.1"],\
+            ["prettier", "npm:3.2.5"],\
             ["prompts", "npm:2.4.2"],\
             ["qs", "npm:6.11.0"],\
             ["source-map-support", "npm:0.5.21"],\
