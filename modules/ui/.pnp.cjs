@@ -34,7 +34,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rollup/plugin-commonjs", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:25.0.4"],\
             ["@rollup/plugin-json", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.0"],\
             ["@rollup/plugin-node-resolve", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:15.1.0"],\
-            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A."],\
+            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.1.14"],\
             ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/node", "npm:20.6.3"],\
@@ -433,10 +433,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:ff07ff4a5e1fbea491aee34a066c7f15ea5e10e7c20fbf962ed7fd481e57dbd51a10b55ec96b6310d8bc6577cfbda886725b220cf24be6628d98f1c118f3ac97#npm:3.0.1", {\
-          "packageLocation": "./.yarn/__virtual__/@dnd-kit-accessibility-virtual-cc244635d0/0/cache/@dnd-kit-accessibility-npm-3.0.1-78bf91a820-0afc2c0fce.zip/node_modules/@dnd-kit/accessibility/",\
+        ["virtual:2b477afe176a9e932822ec95abd65f7c680c6addadfbab6e8d52bdfb754791075de6474c16f23bb77f6acb17be24f90c3aec5b6e36a3ff5f9bfd7a1b6f8fce9a#npm:3.0.1", {\
+          "packageLocation": "./.yarn/__virtual__/@dnd-kit-accessibility-virtual-275a61c0cc/0/cache/@dnd-kit-accessibility-npm-3.0.1-78bf91a820-0afc2c0fce.zip/node_modules/@dnd-kit/accessibility/",\
           "packageDependencies": [\
-            ["@dnd-kit/accessibility", "virtual:ff07ff4a5e1fbea491aee34a066c7f15ea5e10e7c20fbf962ed7fd481e57dbd51a10b55ec96b6310d8bc6577cfbda886725b220cf24be6628d98f1c118f3ac97#npm:3.0.1"],\
+            ["@dnd-kit/accessibility", "virtual:2b477afe176a9e932822ec95abd65f7c680c6addadfbab6e8d52bdfb754791075de6474c16f23bb77f6acb17be24f90c3aec5b6e36a3ff5f9bfd7a1b6f8fce9a#npm:3.0.1"],\
             ["@types/react", "npm:18.2.20"],\
             ["react", "npm:18.2.0"],\
             ["tslib", "npm:2.6.2"]\
@@ -456,12 +456,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:4.0.3", {\
-          "packageLocation": "./.yarn/__virtual__/@dnd-kit-core-virtual-ff07ff4a5e/0/cache/@dnd-kit-core-npm-4.0.3-4e20f6c045-8286093175.zip/node_modules/@dnd-kit/core/",\
+        ["virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:4.0.3", {\
+          "packageLocation": "./.yarn/__virtual__/@dnd-kit-core-virtual-2b477afe17/0/cache/@dnd-kit-core-npm-4.0.3-4e20f6c045-8286093175.zip/node_modules/@dnd-kit/core/",\
           "packageDependencies": [\
-            ["@dnd-kit/core", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:4.0.3"],\
-            ["@dnd-kit/accessibility", "virtual:ff07ff4a5e1fbea491aee34a066c7f15ea5e10e7c20fbf962ed7fd481e57dbd51a10b55ec96b6310d8bc6577cfbda886725b220cf24be6628d98f1c118f3ac97#npm:3.0.1"],\
-            ["@dnd-kit/utilities", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:3.2.1"],\
+            ["@dnd-kit/core", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:4.0.3"],\
+            ["@dnd-kit/accessibility", "virtual:2b477afe176a9e932822ec95abd65f7c680c6addadfbab6e8d52bdfb754791075de6474c16f23bb77f6acb17be24f90c3aec5b6e36a3ff5f9bfd7a1b6f8fce9a#npm:3.0.1"],\
+            ["@dnd-kit/utilities", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:3.2.1"],\
             ["@types/react", "npm:18.2.20"],\
             ["@types/react-dom", "npm:18.2.7"],\
             ["react", "npm:18.2.0"],\
@@ -485,12 +485,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:5.1.0", {\
-          "packageLocation": "./.yarn/__virtual__/@dnd-kit-sortable-virtual-8b51d94f8a/0/cache/@dnd-kit-sortable-npm-5.1.0-149881458f-f2f687a70d.zip/node_modules/@dnd-kit/sortable/",\
+        ["virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:5.1.0", {\
+          "packageLocation": "./.yarn/__virtual__/@dnd-kit-sortable-virtual-ed49f1628c/0/cache/@dnd-kit-sortable-npm-5.1.0-149881458f-f2f687a70d.zip/node_modules/@dnd-kit/sortable/",\
           "packageDependencies": [\
-            ["@dnd-kit/sortable", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:5.1.0"],\
-            ["@dnd-kit/core", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:4.0.3"],\
-            ["@dnd-kit/utilities", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:3.2.1"],\
+            ["@dnd-kit/sortable", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:5.1.0"],\
+            ["@dnd-kit/core", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:4.0.3"],\
+            ["@dnd-kit/utilities", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:3.2.1"],\
             ["@types/dnd-kit__core", null],\
             ["@types/react", "npm:18.2.20"],\
             ["react", "npm:18.2.0"],\
@@ -513,10 +513,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:3.2.1", {\
-          "packageLocation": "./.yarn/__virtual__/@dnd-kit-utilities-virtual-5a79d44bbe/0/cache/@dnd-kit-utilities-npm-3.2.1-e4b7ea044f-038fd5cc13.zip/node_modules/@dnd-kit/utilities/",\
+        ["virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:3.2.1", {\
+          "packageLocation": "./.yarn/__virtual__/@dnd-kit-utilities-virtual-5bc898f433/0/cache/@dnd-kit-utilities-npm-3.2.1-e4b7ea044f-038fd5cc13.zip/node_modules/@dnd-kit/utilities/",\
           "packageDependencies": [\
-            ["@dnd-kit/utilities", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:3.2.1"],\
+            ["@dnd-kit/utilities", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:3.2.1"],\
             ["@types/react", "npm:18.2.20"],\
             ["react", "npm:18.2.0"],\
             ["tslib", "npm:2.6.2"]\
@@ -1292,20 +1292,20 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@sonamu-kit/react-sui", [\
-        ["patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A.", {\
-          "packageLocation": "./.yarn/cache/@sonamu-kit-react-sui-patch-d91af013aa-25a9a3da3c.zip/node_modules/@sonamu-kit/react-sui/",\
+        ["npm:0.1.14", {\
+          "packageLocation": "./.yarn/cache/@sonamu-kit-react-sui-npm-0.1.14-f52ba01051-477d707904.zip/node_modules/@sonamu-kit/react-sui/",\
           "packageDependencies": [\
-            ["@sonamu-kit/react-sui", "patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A."]\
+            ["@sonamu-kit/react-sui", "npm:0.1.14"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A.", {\
-          "packageLocation": "./.yarn/__virtual__/@sonamu-kit-react-sui-virtual-07ee80d2cc/0/cache/@sonamu-kit-react-sui-patch-d91af013aa-25a9a3da3c.zip/node_modules/@sonamu-kit/react-sui/",\
+        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.1.14", {\
+          "packageLocation": "./.yarn/__virtual__/@sonamu-kit-react-sui-virtual-9e4cf3e579/0/cache/@sonamu-kit-react-sui-npm-0.1.14-f52ba01051-477d707904.zip/node_modules/@sonamu-kit/react-sui/",\
           "packageDependencies": [\
-            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A."],\
-            ["@dnd-kit/core", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:4.0.3"],\
-            ["@dnd-kit/sortable", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:5.1.0"],\
-            ["@dnd-kit/utilities", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:3.2.1"],\
+            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.1.14"],\
+            ["@dnd-kit/core", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:4.0.3"],\
+            ["@dnd-kit/sortable", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:5.1.0"],\
+            ["@dnd-kit/utilities", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:3.2.1"],\
             ["@types/react", "npm:18.2.20"],\
             ["@types/react-dom", "npm:18.2.7"],\
             ["@types/react-router-dom", null],\
@@ -1324,7 +1324,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-router-dom", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.3.0"],\
             ["react-semantic-ui-datepickers", "npm:2.17.2"],\
             ["semantic-ui-react", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.1.4"],\
-            ["swr", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:1.3.0"],\
+            ["swr", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:1.3.0"],\
             ["zod", "npm:3.22.2"]\
           ],\
           "packagePeers": [\
@@ -1352,7 +1352,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@rollup/plugin-commonjs", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:25.0.4"],\
             ["@rollup/plugin-json", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.0"],\
             ["@rollup/plugin-node-resolve", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:15.1.0"],\
-            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#patch:@sonamu-kit/react-sui@npm%3A0.1.13#./.yarn/patches/@sonamu-kit-react-sui-npm-0.1.13-fcda84163f.patch::version=0.1.13&hash=17a077&locator=%40sonamu-kit%2Fui%40workspace%3A."],\
+            ["@sonamu-kit/react-sui", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.1.14"],\
             ["@types/inflection", "npm:1.13.0"],\
             ["@types/lodash", "npm:4.14.198"],\
             ["@types/node", "npm:20.6.3"],\
@@ -5789,19 +5789,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:1.3.0", {\
-          "packageLocation": "./.yarn/__virtual__/swr-virtual-fd8c987aec/0/cache/swr-npm-1.3.0-3a8f9fadf5-e7a184f0d5.zip/node_modules/swr/",\
-          "packageDependencies": [\
-            ["swr", "virtual:07ee80d2cc9601c1d533721085816488bd8284e773a283d38f012999b5d60f57b232524aa2ca9133d8f839dd38ea347dfefe5ccdf8e11bc1aae1508d0c68bf3f#npm:1.3.0"],\
-            ["@types/react", "npm:18.2.20"],\
-            ["react", "npm:18.2.0"]\
-          ],\
-          "packagePeers": [\
-            "@types/react",\
-            "react"\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2", {\
           "packageLocation": "./.yarn/__virtual__/swr-virtual-3cd282ed72/0/cache/swr-npm-2.2.2-94216f6639-afb3d4824f.zip/node_modules/swr/",\
           "packageDependencies": [\
@@ -5810,6 +5797,19 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["client-only", "npm:0.0.1"],\
             ["react", "npm:18.2.0"],\
             ["use-sync-external-store", "virtual:3cd282ed729d516f7f0660f2b4804b5cf86063f0fdd92393834ed4ba2c174c993ed0b0a45eea042b6e2417a4faa531026850674467686778ee34a245081bebce#npm:1.2.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/react",\
+            "react"\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:1.3.0", {\
+          "packageLocation": "./.yarn/__virtual__/swr-virtual-8e41d5f8e3/0/cache/swr-npm-1.3.0-3a8f9fadf5-e7a184f0d5.zip/node_modules/swr/",\
+          "packageDependencies": [\
+            ["swr", "virtual:9e4cf3e5797fee4e94a1f49df43e03aff5a5880bea22c2f812f42267c6fdfd3d999230b484479e383d629d3d85354a43674661a0219e0708848a1b3f99a88737#npm:1.3.0"],\
+            ["@types/react", "npm:18.2.20"],\
+            ["react", "npm:18.2.0"]\
           ],\
           "packagePeers": [\
             "@types/react",\
