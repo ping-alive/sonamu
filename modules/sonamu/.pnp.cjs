@@ -49,6 +49,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
+            ["node-sql-parser", "npm:5.2.0"],\
             ["prettier", "npm:3.2.5"],\
             ["prompts", "npm:2.4.2"],\
             ["qs", "npm:6.11.0"],\
@@ -170,6 +171,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-node-npm-20.6.3-7542470c42-444a6f1f41.zip/node_modules/@types/node/",\
           "packageDependencies": [\
             ["@types/node", "npm:20.6.3"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@types/pegjs", [\
+        ["npm:0.10.6", {\
+          "packageLocation": "./.yarn/cache/@types-pegjs-npm-0.10.6-32189f2611-be21950471.zip/node_modules/@types/pegjs/",\
+          "packageDependencies": [\
+            ["@types/pegjs", "npm:0.10.6"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -334,6 +344,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/balanced-match-npm-1.0.2-a53c126459-9706c088a2.zip/node_modules/balanced-match/",\
           "packageDependencies": [\
             ["balanced-match", "npm:1.0.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["big-integer", [\
+        ["npm:1.6.52", {\
+          "packageLocation": "./.yarn/cache/big-integer-npm-1.6.52-4bec75720c-6e86885787.zip/node_modules/big-integer/",\
+          "packageDependencies": [\
+            ["big-integer", "npm:1.6.52"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -1014,6 +1033,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["node-sql-parser", [\
+        ["npm:5.2.0", {\
+          "packageLocation": "./.yarn/cache/node-sql-parser-npm-5.2.0-30e8c5f3dd-aa1362d03c.zip/node_modules/node-sql-parser/",\
+          "packageDependencies": [\
+            ["node-sql-parser", "npm:5.2.0"],\
+            ["@types/pegjs", "npm:0.10.6"],\
+            ["big-integer", "npm:1.6.52"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["object-inspect", [\
         ["npm:1.12.2", {\
           "packageLocation": "./.yarn/cache/object-inspect-npm-1.12.2-f125a822c0-a534fc1b85.zip/node_modules/object-inspect/",\
@@ -1373,6 +1403,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
+            ["node-sql-parser", "npm:5.2.0"],\
             ["prettier", "npm:3.2.5"],\
             ["prompts", "npm:2.4.2"],\
             ["qs", "npm:6.11.0"],\
