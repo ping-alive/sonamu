@@ -45,7 +45,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fs-extra", "npm:10.1.0"],\
             ["glob", "npm:8.0.3"],\
             ["inflection", "npm:1.13.2"],\
-            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:2.5.1"],\
+            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
@@ -2028,17 +2028,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["knex", [\
-        ["npm:2.5.1", {\
-          "packageLocation": "./.yarn/cache/knex-npm-2.5.1-b988b29845-4f2da7fda5.zip/node_modules/knex/",\
+        ["npm:3.1.0", {\
+          "packageLocation": "./.yarn/cache/knex-npm-3.1.0-87fad39c7a-3905f8d279.zip/node_modules/knex/",\
           "packageDependencies": [\
-            ["knex", "npm:2.5.1"]\
+            ["knex", "npm:3.1.0"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:2.5.1", {\
-          "packageLocation": "./.yarn/__virtual__/knex-virtual-db13b53dee/0/cache/knex-npm-2.5.1-b988b29845-4f2da7fda5.zip/node_modules/knex/",\
+        ["virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0", {\
+          "packageLocation": "./.yarn/__virtual__/knex-virtual-2165dbcf21/0/cache/knex-npm-3.1.0-87fad39c7a-3905f8d279.zip/node_modules/knex/",\
           "packageDependencies": [\
-            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:2.5.1"],\
+            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0"],\
             ["@types/better-sqlite3", null],\
             ["@types/mysql", null],\
             ["@types/mysql2", null],\
@@ -2059,7 +2059,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["mysql", null],\
             ["mysql2", "npm:3.6.1"],\
             ["pg", null],\
-            ["pg-connection-string", "npm:2.6.1"],\
+            ["pg-connection-string", "npm:2.6.2"],\
             ["pg-native", null],\
             ["rechoir", "npm:0.8.0"],\
             ["resolve-from", "npm:5.0.0"],\
@@ -2588,10 +2588,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["pg-connection-string", [\
-        ["npm:2.6.1", {\
-          "packageLocation": "./.yarn/cache/pg-connection-string-npm-2.6.1-f3f97c91a5-882344a47e.zip/node_modules/pg-connection-string/",\
+        ["npm:2.6.2", {\
+          "packageLocation": "./.yarn/cache/pg-connection-string-npm-2.6.2-43a4a40be5-22265882c3.zip/node_modules/pg-connection-string/",\
           "packageDependencies": [\
-            ["pg-connection-string", "npm:2.6.1"]\
+            ["pg-connection-string", "npm:2.6.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -3126,7 +3126,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fs-extra", "npm:10.1.0"],\
             ["glob", "npm:8.0.3"],\
             ["inflection", "npm:1.13.2"],\
-            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:2.5.1"],\
+            ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\

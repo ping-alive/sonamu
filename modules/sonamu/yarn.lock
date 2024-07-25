@@ -1687,9 +1687,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knex@npm:^2.5.1":
-  version: 2.5.1
-  resolution: "knex@npm:2.5.1"
+"knex@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "knex@npm:3.1.0"
   dependencies:
     colorette: 2.0.19
     commander: ^10.0.0
@@ -1700,7 +1700,7 @@ __metadata:
     getopts: 2.3.0
     interpret: ^2.2.0
     lodash: ^4.17.21
-    pg-connection-string: 2.6.1
+    pg-connection-string: 2.6.2
     rechoir: ^0.8.0
     resolve-from: ^5.0.0
     tarn: ^3.0.2
@@ -1722,7 +1722,7 @@ __metadata:
       optional: true
   bin:
     knex: bin/cli.js
-  checksum: 4f2da7fda51a450de25274eb76034c869de0427c17831dc8472b8116e879d23aae0592c2ce4e9b2a473417867063ac6e7b29021b39b4a4d502335017a5a09278
+  checksum: 3905f8d27960975f7f57f3f488d1ef3ccf47784acc8eb627e8a28cbbe1f296c6879c8ef0cbd9e17e867be80117d305cd948545f3fbd4c74b24c90d2413bbc021
   languageName: node
   linkType: hard
 
@@ -2171,10 +2171,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:2.6.1":
-  version: 2.6.1
-  resolution: "pg-connection-string@npm:2.6.1"
-  checksum: 882344a47e1ecf3a91383e0809bf2ac48facea97fcec0358d6e060e1cbcb8737acde419b4c86f05da4ce4a16634ee50fff1d2bb787d73b52ccbfde697243ad8a
+"pg-connection-string@npm:2.6.2":
+  version: 2.6.2
+  resolution: "pg-connection-string@npm:2.6.2"
+  checksum: 22265882c3b6f2320785378d0760b051294a684989163d5a1cde4009e64e84448d7bf67d9a7b9e7f69440c3ee9e2212f9aa10dd17ad6773f6143c6020cebbcb5
   languageName: node
   linkType: hard
 
@@ -2687,7 +2687,7 @@ __metadata:
     fs-extra: ^10.1.0
     glob: ^8.0.3
     inflection: ^1.13.2
-    knex: ^2.5.1
+    knex: ^3.1.0
     lodash: ^4.17.21
     luxon: ^3.0.3
     mysql2: ^3.6.1
@@ -2702,9 +2702,9 @@ __metadata:
     uuid: ^8.3.2
     zod: ^3.18.0
   peerDependencies:
-    fastify: ^4.5.3
-    knex: ^2.3.0
-    mysql2: ^2.3.3
+    fastify: ^4.23.2
+    knex: ^3.1.0
+    mysql2: ^3.6.1
   bin:
     sonamu: ./dist/bin/cli-wrapper.mjs
   languageName: unknown
