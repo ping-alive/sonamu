@@ -1313,6 +1313,7 @@ __metadata:
     esbuild: ^0.19.2
     fastify: ^4.21.0
     fastify-qs: ^4.0.2
+    fastify-sse-v2: ^4.0.0
     inflection: ^2.0.1
     jotai: ^2.4.2
     knex: ^2.5.1
@@ -2945,6 +2946,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-fifo@npm:^1.0.0":
+  version: 1.3.2
+  resolution: "fast-fifo@npm:1.3.2"
+  checksum: 6bfcba3e4df5af7be3332703b69a7898a8ed7020837ec4395bb341bd96cc3a6d86c3f6071dd98da289618cf2234c70d84b2a6f09a33dd6f988b1ff60d8e54275
+  languageName: node
+  linkType: hard
+
 "fast-glob@npm:^3.2.9":
   version: 3.3.2
   resolution: "fast-glob@npm:3.3.2"
@@ -2995,7 +3003,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify-plugin@npm:^4.0.0, fastify-plugin@npm:^4.5.0":
+"fastify-plugin@npm:^4.0.0, fastify-plugin@npm:^4.3.0, fastify-plugin@npm:^4.5.0":
   version: 4.5.1
   resolution: "fastify-plugin@npm:4.5.1"
   checksum: ddd1b2d470c3acd9397c2617b5842dcf71a6f9a32f05d02be1c12e8d37b8fc03af656900cec38e2afef5e9a3dfe5f994317810f4c5e9960b127b1ca179b56f73
@@ -3009,6 +3017,19 @@ __metadata:
     fastify-plugin: ^4.5.0
     qs: ^6.11.1
   checksum: 6b895afb9dd7e9f2ccf4ec02ff253c0639a913683a206fa515e70a36fb566f97ef08f2675d4fffb7a7a96ff2b337de40a23cc65da8c8195690d2d2bda315f741
+  languageName: node
+  linkType: hard
+
+"fastify-sse-v2@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "fastify-sse-v2@npm:4.0.0"
+  dependencies:
+    fastify-plugin: ^4.3.0
+    it-pushable: ^1.4.2
+    it-to-stream: ^1.0.0
+  peerDependencies:
+    fastify: ">=4"
+  checksum: a2785f1511e7e75d2db73830d9de47e144780bb6804ff5bab772fbd1f2c9e65e358a42dcd410f7c3c1740c8d808dfc1b9da85bd6f7776c4ca9001f58b8c75d7e
   languageName: node
   linkType: hard
 
@@ -3323,6 +3344,13 @@ __metadata:
     has-proto: ^1.0.1
     has-symbols: ^1.0.3
   checksum: 5b61d88552c24b0cf6fa2d1b3bc5459d7306f699de060d76442cce49a4721f52b8c560a33ab392cf5575b7810277d54ded9d4d39a1ea61855619ebc005aa7e5f
+  languageName: node
+  linkType: hard
+
+"get-iterator@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "get-iterator@npm:1.0.2"
+  checksum: 4a819aa91ecb61f4fd507bd62e3468d55f642f06011f944c381a739a21f685c36a37feb9324c8971e7c0fc70ca172066c45874fa2d1dcdf4b4fb8e43f16058c2
   languageName: node
   linkType: hard
 
@@ -4093,6 +4121,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"it-pushable@npm:^1.4.2":
+  version: 1.4.2
+  resolution: "it-pushable@npm:1.4.2"
+  dependencies:
+    fast-fifo: ^1.0.0
+  checksum: 8ad503103614b5bc4f3859c2328df2d4e90f4975617672add4a1a9b8209c3d78b67c69663a4677e80801f788cc1d93b1925e389b112bb732bcb5fc1057224fe4
+  languageName: node
+  linkType: hard
+
+"it-to-stream@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "it-to-stream@npm:1.0.0"
+  dependencies:
+    buffer: ^6.0.3
+    fast-fifo: ^1.0.0
+    get-iterator: ^1.0.2
+    p-defer: ^3.0.0
+    p-fifo: ^1.0.0
+    readable-stream: ^3.6.0
+  checksum: e0c5a3f3c90d4bc52686217865b8fa202f64bd3af493dec0fdacd58b4237166fb68935ff2823ed0a16414ba5becb9a5fb8c98f3ec99584789776d7277c1d129f
+  languageName: node
+  linkType: hard
+
 "jackspeak@npm:^2.0.3":
   version: 2.2.3
   resolution: "jackspeak@npm:2.2.3"
@@ -4257,6 +4308,45 @@ __metadata:
   bin:
     knex: bin/cli.js
   checksum: 4f2da7fda51a450de25274eb76034c869de0427c17831dc8472b8116e879d23aae0592c2ce4e9b2a473417867063ac6e7b29021b39b4a4d502335017a5a09278
+  languageName: node
+  linkType: hard
+
+"knex@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "knex@npm:3.1.0"
+  dependencies:
+    colorette: 2.0.19
+    commander: ^10.0.0
+    debug: 4.3.4
+    escalade: ^3.1.1
+    esm: ^3.2.25
+    get-package-type: ^0.1.0
+    getopts: 2.3.0
+    interpret: ^2.2.0
+    lodash: ^4.17.21
+    pg-connection-string: 2.6.2
+    rechoir: ^0.8.0
+    resolve-from: ^5.0.0
+    tarn: ^3.0.2
+    tildify: 2.0.0
+  peerDependenciesMeta:
+    better-sqlite3:
+      optional: true
+    mysql:
+      optional: true
+    mysql2:
+      optional: true
+    pg:
+      optional: true
+    pg-native:
+      optional: true
+    sqlite3:
+      optional: true
+    tedious:
+      optional: true
+  bin:
+    knex: bin/cli.js
+  checksum: 3905f8d27960975f7f57f3f488d1ef3ccf47784acc8eb627e8a28cbbe1f296c6879c8ef0cbd9e17e867be80117d305cd948545f3fbd4c74b24c90d2413bbc021
   languageName: node
   linkType: hard
 
@@ -5509,6 +5599,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-defer@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "p-defer@npm:3.0.0"
+  checksum: ac3b0976a1c76b67cca1a34e00f7299b0cc230891f820749686aa84f8947326bbe0f8e3b7d9ca511578ee06f0c1a6e0ff68c8e9c325eac455f09d99f91697161
+  languageName: node
+  linkType: hard
+
+"p-fifo@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "p-fifo@npm:1.0.0"
+  dependencies:
+    fast-fifo: ^1.0.0
+    p-defer: ^3.0.0
+  checksum: 4cdce44ff8266351014a460705a804c02760e5b721a018dbef6fae7d25caf83af2e343be58810297473383c1783bb7048388cb5c22938b3f904818531bc44ee7
+  languageName: node
+  linkType: hard
+
 "p-limit@npm:^3.1.0":
   version: 3.1.0
   resolution: "p-limit@npm:3.1.0"
@@ -5651,6 +5758,13 @@ __metadata:
   version: 2.6.1
   resolution: "pg-connection-string@npm:2.6.1"
   checksum: 882344a47e1ecf3a91383e0809bf2ac48facea97fcec0358d6e060e1cbcb8737acde419b4c86f05da4ce4a16634ee50fff1d2bb787d73b52ccbfde697243ad8a
+  languageName: node
+  linkType: hard
+
+"pg-connection-string@npm:2.6.2":
+  version: 2.6.2
+  resolution: "pg-connection-string@npm:2.6.2"
+  checksum: 22265882c3b6f2320785378d0760b051294a684989163d5a1cde4009e64e84448d7bf67d9a7b9e7f69440c3ee9e2212f9aa10dd17ad6773f6143c6020cebbcb5
   languageName: node
   linkType: hard
 
@@ -6708,8 +6822,8 @@ __metadata:
   linkType: hard
 
 "sonamu@npm:^0.2.32":
-  version: 0.2.35
-  resolution: "sonamu@npm:0.2.35"
+  version: 0.2.46
+  resolution: "sonamu@npm:0.2.46"
   dependencies:
     chalk: ^4.1.2
     dotenv: ^16.0.2
@@ -6718,7 +6832,7 @@ __metadata:
     fs-extra: ^10.1.0
     glob: ^8.0.3
     inflection: ^1.13.2
-    knex: ^2.5.1
+    knex: ^3.1.0
     lodash: ^4.17.21
     luxon: ^3.0.3
     mysql2: ^3.6.1
@@ -6729,12 +6843,12 @@ __metadata:
     uuid: ^8.3.2
     zod: ^3.18.0
   peerDependencies:
-    fastify: ^4.5.3
-    knex: ^2.3.0
-    mysql2: ^2.3.3
+    fastify: ^4.23.2
+    knex: ^3.1.0
+    mysql2: ^3.6.1
   bin:
     sonamu: dist/bin/cli.js
-  checksum: 9b8a8e18c5a09aae2280d95df5893809b7bcb9aab7595d10216895ac1502df647d5526f4f49872c11d778112c9f9e3821daf6c172f9b673928dde175433788c2
+  checksum: a39d1e42cc179442597403fe615b13a828d4b195ef42d02ffc675d4d2fccc6a09018285b18c2a92dadc2dbbde0c0f28f330decc4acda03aaf0851ed5fe65b47e
   languageName: node
   linkType: hard
 

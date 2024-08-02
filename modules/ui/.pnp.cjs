@@ -50,6 +50,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
             ["fastify-qs", "npm:4.0.2"],\
+            ["fastify-sse-v2", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.0.0"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
@@ -72,7 +73,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.65.1"],\
             ["semantic-ui-css", "npm:2.5.0"],\
             ["semantic-ui-react", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.1.4"],\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.35"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.46"],\
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
@@ -1732,6 +1733,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["esbuild", "npm:0.19.2"],\
             ["fastify", "npm:4.21.0"],\
             ["fastify-qs", "npm:4.0.2"],\
+            ["fastify-sse-v2", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.0.0"],\
             ["inflection", "npm:2.0.1"],\
             ["jotai", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.4.2"],\
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
@@ -1754,7 +1756,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.65.1"],\
             ["semantic-ui-css", "npm:2.5.0"],\
             ["semantic-ui-react", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.1.4"],\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.35"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.46"],\
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
@@ -3473,6 +3475,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["fast-fifo", [\
+        ["npm:1.3.2", {\
+          "packageLocation": "./.yarn/cache/fast-fifo-npm-1.3.2-391cc25df4-6bfcba3e4d.zip/node_modules/fast-fifo/",\
+          "packageDependencies": [\
+            ["fast-fifo", "npm:1.3.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["fast-glob", [\
         ["npm:3.3.2", {\
           "packageLocation": "./.yarn/cache/fast-glob-npm-3.3.2-0a8cb4f2ca-900e4979f4.zip/node_modules/fast-glob/",\
@@ -3571,6 +3582,31 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fastify-qs", "npm:4.0.2"],\
             ["fastify-plugin", "npm:4.5.1"],\
             ["qs", "npm:6.11.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["fastify-sse-v2", [\
+        ["npm:4.0.0", {\
+          "packageLocation": "./.yarn/cache/fastify-sse-v2-npm-4.0.0-86d61ac67d-a2785f1511.zip/node_modules/fastify-sse-v2/",\
+          "packageDependencies": [\
+            ["fastify-sse-v2", "npm:4.0.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.0.0", {\
+          "packageLocation": "./.yarn/__virtual__/fastify-sse-v2-virtual-a58d6a07e1/0/cache/fastify-sse-v2-npm-4.0.0-86d61ac67d-a2785f1511.zip/node_modules/fastify-sse-v2/",\
+          "packageDependencies": [\
+            ["fastify-sse-v2", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:4.0.0"],\
+            ["@types/fastify", null],\
+            ["fastify", "npm:4.21.0"],\
+            ["fastify-plugin", "npm:4.5.1"],\
+            ["it-pushable", "npm:1.4.2"],\
+            ["it-to-stream", "npm:1.0.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/fastify",\
+            "fastify"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -3869,6 +3905,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["has", "npm:1.0.3"],\
             ["has-proto", "npm:1.0.1"],\
             ["has-symbols", "npm:1.0.3"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["get-iterator", [\
+        ["npm:1.0.2", {\
+          "packageLocation": "./.yarn/cache/get-iterator-npm-1.0.2-5e7d7f186f-4a819aa91e.zip/node_modules/get-iterator/",\
+          "packageDependencies": [\
+            ["get-iterator", "npm:1.0.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -4751,6 +4796,31 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/isexe-npm-2.0.0-b58870bd2e-26bf6c5480.zip/node_modules/isexe/",\
           "packageDependencies": [\
             ["isexe", "npm:2.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["it-pushable", [\
+        ["npm:1.4.2", {\
+          "packageLocation": "./.yarn/cache/it-pushable-npm-1.4.2-efcd9e4c2d-8ad5031036.zip/node_modules/it-pushable/",\
+          "packageDependencies": [\
+            ["it-pushable", "npm:1.4.2"],\
+            ["fast-fifo", "npm:1.3.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["it-to-stream", [\
+        ["npm:1.0.0", {\
+          "packageLocation": "./.yarn/cache/it-to-stream-npm-1.0.0-294db689c3-e0c5a3f3c9.zip/node_modules/it-to-stream/",\
+          "packageDependencies": [\
+            ["it-to-stream", "npm:1.0.0"],\
+            ["buffer", "npm:6.0.3"],\
+            ["fast-fifo", "npm:1.3.2"],\
+            ["get-iterator", "npm:1.0.2"],\
+            ["p-defer", "npm:3.0.0"],\
+            ["p-fifo", "npm:1.0.0"],\
+            ["readable-stream", "npm:3.6.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6331,6 +6401,26 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["p-defer", [\
+        ["npm:3.0.0", {\
+          "packageLocation": "./.yarn/cache/p-defer-npm-3.0.0-5c4fecb489-ac3b0976a1.zip/node_modules/p-defer/",\
+          "packageDependencies": [\
+            ["p-defer", "npm:3.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["p-fifo", [\
+        ["npm:1.0.0", {\
+          "packageLocation": "./.yarn/cache/p-fifo-npm-1.0.0-70306fa5f2-4cdce44ff8.zip/node_modules/p-fifo/",\
+          "packageDependencies": [\
+            ["p-fifo", "npm:1.0.0"],\
+            ["fast-fifo", "npm:1.3.2"],\
+            ["p-defer", "npm:3.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["p-limit", [\
         ["npm:3.1.0", {\
           "packageLocation": "./.yarn/cache/p-limit-npm-3.1.0-05d2ede37f-7c3690c4db.zip/node_modules/p-limit/",\
@@ -7689,17 +7779,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["sonamu", [\
-        ["npm:0.2.35", {\
-          "packageLocation": "./.yarn/cache/sonamu-npm-0.2.35-5938d9f5d8-9b8a8e18c5.zip/node_modules/sonamu/",\
+        ["npm:0.2.46", {\
+          "packageLocation": "./.yarn/cache/sonamu-npm-0.2.46-14ccc4df9b-a39d1e42cc.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "npm:0.2.35"]\
+            ["sonamu", "npm:0.2.46"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.35", {\
-          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-04d646350e/0/cache/sonamu-npm-0.2.35-5938d9f5d8-9b8a8e18c5.zip/node_modules/sonamu/",\
+        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.46", {\
+          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-e967ef67f9/0/cache/sonamu-npm-0.2.46-14ccc4df9b-a39d1e42cc.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.35"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.46"],\
             ["@types/fastify", null],\
             ["@types/knex", null],\
             ["@types/mysql2", null],\
