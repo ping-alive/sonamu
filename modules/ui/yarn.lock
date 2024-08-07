@@ -1335,7 +1335,7 @@ __metadata:
     sass: ^1.65.1
     semantic-ui-css: ^2.5.0
     semantic-ui-react: ^2.1.4
-    sonamu: ^0.2.32
+    sonamu: ^0.2.47
     source-map-support: ^0.5.21
     swr: ^2.2.2
     tsc-watch: ^6.0.4
@@ -6753,9 +6753,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonamu@npm:^0.2.32":
-  version: 0.2.46
-  resolution: "sonamu@npm:0.2.46"
+"sonamu@npm:^0.2.47":
+  version: 0.2.47
+  resolution: "sonamu@npm:0.2.47"
   dependencies:
     chalk: ^4.1.2
     dotenv: ^16.0.2
@@ -6780,7 +6780,7 @@ __metadata:
     mysql2: ^3.6.1
   bin:
     sonamu: dist/bin/cli.js
-  checksum: a39d1e42cc179442597403fe615b13a828d4b195ef42d02ffc675d4d2fccc6a09018285b18c2a92dadc2dbbde0c0f28f330decc4acda03aaf0851ed5fe65b47e
+  checksum: 7afb79cd995caa16a12b73f54a13ed2c9c28c8601a9b9fdab753947d9304b5812f881658b75c8df6c90ba01fc8ace3ddf6f9e81df621109750a7ff0689372da5
   languageName: node
   linkType: hard
 
