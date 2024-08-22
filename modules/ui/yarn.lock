@@ -832,16 +832,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fastify/cookie@npm:^9.3.1":
-  version: 9.4.0
-  resolution: "@fastify/cookie@npm:9.4.0"
-  dependencies:
-    cookie-signature: ^1.1.0
-    fastify-plugin: ^4.0.0
-  checksum: cea22a03cc005468fc217da9d8e22b239e11ef7fea5f51189fa21ad0781baa430d9798eb72d51b74781be512b6b9e60bb2fc174c3e451e91584714cfb44fdfbf
-  languageName: node
-  linkType: hard
-
 "@fastify/cors@npm:^8.4.0":
   version: 8.4.0
   resolution: "@fastify/cors@npm:8.4.0"
@@ -1291,7 +1281,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sonamu-kit/ui@workspace:."
   dependencies:
-    "@fastify/cookie": ^9.3.1
     "@fastify/cors": ^8.4.0
     "@fastify/static": ^6.10.2
     "@rollup/plugin-alias": ^5.0.0
@@ -1535,16 +1524,16 @@ __metadata:
   linkType: hard
 
 "@types/unist@npm:*, @types/unist@npm:^3.0.0":
-  version: 3.0.2
-  resolution: "@types/unist@npm:3.0.2"
-  checksum: 3d04d0be69316e5f14599a0d993a208606c12818cf631fd399243d1dc7a9bd8a3917d6066baa6abc290814afbd744621484756803c80cba892c39cd4b4a85616
+  version: 3.0.3
+  resolution: "@types/unist@npm:3.0.3"
+  checksum: 96e6453da9e075aaef1dc22482463898198acdc1eeb99b465e65e34303e2ec1e3b1ed4469a9118275ec284dc98019f63c3f5d49422f0e4ac707e5ab90fb3b71a
   languageName: node
   linkType: hard
 
 "@types/unist@npm:^2, @types/unist@npm:^2.0.0":
-  version: 2.0.10
-  resolution: "@types/unist@npm:2.0.10"
-  checksum: e2924e18dedf45f68a5c6ccd6015cd62f1643b1b43baac1854efa21ae9e70505db94290434a23da1137d9e31eb58e54ca175982005698ac37300a1c889f6c4aa
+  version: 2.0.11
+  resolution: "@types/unist@npm:2.0.11"
+  checksum: 6d436e832bc35c6dde9f056ac515ebf2b3384a1d7f63679d12358766f9b313368077402e9c1126a14d827f10370a5485e628bf61aa91117cf4fc882423191a4e
   languageName: node
   linkType: hard
 
@@ -2244,13 +2233,6 @@ __metadata:
   version: 1.9.0
   resolution: "convert-source-map@npm:1.9.0"
   checksum: dc55a1f28ddd0e9485ef13565f8f756b342f9a46c4ae18b843fe3c30c675d058d6a4823eff86d472f187b176f0adf51ea7b69ea38be34be4a63cbbf91b0593c8
-  languageName: node
-  linkType: hard
-
-"cookie-signature@npm:^1.1.0":
-  version: 1.2.1
-  resolution: "cookie-signature@npm:1.2.1"
-  checksum: bb464aacac390b5d7d8ead2d6fff7c1c3b7378c7d0250921f48923fe889688e081ab33950448929db5f24d4f9f1506589a7ee1c685de8f12a3fdb30c49667ec5
   languageName: node
   linkType: hard
 
@@ -4540,15 +4522,15 @@ __metadata:
   linkType: hard
 
 "mdast-util-gfm-autolink-literal@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "mdast-util-gfm-autolink-literal@npm:2.0.0"
+  version: 2.0.1
+  resolution: "mdast-util-gfm-autolink-literal@npm:2.0.1"
   dependencies:
     "@types/mdast": ^4.0.0
     ccount: ^2.0.0
     devlop: ^1.0.0
     mdast-util-find-and-replace: ^3.0.0
     micromark-util-character: ^2.0.0
-  checksum: 10322662e5302964bed7c9829c5fd3b0c9899d4f03e63fb8620ab141cf4f3de9e61fcb4b44d46aacc8a23f82bcd5d900980a211825dfe026b1dab5fdbc3e8742
+  checksum: 5630b12e072d7004cb132231c94f667fb5813486779cb0dfb0a196d7ae0e048897a43b0b37e080017adda618ddfcbea1d7bf23c0fa31c87bfc683e0898ea1cfe
   languageName: node
   linkType: hard
 
