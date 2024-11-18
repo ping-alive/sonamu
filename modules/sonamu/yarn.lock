@@ -1726,6 +1726,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kysely@npm:^0.27.4":
+  version: 0.27.4
+  resolution: "kysely@npm:0.27.4"
+  checksum: 16b7e90eb70edb91d15d5f4816e9e84abf7cbaf7125cb04ce4bddb41f965495ec25796918ef1ab678656b49be328147a1d054ad580a390d0a6dd67c7a5793c8b
+  languageName: node
+  linkType: hard
+
 "light-my-request@npm:^5.9.1":
   version: 5.11.0
   resolution: "light-my-request@npm:5.11.0"
@@ -2688,6 +2695,7 @@ __metadata:
     glob: ^8.0.3
     inflection: ^1.13.2
     knex: ^3.1.0
+    kysely: ^0.27.4
     lodash: ^4.17.21
     luxon: ^3.0.3
     mysql2: ^3.6.1
@@ -2705,6 +2713,11 @@ __metadata:
     fastify: ^4.23.2
     knex: ^3.1.0
     mysql2: ^3.6.1
+  peerDependenciesMeta:
+    knex:
+      optional: true
+    kysely:
+      optional: true
   bin:
     sonamu: ./dist/bin/cli-wrapper.mjs
   languageName: unknown

@@ -46,6 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["glob", "npm:8.0.3"],\
             ["inflection", "npm:1.13.2"],\
             ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0"],\
+            ["kysely", "npm:0.27.4"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
@@ -2087,6 +2088,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["kysely", [\
+        ["npm:0.27.4", {\
+          "packageLocation": "./.yarn/cache/kysely-npm-0.27.4-45859daee9-16b7e90eb7.zip/node_modules/kysely/",\
+          "packageDependencies": [\
+            ["kysely", "npm:0.27.4"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["light-my-request", [\
         ["npm:5.11.0", {\
           "packageLocation": "./.yarn/cache/light-my-request-npm-5.11.0-d6f35c2a2c-f639edb466.zip/node_modules/light-my-request/",\
@@ -3127,6 +3137,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["glob", "npm:8.0.3"],\
             ["inflection", "npm:1.13.2"],\
             ["knex", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.1.0"],\
+            ["kysely", "npm:0.27.4"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.0.3"],\
             ["mysql2", "npm:3.6.1"],\
