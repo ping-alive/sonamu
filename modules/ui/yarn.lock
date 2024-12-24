@@ -1324,7 +1324,7 @@ __metadata:
     sass: ^1.65.1
     semantic-ui-css: ^2.5.0
     semantic-ui-react: ^2.1.4
-    sonamu: ^0.2.47
+    sonamu: ^0.4.1
     source-map-support: ^0.5.21
     swr: ^2.2.2
     tsc-watch: ^6.0.4
@@ -4281,6 +4281,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kysely@npm:^0.27.4":
+  version: 0.27.5
+  resolution: "kysely@npm:0.27.5"
+  checksum: 0801e5f46b989beba033ab6a636bd17ab24174d7228eec7a7567eb6fb56e53c3a61f54f39155217adcbe10f030f2b4cdcc17c4dc0b3a6fcd15407eb5e07d3773
+  languageName: node
+  linkType: hard
+
 "light-my-request@npm:^5.9.1":
   version: 5.10.0
   resolution: "light-my-request@npm:5.10.0"
@@ -6735,9 +6742,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sonamu@npm:^0.2.47":
-  version: 0.2.47
-  resolution: "sonamu@npm:0.2.47"
+"sonamu@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "sonamu@npm:0.4.1"
   dependencies:
     chalk: ^4.1.2
     dotenv: ^16.0.2
@@ -6747,6 +6754,7 @@ __metadata:
     glob: ^8.0.3
     inflection: ^1.13.2
     knex: ^3.1.0
+    kysely: ^0.27.4
     lodash: ^4.17.21
     luxon: ^3.0.3
     mysql2: ^3.6.1
@@ -6759,10 +6767,16 @@ __metadata:
   peerDependencies:
     fastify: ^4.23.2
     knex: ^3.1.0
+    kysely: ^0.27.4
     mysql2: ^3.6.1
+  peerDependenciesMeta:
+    knex:
+      optional: true
+    kysely:
+      optional: true
   bin:
-    sonamu: dist/bin/cli.js
-  checksum: 7afb79cd995caa16a12b73f54a13ed2c9c28c8601a9b9fdab753947d9304b5812f881658b75c8df6c90ba01fc8ace3ddf6f9e81df621109750a7ff0689372da5
+    sonamu: dist/bin/cli-wrapper.mjs
+  checksum: 44b2173b98fbbe16b21936d53b6a1c094c43c796de995a68796d322db978df3039649f7db89b76f684bd3d9e3509d7f7527698040968f6ddbbd64bade4587d13
   languageName: node
   linkType: hard
 

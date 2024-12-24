@@ -71,7 +71,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.65.1"],\
             ["semantic-ui-css", "npm:2.5.0"],\
             ["semantic-ui-react", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.1.4"],\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.47"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.4.1"],\
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
@@ -1741,7 +1741,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.65.1"],\
             ["semantic-ui-css", "npm:2.5.0"],\
             ["semantic-ui-react", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.1.4"],\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.47"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.4.1"],\
             ["source-map-support", "npm:0.5.21"],\
             ["swr", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.2.2"],\
             ["tsc-watch", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:6.0.4"],\
@@ -4936,6 +4936,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["kysely", [\
+        ["npm:0.27.5", {\
+          "packageLocation": "./.yarn/cache/kysely-npm-0.27.5-6444a5d3be-0801e5f46b.zip/node_modules/kysely/",\
+          "packageDependencies": [\
+            ["kysely", "npm:0.27.5"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["light-my-request", [\
         ["npm:5.10.0", {\
           "packageLocation": "./.yarn/cache/light-my-request-npm-5.10.0-67fe6e0b79-50450afd15.zip/node_modules/light-my-request/",\
@@ -7667,19 +7676,20 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["sonamu", [\
-        ["npm:0.2.47", {\
-          "packageLocation": "./.yarn/cache/sonamu-npm-0.2.47-1c5e766912-7afb79cd99.zip/node_modules/sonamu/",\
+        ["npm:0.4.1", {\
+          "packageLocation": "./.yarn/cache/sonamu-npm-0.4.1-4ddc487279-44b2173b98.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "npm:0.2.47"]\
+            ["sonamu", "npm:0.4.1"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.47", {\
-          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-01b30577b3/0/cache/sonamu-npm-0.2.47-1c5e766912-7afb79cd99.zip/node_modules/sonamu/",\
+        ["virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.4.1", {\
+          "packageLocation": "./.yarn/__virtual__/sonamu-virtual-2edd647099/0/cache/sonamu-npm-0.4.1-4ddc487279-44b2173b98.zip/node_modules/sonamu/",\
           "packageDependencies": [\
-            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.2.47"],\
+            ["sonamu", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:0.4.1"],\
             ["@types/fastify", null],\
             ["@types/knex", null],\
+            ["@types/kysely", null],\
             ["@types/mysql2", null],\
             ["chalk", "npm:4.1.2"],\
             ["dotenv", "npm:16.3.1"],\
@@ -7689,6 +7699,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["glob", "npm:8.1.0"],\
             ["inflection", "npm:1.13.4"],\
             ["knex", "virtual:2a129cfd741431b9cd2bc92ffb072b95357870274b96c399b35c338e1acaa5ad6c1241c140bd6375450ea3e431823ccfa0c0714d6c48e6fcbad19f6d76355aa2#npm:2.5.1"],\
+            ["kysely", "npm:0.27.5"],\
             ["lodash", "npm:4.17.21"],\
             ["luxon", "npm:3.4.0"],\
             ["mysql2", "npm:3.6.1"],\
@@ -7702,6 +7713,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [\
             "@types/fastify",\
             "@types/knex",\
+            "@types/kysely",\
             "@types/mysql2",\
             "fastify",\
             "knex"\
