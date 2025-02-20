@@ -1039,6 +1039,9 @@ export class Migrator {
               unsigned: true,
             }),
           };
+        } else if (rawType.startsWith("set")) {
+          const [, _rest] = rawType.match(/set\((.*)\)/) ?? [];
+          return { type: "set" };
         }
         throw new Error(`resolve 불가능한 DB컬럼 타입 ${colType} ${rawType}`);
     }

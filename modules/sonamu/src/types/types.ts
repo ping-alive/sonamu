@@ -392,6 +392,7 @@ export type KnexColumnType =
   | "uuid"
   | "json"
   | "float"
+  | "set"
   | "date"
   | "time"
   | "dateTime";

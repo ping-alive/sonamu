@@ -318,7 +318,7 @@ export function propToZodTypeDef(
       return `// ${prop.name}: ${prop.relationType} ${prop.with}`;
     }
   } else {
-    return "// unable to resolve";
+    return `// unable to resolve: ${JSON.stringify(prop)}`;
   }
 
   if ((prop as { unsigned?: boolean }).unsigned) {
