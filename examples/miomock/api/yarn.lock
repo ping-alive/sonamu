@@ -4712,13 +4712,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kysely@npm:^0.27.4":
-  version: 0.27.6
-  resolution: "kysely@npm:0.27.6"
-  checksum: 10c0/81cf668d196be265fa6782afb72d051590ce3f5c72b6456cc4a6eccbdfbac12bb1c938a8ec09b45de995854cfffb9972ce19553df2a4cf13dded3dc6cdddc326
-  languageName: node
-  linkType: hard
-
 "light-my-request@npm:^5.11.0":
   version: 5.14.0
   resolution: "light-my-request@npm:5.14.0"
@@ -7106,7 +7099,6 @@ __metadata:
     glob: "npm:^8.0.3"
     inflection: "npm:^1.13.2"
     knex: "npm:^3.1.0"
-    kysely: "npm:^0.27.4"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.0.3"
     mysql2: "npm:^3.6.1"
@@ -7115,17 +7107,11 @@ __metadata:
     qs: "npm:^6.11.0"
     tsicli: "npm:^1.0.5"
     uuid: "npm:^8.3.2"
-    zod: "npm:^3.18.0"
+    zod: "npm:3.25.76"
   peerDependencies:
     fastify: ^4.23.2
     knex: ^3.1.0
-    kysely: ^0.27.4
     mysql2: ^3.6.1
-  peerDependenciesMeta:
-    knex:
-      optional: true
-    kysely:
-      optional: true
   bin:
     sonamu: ./dist/bin/cli-wrapper.mjs
   languageName: node
@@ -8162,7 +8148,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.18.0, zod@npm:^3.22.2, zod@npm:^3.22.4":
+"zod@npm:3.25.76, zod@npm:^3.22.2, zod@npm:^3.22.4":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
