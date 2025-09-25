@@ -1,7 +1,7 @@
 {
   "$schema": "https://swc.rs/schema.json",
   "module": {
-    "type": "nodenext"
+    "type": "commonjs"
   },
   "jsc": {
     "parser": {
