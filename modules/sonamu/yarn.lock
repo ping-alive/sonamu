@@ -3808,7 +3808,7 @@ __metadata:
     knex: ^3.1.0
     mysql2: ^3.6.1
   bin:
-    sonamu: ./dist/bin/cli-wrapper.mjs
+    sonamu: ./dist/bin/cli-wrapper.js
   languageName: unknown
   linkType: soft
 
