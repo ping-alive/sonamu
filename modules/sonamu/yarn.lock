@@ -3807,6 +3807,8 @@ __metadata:
     fastify: ^4.23.2
     knex: ^3.1.0
     mysql2: ^3.6.1
+    nodemon: 3.1.10
+    source-map-support: ^0.5.21
   bin:
     sonamu: ./dist/bin/cli-wrapper.js
   languageName: unknown
