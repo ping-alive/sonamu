@@ -55,7 +55,7 @@ const RAW_RUNTIME_STATE =
           ["swr", "virtual:9b3e1c383f7d4a4da4a176c5e96a77d4fb34e2fd606ae849550ac90bc3c9bab8d34e59ed3d507a95888b178aedc7b73c086cf12224842bd1281fe5968c9ed2ba#npm:2.3.6"],\
           ["typescript", "patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"],\
           ["vite", "virtual:9b3e1c383f7d4a4da4a176c5e96a77d4fb34e2fd606ae849550ac90bc3c9bab8d34e59ed3d507a95888b178aedc7b73c086cf12224842bd1281fe5968c9ed2ba#npm:7.1.7"],\
-          ["zod", "npm:4.1.11"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -1271,7 +1271,7 @@ const RAW_RUNTIME_STATE =
           ["react-semantic-ui-datepickers", "npm:2.17.2"],\
           ["semantic-ui-react", "virtual:9b3e1c383f7d4a4da4a176c5e96a77d4fb34e2fd606ae849550ac90bc3c9bab8d34e59ed3d507a95888b178aedc7b73c086cf12224842bd1281fe5968c9ed2ba#npm:2.1.5"],\
           ["swr", "virtual:9776d35081d69ec88856e42531c1fceb4ad469624a3d931a7f286a3ac087bfa33d95d81a03ad8eda7a9db4db47edfac533e22f1f16eb8a8e49cb8b8174a11689#npm:1.3.0"],\
-          ["zod", "npm:4.1.11"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "packagePeers": [\
           "@types/react-dom",\
@@ -2702,7 +2702,7 @@ const RAW_RUNTIME_STATE =
           ["swr", "virtual:9b3e1c383f7d4a4da4a176c5e96a77d4fb34e2fd606ae849550ac90bc3c9bab8d34e59ed3d507a95888b178aedc7b73c086cf12224842bd1281fe5968c9ed2ba#npm:2.3.6"],\
           ["typescript", "patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"],\
           ["vite", "virtual:9b3e1c383f7d4a4da4a176c5e96a77d4fb34e2fd606ae849550ac90bc3c9bab8d34e59ed3d507a95888b178aedc7b73c086cf12224842bd1281fe5968c9ed2ba#npm:7.1.7"],\
-          ["zod", "npm:4.1.11"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -3753,10 +3753,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["zod", [\
-      ["npm:4.1.11", {\
-        "packageLocation": "../../../../../.yarn/berry/cache/zod-npm-4.1.11-8982bf09c6-10c0.zip/node_modules/zod/",\
+      ["npm:3.25.76", {\
+        "packageLocation": "../../../../../.yarn/berry/cache/zod-npm-3.25.76-7de26333f8-10c0.zip/node_modules/zod/",\
         "packageDependencies": [\
-          ["zod", "npm:4.1.11"]\
+          ["zod", "npm:3.25.76"]\
         ],\
         "linkType": "HARD"\
       }]\
