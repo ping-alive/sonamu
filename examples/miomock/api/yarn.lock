@@ -5664,7 +5664,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.7.2"
     mysql2: "npm:^3.14.5"
-    nodemon: "npm:^3.1.10"
     prettier: "npm:^3.6.2"
     sonamu: "npm:^0.4.12"
     source-map-support: "npm:^0.5.21"
@@ -7094,8 +7093,10 @@ __metadata:
     minimatch: "npm:^10.0.3"
     mysql2: "npm:^3.6.1"
     node-sql-parser: "npm:^5.2.0"
+    nodemon: "npm:^3.1.10"
     prompts: "npm:^2.4.2"
     qs: "npm:^6.11.0"
+    source-map-support: "npm:^0.5.21"
     tsicli: "npm:^1.0.5"
     uuid: "npm:^8.3.2"
     zod: "npm:3.25.76"
@@ -7103,6 +7104,8 @@ __metadata:
     fastify: ^4.23.2
     knex: ^3.1.0
     mysql2: ^3.6.1
+    nodemon: 3.1.10
+    source-map-support: ^0.5.21
   bin:
     sonamu: ./dist/bin/cli-wrapper.js
   languageName: node
