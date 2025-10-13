@@ -1259,6 +1259,7 @@ const RAW_RUNTIME_STATE =
           ["@types/zod", null],\
           ["axios", "npm:0.27.2"],\
           ["classnames", "npm:2.5.1"],\
+          ["date-fns", "npm:4.1.0"],\
           ["fast-deep-equal", "npm:3.1.3"],\
           ["inflection", "npm:1.13.4"],\
           ["lodash-es", "npm:4.17.21"],\
@@ -1766,6 +1767,13 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.4"],\
           ["date-fns", "npm:2.30.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.1.0", {\
+        "packageLocation": "../../../../../.yarn/berry/cache/date-fns-npm-4.1.0-764604ee0f-10c0.zip/node_modules/date-fns/",\
+        "packageDependencies": [\
+          ["date-fns", "npm:4.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\

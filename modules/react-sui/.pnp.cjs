@@ -40,6 +40,7 @@ const RAW_RUNTIME_STATE =
           ["@vitejs/plugin-react", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:4.2.1"],\
           ["axios", "npm:0.27.2"],\
           ["classnames", "npm:2.3.2"],\
+          ["date-fns", "npm:4.1.0"],\
           ["fast-deep-equal", "npm:3.1.3"],\
           ["inflection", "npm:1.13.4"],\
           ["lodash-es", "npm:4.17.21"],\
@@ -1188,6 +1189,7 @@ const RAW_RUNTIME_STATE =
           ["@vitejs/plugin-react", "virtual:a80d7a5227239e37bdf0a892b3a24ed6b47a4553ce9fd1f136101ad58a89d041280bc727dff217c1e5f2b8d1e09fabe8ecf33f6445cd9a3246d4881ce83fa50b#npm:4.2.1"],\
           ["axios", "npm:0.27.2"],\
           ["classnames", "npm:2.3.2"],\
+          ["date-fns", "npm:4.1.0"],\
           ["fast-deep-equal", "npm:3.1.3"],\
           ["inflection", "npm:1.13.4"],\
           ["lodash-es", "npm:4.17.21"],\
@@ -1843,6 +1845,13 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["date-fns", "npm:2.30.0"],\
           ["@babel/runtime", "npm:7.23.6"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.1.0", {\
+        "packageLocation": "../../../../.yarn/berry/cache/date-fns-npm-4.1.0-764604ee0f-10c0.zip/node_modules/date-fns/",\
+        "packageDependencies": [\
+          ["date-fns", "npm:4.1.0"]\
         ],\
         "linkType": "HARD"\
       }]\
