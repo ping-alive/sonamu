@@ -41,6 +41,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
             ["chokidar", "npm:4.0.3"],\
+            ["date-fns", "npm:4.1.0"],\
+            ["date-fns-tz", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.2.0"],\
             ["dotenv", "npm:16.0.2"],\
             ["fast-deep-equal", "npm:3.1.3"],\
             ["fastify", "npm:4.23.2"],\
@@ -1869,6 +1871,37 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["path-key", "npm:3.1.1"],\
             ["shebang-command", "npm:2.0.0"],\
             ["which", "npm:2.0.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["date-fns", [\
+        ["npm:4.1.0", {\
+          "packageLocation": "./.yarn/cache/date-fns-npm-4.1.0-764604ee0f-fb681b242c.zip/node_modules/date-fns/",\
+          "packageDependencies": [\
+            ["date-fns", "npm:4.1.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["date-fns-tz", [\
+        ["npm:3.2.0", {\
+          "packageLocation": "./.yarn/cache/date-fns-tz-npm-3.2.0-fe150c9e17-c49289a394.zip/node_modules/date-fns-tz/",\
+          "packageDependencies": [\
+            ["date-fns-tz", "npm:3.2.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.2.0", {\
+          "packageLocation": "./.yarn/__virtual__/date-fns-tz-virtual-1876ebdde0/0/cache/date-fns-tz-npm-3.2.0-fe150c9e17-c49289a394.zip/node_modules/date-fns-tz/",\
+          "packageDependencies": [\
+            ["date-fns-tz", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.2.0"],\
+            ["@types/date-fns", null],\
+            ["date-fns", "npm:4.1.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/date-fns",\
+            "date-fns"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -4329,6 +4362,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
             ["chokidar", "npm:4.0.3"],\
+            ["date-fns", "npm:4.1.0"],\
+            ["date-fns-tz", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:3.2.0"],\
             ["dotenv", "npm:16.0.2"],\
             ["fast-deep-equal", "npm:3.1.3"],\
             ["fastify", "npm:4.23.2"],\
