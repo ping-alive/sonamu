@@ -39,7 +39,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/prettier", "npm:3.0.0"],\
             ["@types/prompts", "npm:2.4.0"],\
             ["@types/qs", "npm:6.9.7"],\
-            ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
             ["chokidar", "npm:4.0.3"],\
             ["date-fns", "npm:4.1.0"],\
@@ -63,7 +62,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["tsicli", "npm:1.0.5"],\
             ["tsup", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:8.1.0"],\
             ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"],\
-            ["uuid", "npm:8.3.2"],\
             ["zod", "npm:3.25.76"]\
           ],\
           "linkType": "SOFT"\
@@ -1133,15 +1131,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.7-4a3e6ca0d0-7fd6f9c250.zip/node_modules/@types/qs/",\
           "packageDependencies": [\
             ["@types/qs", "npm:6.9.7"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["@types/uuid", [\
-        ["npm:8.3.4", {\
-          "packageLocation": "./.yarn/cache/@types-uuid-npm-8.3.4-7547f4402c-6f11f3ff70.zip/node_modules/@types/uuid/",\
-          "packageDependencies": [\
-            ["@types/uuid", "npm:8.3.4"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -4544,7 +4533,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/prettier", "npm:3.0.0"],\
             ["@types/prompts", "npm:2.4.0"],\
             ["@types/qs", "npm:6.9.7"],\
-            ["@types/uuid", "npm:8.3.4"],\
             ["chalk", "npm:4.1.2"],\
             ["chokidar", "npm:4.0.3"],\
             ["date-fns", "npm:4.1.0"],\
@@ -4568,7 +4556,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["tsicli", "npm:1.0.5"],\
             ["tsup", "virtual:4f0316c76b384a8421df072012eb837a6300b9a5670bff4df3dc0e7311fb233135ca0caeff48740f668ff78d6cdf9585f6ec35f903c4a6fa6a5853ed2b050977#npm:8.1.0"],\
             ["typescript", "patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"],\
-            ["uuid", "npm:8.3.2"],\
             ["zod", "npm:3.25.76"]\
           ],\
           "linkType": "SOFT"\
@@ -5113,15 +5100,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["uri-js", "npm:4.4.1"],\
             ["punycode", "npm:2.1.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["uuid", [\
-        ["npm:8.3.2", {\
-          "packageLocation": "./.yarn/cache/uuid-npm-8.3.2-eca0baba53-5575a8a75c.zip/node_modules/uuid/",\
-          "packageDependencies": [\
-            ["uuid", "npm:8.3.2"]\
           ],\
           "linkType": "HARD"\
         }]\
