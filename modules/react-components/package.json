@@ -47,7 +47,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint src",
-    "test": "vitest run --config vitest.config.ts tests/date-input.test.tsx",
+    "test": "vitest run --config vitest.config.ts",
     "test:exports": "node --test tests/package-exports.test.mjs",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",

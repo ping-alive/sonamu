@@ -32,6 +32,7 @@ const buttonVariantsConfig = {
     // button sizes
     // - 아이콘만 있는 버튼: 정사각형 (px-0 aspect-square)
     // - 텍스트 / 아이콘 + 텍스트 버튼: 일반 패딩 유지 (가로 자동 확장)
+    // `:only-child`는 텍스트 노드를 세지 않으므로, Button이 글자를 span으로 감싸 이 판정을 맞춥니다(wrapText).
     xs: "h-6 px-2 py-1 text-xs [&_svg]:size-3 has-[>svg]:px-1.5 has-[>svg:only-child]:px-0 has-[>svg:only-child]:aspect-square",
     sm: "h-7 px-3 py-1.5 text-xs [&_svg]:size-3.5 has-[>svg]:px-2 has-[>svg:only-child]:px-0 has-[>svg:only-child]:aspect-square",
     default:
@@ -59,6 +60,46 @@ type ButtonProps = React.ComponentProps<"button"> &
     loading?: boolean;
   };
 
+/**
+ * 이어진 글자(문자열·숫자) 자식을 span 하나로 묶습니다.
+ *
+ * 크기 variant는 `has-[>svg:only-child]`로 아이콘만 있는 버튼을 알아보는데, CSS `:only-child`는 텍스트 노드를 세지 않습니다.
+ * 그래서 `<Button><PlusIcon />추가</Button>`이 아이콘 전용으로 판정되어 패딩 0·정사각형이 됩니다.
+ * 글자를 요소로 만들어 주면 판정이 맞습니다.
+ *
+ * - 이어진 글자를 하나로 묶는 것은 브라우저가 이어진 텍스트 노드를 flex 항목 하나로 다루는 것과 같게 하려는 것입니다.
+ *   조각마다 감싸면 `{label}{count}` 사이에 gap이 끼어듭니다.
+ * - 공백뿐인 글자는 flex 컨테이너가 원래 그리지 않으므로 버립니다. 감싸면 그 자리에 gap이 생깁니다.
+ * - 이미 `<span>`으로 감싼 글자는 요소라서 건드리지 않습니다.
+ *
+ * shadcn처럼 자동 판정을 없애고 `size="icon"`을 두는 쪽이 더 단순하지만, 아이콘 전용 버튼을 쓰는 모든 앱을 고쳐야 하는
+ * 깨지는 변경이라 이 방법을 택했습니다(SON-554).
+ */
+function wrapText(children: React.ReactNode): React.ReactNode {
+  const nodes: React.ReactNode[] = [];
+  let text: React.ReactNode[] = [];
+  const flush = () => {
+    const joined = text.join("");
+    if (joined.trim() !== "") {
+      nodes.push(<span key={`text-${nodes.length}`}>{joined}</span>);
+    }
+    text = [];
+  };
+
+  for (const child of React.Children.toArray(children)) {
+    // toArray가 null·boolean을 걸러 내므로, 요소가 아니면 글자(문자열·숫자)입니다.
+    if (React.isValidElement(child)) {
+      flush();
+      nodes.push(child);
+    } else {
+      text.push(child);
+    }
+  }
+  flush();
+
+  return nodes;
+}
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     { className, variant, size, icon, children, loading, disabled, asChild = false, ...props },
@@ -69,6 +110,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const iconOnly = React.Children.count(children) === 0;
 
     const leadingIcon = loading ? <LoaderIcon className="animate-spin" /> : icon;
+    // asChild는 Slot에 자식 하나를 그대로 넘겨야 하므로 감싸지 않습니다.
+    const content = asChild ? children : wrapText(children);
 
     return (
       <Comp
@@ -83,10 +126,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : leadingIcon ? (
           <span className="contents">
             {leadingIcon}
-            {children}
+            {content}
           </span>
         ) : (
-          children
+          content
         )}
       </Comp>
     );
