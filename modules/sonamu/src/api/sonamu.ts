@@ -1979,6 +1979,7 @@ class SonamuClass {
       return;
     }
 
+    // route() 시점에 실행되는 onRoute 훅이 설치되도록 플러그인 등록 완료를 기다립니다.
     // compress 플러그인은 다른 플러그인보다 먼저 등록되어야 합니다.
     if (plugins.compress) {
       const compressPlugin = (await import("@fastify/compress")).default;
@@ -1992,9 +1993,9 @@ class SonamuClass {
       };
 
       if (plugins.compress === true) {
-        server.register(compressPlugin, defaultOptions);
+        await server.register(compressPlugin, defaultOptions);
       } else {
-        server.register(compressPlugin, {
+        await server.register(compressPlugin, {
           ...defaultOptions,
           ...plugins.compress,
         });
@@ -2018,9 +2019,9 @@ class SonamuClass {
       if (!option) return;
 
       if (option === true) {
-        server.register((await import(pluginName)).default);
+        await server.register((await import(pluginName)).default);
       } else {
-        server.register((await import(pluginName)).default, option);
+        await server.register((await import(pluginName)).default, option);
       }
     };
 
