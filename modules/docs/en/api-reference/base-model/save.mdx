@@ -102,7 +102,7 @@ const [id] = await UserModel.save([{ email: "john@example.com", name: "John" }])
 console.log("Created ID:", id); // 123
 
 // UPDATE
-const [id] = await UserModel.save([{ id: 123, name: "John Smith" }]);
+const [id] = await UserModel.save([{ id: 123, email: "john@example.com", name: "John Smith" }]);
 console.log("Updated ID:", id); // 123
 
 // Multiple records
@@ -294,7 +294,7 @@ await UserRoleModel.save([
       }) {
         // Check email duplicate
         const existing = await UserModel.findOne("A", {
-          email: params.email
+          sonamuFilter: { email: params.email }
         });
 
         if (existing) {
@@ -558,7 +558,7 @@ await UserModel.save([
 async createUser(params: UserSaveParams) {
   // Check email duplicate
   const existing = await UserModel.findOne("A", {
-    email: params.email
+    sonamuFilter: { email: params.email }
   });
 
   if (existing) {

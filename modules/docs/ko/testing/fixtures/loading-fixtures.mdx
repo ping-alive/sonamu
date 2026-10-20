@@ -264,20 +264,19 @@ import { createFixtureLoader } from "sonamu/test";
 export const loadFixtures = createFixtureLoader({
   // 프로덕션에서 가져온 실제 데이터 사용
   realUser01: async () => {
-    const userModel = new UserModel();
     // ID 1은 이미 fixture DB에 있다고 가정
-    const { user } = await userModel.getUser("C", 1);
+    const user = await UserModel.findById("A", 1);
     return user;
   },
 
   // 테스트용 새 데이터 생성
   testUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "test",
       email: "test@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
     return user;
   },
 });

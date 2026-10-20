@@ -118,25 +118,61 @@ pnpm add pgvector voyageai
 
 <Tabs>
   <Tab title="Ubuntu/Debian" icon="ubuntu">
-    ```bash # PostgreSQL 개발 패키지 sudo apt-get install postgresql-server-dev-14 # pgvector 빌드
-    및 설치 git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git cd pgvector make sudo
-    make install ```
+    ```bash
+    # PostgreSQL 개발 패키지
+    sudo apt-get install postgresql-server-dev-14
+
+    # pgvector 빌드 및 설치
+    git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git
+    cd pgvector
+    make
+    sudo make install
+    ```
+
   </Tab>
 
-<Tab title="macOS (Homebrew)" icon="apple">
-  ```bash brew install pgvector ``` 가장 간단합니다. Homebrew가 자동으로 설치합니다.
-</Tab>
+  <Tab title="macOS (Homebrew)" icon="apple">
+    ```bash
+    brew install pgvector
+    ```
 
-<Tab title="Docker" icon="docker">
-  공식 이미지 사용 (권장): ```yaml # docker-compose.yml services: postgres: image:
-  pgvector/pgvector:pg14 environment: POSTGRES_PASSWORD: postgres ports: - "5432:5432" volumes: -
-  pgdata:/var/lib/postgresql/data volumes: pgdata: ``` 이미 pgvector가 포함되어 있습니다.
-</Tab>
+    가장 간단합니다. Homebrew가 자동으로 설치합니다.
+
+  </Tab>
+
+  <Tab title="Docker" icon="docker">
+    공식 이미지 사용 (권장):
+
+    ```yaml
+    # docker-compose.yml
+    services:
+      postgres:
+        image: pgvector/pgvector:pg14
+        environment:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+        volumes:
+          - pgdata:/var/lib/postgresql/data
+
+    volumes:
+      pgdata:
+    ```
+
+    이미 pgvector가 포함되어 있습니다.
+
+  </Tab>
 
   <Tab title="Cloud (Supabase/Neon)" icon="cloud">
-    **Supabase**, **Neon**, **Railway** 등은 pgvector를 기본 제공합니다. 확장만 활성화하면 됩니다:
-    ```sql CREATE EXTENSION IF NOT EXISTS vector; ``` Sonamu 프로젝트를 클라우드에 배포할 때 좋은
-    선택입니다.
+    **Supabase**, **Neon**, **Railway** 등은 pgvector를 기본 제공합니다.
+
+    확장만 활성화하면 됩니다:
+    ```sql
+    CREATE EXTENSION IF NOT EXISTS vector;
+    ```
+
+    Sonamu 프로젝트를 클라우드에 배포할 때 좋은 선택입니다.
+
   </Tab>
 </Tabs>
 
@@ -221,7 +257,7 @@ export async function down(knex: Knex): Promise<void> {
 **실행**:
 
 ```bash
-pnpm sonamu migrate:latest
+pnpm sonamu migrate run --execute
 ```
 
 ### 4. 처음부터 벡터 테이블 만들기
@@ -295,10 +331,10 @@ CREATE TABLE docs (
 ```typescript
 // ❌ 나쁜 순서
 await knex.raw("CREATE INDEX ..."); // 먼저 인덱스
-await DocumentModel.saveOne({ embedding }); // 나중에 데이터
+await DocumentModel.save([{ embedding }]); // 나중에 데이터
 
 // ✅ 좋은 순서
-await DocumentModel.saveOne({ embedding }); // 먼저 데이터 (100개 이상)
+await DocumentModel.save([{ embedding }]); // 먼저 데이터 (100개 이상)
 await knex.raw("CREATE INDEX ..."); // 나중에 인덱스
 ```
 
@@ -359,12 +395,12 @@ CREATE TABLE knowledge_base (
 
 ```typescript
 // 임베딩 생성 후 저장 (embeddings.mdx 참고)
-await KnowledgeBaseModel.saveOne({
+await KnowledgeBaseModel.save([{
   title: "Sonamu 시작하기",
   content: "...",
   category: "documentation",
   embedding: [...],  // 1024개 숫자 배열
-});
+}]);
 ```
 
 **3단계: 인덱스 생성 (데이터 100개 이상 쌓인 후)**
@@ -419,14 +455,14 @@ class KnowledgeBaseModelClass extends BaseModelClass {
 4. **Migration으로 관리**: 직접 SQL보다 Migration 사용
 
    ```bash
-   pnpm sonamu migrate:latest
+   pnpm sonamu migrate run --execute
    ```
 
 5. **확장 버전**: 0.5.1 이상 권장
    ```sql
    SELECT vector_version();
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

@@ -345,7 +345,7 @@ export const config: SonamuConfig = {
   compress: true,  // Compress only this API
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -464,7 +464,7 @@ curl -H "Accept-Encoding: gzip" http://localhost:3000/api/products -v
 4. **brotli only supported over HTTPS**: Use gzip over HTTP
 
 5. **Watch for decompression errors**: Verify that the client decompresses properly
-   </Warning>
+</Warning>
 
 ## Performance Impact
 
@@ -486,7 +486,7 @@ curl -H "Accept-Encoding: gzip" http://localhost:3000/api/products -v
 // Recommended: Large JSON responses
 @api({ compress: true })
 async getLargeData() {
-  return this.findMany({ num: 1000 });  // 100KB+
+  return this.findMany("A", { num: 1000 });  // 100KB+
 }
 
 // Not recommended: Small responses

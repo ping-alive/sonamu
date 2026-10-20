@@ -354,13 +354,12 @@ const outOfRange = Naite.get("user:create").at(10);
 
 ```typescript
 test("게시글 생성 흐름", async () => {
-  const postModel = new PostModel();
-
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Test Post",
     content: "Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // 전체 흐름 확인
   const allLogs = Naite.get("post:create:*").result();

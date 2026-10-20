@@ -118,7 +118,7 @@ async deleteUsers(userIds: number[]) {
 async deleteInactiveUsers() {
   // 비활성 사용자 조회
   const { rows } = await UserModel.findMany("A", {
-    status: "inactive",
+    sonamuFilter: { status: "inactive" },
     num: 0
   });
   
@@ -161,8 +161,8 @@ class UserFrame {
     // 관련 데이터 삭제
     await PostModel.del(
       (await PostModel.findMany("A", { 
-        user_id: userId, 
-        num: 0 
+        sonamuFilter: { user_id: userId },
+        num: 0
       })).rows.map(p => p.id)
     );
     
@@ -230,7 +230,7 @@ class PostFrame {
         
         // 사용자의 모든 댓글 삭제
         const { rows: comments } = await CommentModel.findMany("A", {
-          user_id: user.id,
+          sonamuFilter: { user_id: user.id },
           num: 0
         });
         if (comments.length > 0) {
@@ -239,7 +239,7 @@ class PostFrame {
         
         // 사용자의 모든 게시물 삭제
         const { rows: posts } = await PostModel.findMany("A", {
-          user_id: user.id,
+          sonamuFilter: { user_id: user.id },
           num: 0
         });
         if (posts.length > 0) {
@@ -276,7 +276,7 @@ class PostFrame {
         
         // 게시물의 모든 좋아요 삭제
         const { rows: likes } = await LikeModel.findMany("A", {
-          post_id: postId,
+          sonamuFilter: { post_id: postId },
           num: 0
         });
         if (likes.length > 0) {
@@ -285,7 +285,7 @@ class PostFrame {
         
         // 게시물의 모든 댓글 삭제
         const { rows: comments } = await CommentModel.findMany("A", {
-          post_id: postId,
+          sonamuFilter: { post_id: postId },
           num: 0
         });
         if (comments.length > 0) {
@@ -516,7 +516,7 @@ try {
 async deleteUserWithPosts(userId: number) {
   // 먼저 게시물 삭제
   const { rows: posts } = await PostModel.findMany("A", {
-    user_id: userId,
+    sonamuFilter: { user_id: userId },
     num: 0
   });
   
@@ -719,7 +719,7 @@ await UserModel.save([
   <Card 
     title="외래 키" 
     icon="link" 
-    href="/ko/database/migrations/foreign-keys"
+    href="/ko/core-concepts/entity/relations#cascade-vs-restrict"
   >
     외래 키 제약조건 설정
   </Card>

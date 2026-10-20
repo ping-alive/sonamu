@@ -265,7 +265,7 @@ graph TD
 
 <Info>
   **When Syncer Runs** - **Auto**: During file changes while `pnpm dev` is running (HMR) -
-  **Manual**: When `pnpm sync` command is executed
+  **Manual**: When `pnpm sonamu sync` command is executed
 </Info>
 
 ### 5. API Layer (REST API)
@@ -349,27 +349,39 @@ Let's see how Sonamu works during actual development:
 </Step>
 
 <Step title="2. Migration (Migration tab)">
-  ```sql CREATE TABLE posts ( id SERIAL PRIMARY KEY, title VARCHAR(255) NOT NULL ); ``` **On
-  execution:** - Table created in database
+```sql
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL
+);
+```
+
+**On execution:**
+
+- Table created in database
 </Step>
 
 <Step title="3. Write Model (manual or scaffolding)">
 ```typescript
-@api({ httpMethod: "GET" })
-async findById(id: number): Promise<Post> {
-  return await this.getPuri("r").table("posts").where("id", id).first();
+@api({ httpMethod: "GET", clients: ["axios", "tanstack-query"], resourceName: "Post" })
+async findById<T extends PostSubsetKey>(subset: T, id: number): Promise<PostSubsetMapping[T]> {
+  const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+  if (!rows[0]) {
+    throw new NotFoundException(`Post not found: ${id}`);
+  }
+  return rows[0];
 }
 ```
 **Auto-generated on save:**
-- REST API: `GET /api/posts/:id`
-- `PostService.ts` (frontend)
+- REST API: `GET /api/post/findById?subset=A&id=1`
+- `PostService.getPost` / `PostService.usePost` in `services.generated.ts` (frontend)
 - `sonamu.generated.http` updated
 </Step>
 
 <Step title="4. Frontend Usage">
 ```tsx
 // Type-safe API call
-const post = await PostService.findById(1);
+const post = await PostService.getPost("A", 1);
 console.log(post.title); // ✅ Type checked
 console.log(post.invalid); // ❌ Compile error!
 ```
@@ -597,9 +609,9 @@ console.log(user.eamil); // Compile error! Discovered immediately ✅
 // ✅ Sonamu automatically maintains consistent code style
 
 // All Services follow the same pattern
-UserService.findById(...)
-PostService.findById(...)
-CommentService.findById(...)
+UserService.getUser(...)
+PostService.getPost(...)
+CommentService.getComment(...)
 
 // All types have the same structure
 type User = z.infer<typeof UserBaseSchema>;
@@ -618,7 +630,7 @@ Sonamu's powerful features come with some constraints:
 2. **Cannot modify auto-generated files**: Manual modifications get overwritten
 3. **Entity-centric design required**: Must follow the Sonamu way
 4. **Complex queries**: Very complex cases may require Raw SQL
-   </Warning>
+</Warning>
 
 <Check>
 **But the advantages far outweigh**

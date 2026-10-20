@@ -566,7 +566,7 @@ class ApiModelClass extends BaseModelClass<
     await this.checkRateLimit();
 
     const rdb = this.getPuri("r");
-    return rdb.table("items").select("*");
+    return rdb.table("items").selectAll();
   }
 }
 ```
@@ -603,7 +603,7 @@ class I18nModelClass extends BaseModelClass<
     const language = this.getLanguage();
     const rdb = this.getPuri("r");
 
-    const messages = await rdb.table("translations").where("language", language).select("*");
+    const messages = await rdb.table("translations").where("language", language).selectAll();
 
     return messages.reduce(
       (acc, msg) => {
@@ -713,7 +713,7 @@ class UserModelClass extends BaseModelClass<
   <Card
     title="Error Handling"
     icon="triangle-exclamation"
-    href="/en/api-development/error-handling"
+    href="/en/api-development/validation/error-handling"
   >
     API error handling
   </Card>

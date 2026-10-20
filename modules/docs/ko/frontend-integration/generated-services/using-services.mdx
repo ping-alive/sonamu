@@ -509,7 +509,7 @@ export async function getUser(subset: string, id: number) {
 // Backend Model
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async getUser(subset: string, id: number) {
+  async getUser<T extends UserSubsetKey>(subset: T, id: number) {
     // Context는 HTTP 요청에서 자동 파싱됨
     const context = Sonamu.getContext();
 
@@ -522,7 +522,7 @@ class UserModelClass extends BaseModelClass {
       throw new UnauthorizedException("로그인이 필요합니다");
     }
 
-    return this.findById(id, [subset]);
+    return this.findById(subset, id);
   }
 }
 ```
@@ -559,17 +559,16 @@ flowchart LR
 // Server Component
 export default async function UserPage() {
   // ✅ 서버에서 Model을 직접 인스턴스화
-  const userModel = new UserModel();
-  const user = await userModel.findById(1, ["A"]);
+  const user = await UserModel.findById("A", 1);
 
   return <div>{user.username}</div>;
 }
 ```
 
-**왜 `new UserModel()`을 해도 되나요?**
+**export된 인스턴스를 공유해도 되나요?**
 
-- Model은 **무상태**이므로 매번 새로 생성해도 안전
-- Constructor에서 초기화하는 것은 Subset 쿼리뿐
+- Model 파일은 인스턴스 하나를 export합니다(`export const UserModel = new UserModelClass()`). `UserModel`은 클래스가 아니므로 `new UserModel()`을 호출하지 마세요
+- Model은 **무상태**이며, Constructor는 Subset 쿼리만 등록합니다
 - Context는 `Sonamu.getContext()`로 동적으로 가져옴
 
 ```typescript
@@ -580,22 +579,25 @@ class UserModelClass extends BaseModelClass {
     // 상태를 저장하지 않음
   }
 
-  async findById(id: number, subsets: string[]) {
-    // Context는 여기서 동적으로 가져옴
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    // 필요할 때 Context를 동적으로 가져옴
     const context = Sonamu.getContext();
 
     // DB 쿼리 실행
-    return this.getPuri("r").table("users").where("id", id).first();
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    // ...
   }
 }
+
+export const UserModel = new UserModelClass();
 ```
 
 #### Service vs Model 비교
 
 | 항목          | Service (Frontend)      | Model (Backend)        |
 | ------------- | ----------------------- | ---------------------- |
-| **타입**      | Namespace               | Class Instance         |
-| **호출 방식** | `UserService.getUser()` | `userModel.findById()` |
+| **타입**      | Namespace               | 싱글톤 인스턴스        |
+| **호출 방식** | `UserService.getUser()` | `UserModel.findById()` |
 | **상태**      | 무상태 (Stateless)      | 무상태 (Stateless)     |
 | **의존성**    | 없음                    | BaseModelClass         |
 | **Context**   | HTTP 헤더로 전달        | `Sonamu.getContext()`  |
@@ -604,7 +606,7 @@ class UserModelClass extends BaseModelClass {
 
 <Warning>
   **Model 인스턴스 생성 시 주의사항**: 1. **Server Components에서만**: Client Component에서는
-  Model을 import할 수 없음 2. **매번 생성**: 싱글톤 패턴 사용 불필요 (무상태이므로) 3. **Context
+  Model을 import할 수 없음 2. **export된 인스턴스 사용**: 인스턴스를 만들지 말고 `UserModel`을 import 3. **Context
   접근**: `Sonamu.getContext()`는 요청 컨텍스트에서 자동으로 가져옴
 </Warning>
 

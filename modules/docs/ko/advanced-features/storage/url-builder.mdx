@@ -317,7 +317,7 @@ https://bucket.s3.amazonaws.com/private/doc.pdf?X-Amz-Algorithm=...&X-Amz-Expire
 - 보안이 필요한 다운로드
 - 시간 제한 액세스
 
-### UploadedFile의 signedUrl
+### BufferedFile의 signedUrl
 
 ```typescript
 @upload()
@@ -624,7 +624,7 @@ const signedUrl = await disk.getSignedUrl("private/doc.pdf", {
    // 버전 파라미터 추가로 캐시 무효화
    generateURL: (key) => `/uploads/${key}?v=${Date.now()}`;
    ```
-   </Warning>
+</Warning>
 
 ## CloudFront 설정
 

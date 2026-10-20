@@ -246,14 +246,15 @@ class UserModelClass extends BaseModelClass {
   // Use database store
   @cache({ store: "database", ttl: "1h" })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Use config store
   @cache({ store: "config", ttl: "forever" })
   async getSettings() {
-    return this.findOne(["key", "settings"]);
+    return this.findOne("A", { sonamuFilter: { key: "settings" } });
   }
 }
 ```
@@ -509,7 +510,7 @@ private async initializeCache(config: CacheConfig | undefined, forTesting: boole
      .useBus(drivers.redisBus({ connection: redis }));
    ```
 
-   </Warning>
+</Warning>
 
 ## Next Steps
 

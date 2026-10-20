@@ -240,7 +240,7 @@ Using compression with caching achieves the best performance.
   compress: CompressPresets.aggressive,  // Compression
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -308,7 +308,7 @@ sequenceDiagram
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -330,7 +330,7 @@ When using compression, responses differ based on `Accept-Encoding`:
   compress: true,
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -433,7 +433,7 @@ import { performance } from "perf_hooks";
 })
 async getData() {
   const start = performance.now();
-  const data = await this.findMany({});
+  const data = await this.findMany("A", {});
   const dbTime = performance.now() - start;
 
   console.log(`DB: ${dbTime.toFixed(2)}ms`);
@@ -603,7 +603,7 @@ ab -n 1000 -c 10 http://localhost:3000/api/products
    }
    ```
 
-   </Warning>
+</Warning>
 
 ## Performance Benchmark
 

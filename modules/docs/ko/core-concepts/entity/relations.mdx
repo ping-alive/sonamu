@@ -512,7 +512,7 @@ const result = await this.executeSubsetQuery({ subset: "A", qb, params });
 ```typescript title="HasMany 필터"
 // Subset에 포함된 HasMany는 필터링 불가
 // 대신 별도 쿼리 사용
-const user = await UserModel.findById(userId);
+const user = await UserModel.findById("A", userId);
 const activePosts = await PostModel.getPuri("r").from("posts")
   .where("user_id", userId)
   .where("status", "active");
@@ -583,13 +583,13 @@ Join Table은 Sonamu가 자동으로 관리하므로 별도의 Entity를 만들 
   <Card title="Enums" icon="hashtag" href="/ko/core-concepts/entity/enums">
     Enum 타입 정의하고 활용하기
   </Card>
-  <Card title="Subset" icon="layer-group" href="/ko/core-concepts/model/using-subsets">
+  <Card title="Subset" icon="layer-group" href="/ko/database/subsets/using-subsets">
     Subset을 활용한 타입 안전한 쿼리
   </Card>
   <Card title="Puri Query Builder" icon="database" href="/ko/database/puri/basic-queries">
     Relation을 활용한 쿼리 작성하기
   </Card>
-  <Card title="Performance" icon="gauge-high" href="/ko/database/performance/query-optimization">
+  <Card title="Performance" icon="gauge-high" href="/ko/troubleshooting/performance/query-optimization">
     Relation 쿼리 최적화하기
   </Card>
 </CardGroup>

@@ -51,15 +51,15 @@ type UserList = {
 
 ```typescript
 // ✅ Subset A: 전체 정보
-const admin = await UserModel.findById(1, ["A"]);
+const admin = await UserModel.findById("A", 1);
 // 타입: { id, created_at, email, username, role, bio, ... }
 
 // ✅ Subset P: 프로필 + 관계
-const profile = await UserModel.findById(1, ["P"]);
+const profile = await UserModel.findById("P", 1);
 // 타입: { id, username, employee: { salary, department: { name } } }
 
 // ✅ Subset SS: 요약 정보
-const summary = await UserModel.findById(1, ["SS"]);
+const summary = await UserModel.findById("SS", 1);
 // 타입: { id, username, role, last_login_at }
 ```
 
@@ -184,10 +184,7 @@ flowchart LR
 ```typescript
 // GET /users - 사용자 목록
 async list(params: UserListParams) {
-  const users = await UserModel.findMany({
-    listParams: params,
-    subsetKey: "L",  // List Subset 사용
-  });
+  const { rows: users } = await UserModel.findMany("L", params); // List Subset 사용
 
   // 타입: { id: number; username: string; role: string; created_at: Date }[]
   return users.map(user => ({
@@ -204,7 +201,7 @@ async list(params: UserListParams) {
 ```typescript
 // GET /users/:id/profile
 async getProfile(userId: number) {
-  const user = await UserModel.findById(userId, ["P"]);
+  const user = await UserModel.findOne("P", { id: userId });
 
   if (!user) {
     throw new Error("User not found");
@@ -234,7 +231,7 @@ async getProfile(userId: number) {
 
 ```typescript
 // ✅ Subset 사용
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 // - 타입 안전
 // - 코드 재사용
 // - 유지보수 쉬움

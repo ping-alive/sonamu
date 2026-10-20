@@ -25,7 +25,7 @@ export class PaymentFailedException extends SoException {
 ```typescript
 @api()
 async processPayment(orderId: number, paymentMethod: string) {
-  const order = await OrderModel.findById(orderId);
+  const order = await OrderModel.findById("A", orderId);
 
   try {
     const result = await paymentGateway.charge(
@@ -122,7 +122,7 @@ async createOrder(
   items: Array<{ productId: number; quantity: number }>
 ) {
   for (const item of items) {
-    const product = await ProductModel.findById(item.productId);
+    const product = await ProductModel.findOne("A", { id: item.productId });
 
     if (!product) {
       throw new NotFoundException(
@@ -175,7 +175,7 @@ export class InvalidStateTransitionException extends SoException {
 ```typescript
 @api()
 async cancelOrder(orderId: number) {
-  const order = await OrderModel.findById(orderId);
+  const order = await OrderModel.findOne("A", { id: orderId });
 
   if (!order) {
     throw new NotFoundException("Order not found");
@@ -196,7 +196,7 @@ async cancelOrder(orderId: number) {
     );
   }
 
-  return this.update(orderId, { status: "cancelled" });
+  return this.getPuri("w").table("orders").where("id", orderId).update({ status: "cancelled" });
 }
 
 private getCancellationBlockReason(status: string): string {
@@ -397,7 +397,7 @@ async createUser(username: string, password: string, email: string) {
     );
   }
 
-  return this.create({ username, password, email });
+  return this.save([{ username, password, email }]);
 }
 ```
 
@@ -575,4 +575,4 @@ export class InsufficientStockException extends SoException {
 - [SoException](/en/api-reference/exceptions/sonamu-error)
 - [BadRequestException](/en/api-reference/exceptions/bad-request-error)
 - [UnauthorizedException](/en/api-reference/exceptions/unauthorized-error)
-- [Error Handling](/en/api-development/error-handling)
+- [Error Handling](/en/api-development/validation/error-handling)

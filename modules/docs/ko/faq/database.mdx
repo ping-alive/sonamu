@@ -124,7 +124,7 @@ const result = await UserModel.getPuri("r")
 ```typescript
 const activeUserIds = UserModel.getPuri("r").table("users").select("id").where({ status: "active" });
 
-const orders = await OrderModel.getPuri("r").table("orders").select("*").whereIn("user_id", activeUserIds);
+const orders = await OrderModel.getPuri("r").table("orders").selectAll().whereIn("user_id", activeUserIds);
 ```
 
 **FROM 서브쿼리:**
@@ -172,15 +172,17 @@ pnpm sonamu migrate status
 **3. 마이그레이션 실행**
 
 ```bash
-# 개발 환경
-pnpm sonamu migrate run
+# 개발 환경 (--execute가 없으면 run은 dry-run)
+pnpm sonamu migrate run --execute
 
-# 프로덕션
-NODE_ENV=production pnpm sonamu migrate run
+# 프로덕션 (사유 필수)
+NODE_ENV=production pnpm sonamu migrate run --execute --force-reason CHANGE_REQUEST
 
-# 롤백
-pnpm sonamu migrate rollback
+# 대상을 명시해 마지막으로 적용된 batch 롤백
+pnpm sonamu migrate rollback development --execute
 ```
+
+변경 명령은 TTY에서 확인을 요청합니다. 비대화형 실행에서는 `--confirm`을 추가하세요.
 
 </Accordion>
 
@@ -189,35 +191,16 @@ pnpm sonamu migrate rollback
 Shadow DB를 사용하여 테스트합니다:
 
 ```bash
-# Shadow DB 테스트
-pnpm sonamu migrate shadow-test
-# → 임시 Shadow DB 생성
-# → Migration 적용
+# test 데이터베이스 복사본으로 Shadow DB 테스트 (`fixture`도 가능)
+pnpm sonamu migrate shadow test --execute
+# → 대상 데이터베이스로 임시 Shadow DB 생성
+# → 대기 중인 Migration 적용
 # → 성공 확인
 # → Shadow DB 삭제
 ```
 
-Shadow DB 설정:
-
-```typescript
-// sonamu.config.ts
-export default {
-  database: {
-    connections: {
-      main: {
-        // ...
-      },
-      shadow: {
-        host: "localhost",
-        port: 5432,
-        database: "myapp_shadow",
-        user: "postgres",
-        password: "password",
-      },
-    },
-  },
-} satisfies SonamuConfig;
-```
+별도 커넥션 설정은 필요 없습니다. Shadow DB는 설정된 `test` 또는 `fixture` 데이터베이스를 템플릿으로
+`<database>__migration_shadow` 이름으로 생성됩니다. Shadow 대상은 `test`와 `fixture`만 지원합니다.
 
 </Accordion>
 
@@ -412,7 +395,7 @@ OR 조건이 필요하면 `whereGroup()`의 `orWhereJsonSupersetOf()`를 사용�
 // metadata ? 'discount'
 const productsWithDiscount = await ProductModel.getPuri("r")
   .table("products")
-  .select("*")
+  .selectAll()
   .whereJsonKeyExists("products.metadata", "discount");
 ```
 
@@ -459,7 +442,7 @@ const laptops = await query.select({
 ```typescript
 const posts = await PostModel.getPuri("r")
   .table("posts")
-  .select("*")
+  .selectAll()
   .whereTsSearch("search_vector", "typescript database", {
     parser: "websearch_to_tsquery",
     config: "simple",
@@ -539,7 +522,7 @@ class UserModel extends BaseModelClass {
 ## 관련 문서
 
 - [Puri 쿼리 빌더](/ko/database/puri/basic-queries)
-- [Puri 고급 쿼리](/ko/database/puri/advanced-queries)
-- [마이그레이션 기본](/ko/database/migrations/migration-basics)
+- [Puri 고급 쿼리](/ko/database/puri/advanced-patterns)
+- [마이그레이션 기본](/ko/database/migrations/how-migrations-work)
 - [마이그레이션 전략](/ko/database/migrations/migration-strategies)
 - [트랜잭션](/ko/database/transactions)

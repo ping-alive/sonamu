@@ -508,23 +508,26 @@ function EmployeeAssignForm() {
 
 ### Using with Forms
 
-Example using with Sonamu's `useForm`.
+Example using Sonamu's `useTypeForm`. `register()` returns `value`, `onValueChange`, and `error`, which `IdAsyncSelect` accepts directly.
 
 ```typescript
-import { useForm } from "@sonamu-kit/react-components";
+import { IdAsyncSelect, useTypeForm } from "@sonamu-kit/react-components";
+import { z } from "zod";
 import { CompanyAsyncIdConfig } from "@/services/services.generated";
 
+const CompanySelectParams = z.object({
+  company_id: z.number().nullable(),
+});
+
 function CompanySelectForm() {
-  const form = useForm({
-    defaultValues: { company_id: null as number | null },
-  });
+  const { register } = useTypeForm(CompanySelectParams, { company_id: null });
 
   return (
     <IdAsyncSelect
       config={CompanyAsyncIdConfig}
       subset="A"
       displayField="name"
-      {...form.register("company_id")}
+      {...register("company_id")}
       placeholder="Search for a company"
     />
   );

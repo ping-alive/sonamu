@@ -113,28 +113,28 @@ class DocumentModelClass extends BaseModelClass {
     );
 
     // 3. 부모 문서 생성
-    const parent = await this.saveOne({
+    const [parentId] = await this.save([{
       title: file.filename,
       content,
       chunk_count: chunks.length,
-    });
+    }]);
 
     // 4. 청크별 저장
     const savedChunks = await Promise.all(
       chunks.map((chunk, i) =>
-        DocumentChunkModel.saveOne({
-          parent_id: parent.id,
+        DocumentChunkModel.save([{
+          parent_id: parentId,
           chunk_index: chunk.index,
           content: chunk.text,
           start_offset: chunk.startOffset,
           end_offset: chunk.endOffset,
           embedding: embeddings[i].embedding,
-        }),
+        }]),
       ),
     );
 
     return {
-      parentId: parent.id,
+      parentId,
       chunkCount: chunks.length,
     };
   }
@@ -273,11 +273,11 @@ private async uploadSimple(title: string, content: string) {
     'document'
   );
 
-  return await this.saveOne({
+  return await this.save([{
     title,
     content,
     embedding: embedding.embedding,
-  });
+  }]);
 }
 
 private async uploadWithChunking(title: string, content: string) {
@@ -471,7 +471,7 @@ if (chunking.needsChunking(content)) {
    start_offset: chunk.startOffset,
    end_offset: chunk.endOffset,
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

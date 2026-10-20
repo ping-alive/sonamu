@@ -12,14 +12,18 @@ import { api } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
-    return this.getPuri("r").table("users").where("id", id).first();
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    if (!rows[0]) {
+      throw new NotFoundException(`User not found: ${id}`);
+    }
+    return rows[0];
   }
 }
 ```
 
 **생성되는 것들**:
-- HTTP 엔드포인트: `GET /user/findById?id=1`
+- HTTP 엔드포인트: `GET /user/findById?subset=A&id=1`
 - TypeScript 클라이언트 함수
 - TanStack Query hooks (선택 시)
 - API 문서
@@ -58,10 +62,10 @@ HTTP 메서드를 지정합니다.
 <CodeGroup>
 ```typescript title="GET - 조회"
 @api({ httpMethod: "GET" })
-async findById(id: number): Promise<User> {
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
   // ...
 }
-// 엔드포인트: GET /user/findById?id=1
+// 엔드포인트: GET /user/findById?subset=A&id=1
 ```
 
 ```typescript title="POST - 생성/수정"
@@ -88,7 +92,7 @@ async del(ids: number[]): Promise<number> {
 
 ```typescript
 @api()  // httpMethod: "GET"
-async findById(id: number) { }
+async findById<T extends UserSubsetKey>(subset: T, id: number) { }
 ```
 </Tip>
 
@@ -111,7 +115,7 @@ async findById(id: number) { }
   httpMethod: "GET",
   clients: ["axios", "tanstack-query"],
 })
-async findById(id: number): Promise<User> {
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
   // ...
 }
 ```
@@ -139,37 +143,58 @@ async uploadAvatar(): Promise<{ url: string }> {
 
 <CodeGroup>
 ```typescript title="axios"
-// services/user.service.ts
-export async function findUserById(id: number): Promise<User> {
-  const { data } = await axios.get("/user/findById", { params: { id } });
-  return data;
+// services/services.generated.ts (findById에 resourceName: "User" 지정)
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
+  }
 }
 ```
 
 ```typescript title="tanstack-query"
-// hooks/useUserQuery.ts
-export function useUserById(id: number) {
-  return useQuery({
-    queryKey: ["user", "findById", id],
-    queryFn: () => findUserById(id),
-  });
+// services/services.generated.ts
+export namespace UserService {
+  export const getUserQueryOptions = <T extends UserSubsetKey>(subset: T, id: number) =>
+    queryOptions({
+      queryKey: ["User", "getUser", subset, id],
+      queryFn: () => getUser(subset, id),
+    });
+
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) =>
+    useRefreshable(
+      useQuery({
+        ...getUserQueryOptions(subset, id),
+        ...options,
+      }),
+    );
 }
 
 // 사용
-const { data: user } = useUserById(1);
+const { data: user } = UserService.useUser("A", 1);
 ```
 
 ```typescript title="tanstack-mutation"
-// hooks/useUserMutation.ts
-export function useSaveUser() {
-  return useMutation({
-    mutationFn: (params: UserSaveParams[]) => saveUser(params),
-  });
+// services/services.generated.ts
+export namespace UserService {
+  export const useSaveMutation = () =>
+    useMutation({
+      mutationFn: (params: { spa: UserSaveParams[] }) => UserService.save(params.spa),
+    });
 }
 
 // 사용
-const { mutate } = useSaveUser();
-mutate([{ email: "test@test.com" }]);
+const { mutate } = UserService.useSaveMutation();
+mutate({ spa: [{ email: "test@test.com" }] });
 ```
 </CodeGroup>
 
@@ -184,12 +209,12 @@ mutate([{ email: "test@test.com" }]);
 ```typescript
 // 기본 경로
 @api({ httpMethod: "GET" })
-async findById(id: number) { }
+async findById<T extends UserSubsetKey>(subset: T, id: number) { }
 // 경로: /user/findById
 
 // 커스텀 경로
 @api({ httpMethod: "GET", path: "/api/v1/users/:id" })
-async findById(id: number) { }
+async findById<T extends UserSubsetKey>(subset: T, id: number) { }
 // 경로: /api/v1/users/:id
 ```
 
@@ -212,7 +237,7 @@ async findComment(postId: number, commentId: number): Promise<Comment> {
 
 ### resourceName
 
-API 리소스 이름을 지정합니다. TanStack Query의 queryKey에 사용됩니다.
+API 리소스 이름을 지정합니다. 생성되는 클라이언트 이름을 결정합니다. 함수는 `get{resourceName}`, TanStack Query hook은 `use{resourceName}`입니다.
 
 ```typescript
 @api({
@@ -220,17 +245,34 @@ API 리소스 이름을 지정합니다. TanStack Query의 queryKey에 사용됩
   resourceName: "Users",  // 복수형
   clients: ["tanstack-query"],
 })
-async findMany(): Promise<User[]> {
+async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+  subset: T,
+  rawParams?: LP,
+): Promise<ListResult<LP, UserSubsetMapping[T]>> {
   // ...
 }
 
 // 생성되는 Query Hook
-export function useUsers() {
-  return useQuery({
-    queryKey: ["Users", "findMany"],  // resourceName 사용
-    queryFn: () => findManyUsers(),
+export const getUsersQueryOptions = <T extends UserSubsetKey, LP extends UserListParams>(
+  subset: T,
+  rawParams?: LP,
+) =>
+  queryOptions({
+    queryKey: ["User", "getUsers", subset, rawParams],
+    queryFn: () => getUsers(subset, rawParams),
   });
-}
+
+export const useUsers = <T extends UserSubsetKey, LP extends UserListParams>(
+  subset: T,
+  rawParams?: LP,
+  options?: { enabled?: boolean },
+) =>
+  useRefreshable(
+    useQuery({
+      ...getUsersQueryOptions(subset, rawParams),
+      ...options,
+    }),
+  );
 ```
 
 **네이밍 가이드**:
@@ -442,7 +484,7 @@ async uploadAvatar(): Promise<{ url: string }> {
 | `limits.fileSize` | 최대 파일 크기 (bytes) | `10 * 1024 * 1024` (10MB) |
 | `limits.files` | 최대 파일 개수 | `5` |
 
-단일/다중 파일 여부는 파라미터 타입(`UploadedFile` vs `UploadedFile[]`)으로 결정됩니다.
+단일/다중 파일 처리는 Context의 `bufferedFiles`에 어떻게 접근하는지로 결정됩니다.
 
 ## API 경로 규칙
 
@@ -478,16 +520,12 @@ async uploadAvatar(): Promise<{ url: string }> {
   clients: ["axios", "tanstack-query"],
   resourceName: "User",
 })
-async findById(id: number): Promise<User> {
-  const user = await this.getPuri("r")
-    .where("id", id)
-    .first();
-    
-  if (!user) {
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
+  const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+  if (!rows[0]) {
     throw new NotFoundException(`User not found: ${id}`);
   }
-  
-  return user;
+  return rows[0];
 }
 ```
 
@@ -498,18 +536,18 @@ async findById(id: number): Promise<User> {
   resourceName: "Users",
   cacheControl: { maxAge: 30 },
 })
-async findMany(params: UserListParams): Promise<ListResult<UserListParams, User>> {
-  const { qb } = this.getSubsetQueries("A");
-  
+async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+  subset: T,
+  rawParams?: LP,
+): Promise<ListResult<LP, UserSubsetMapping[T]>> {
+  const params = { num: 24, page: 1, ...rawParams };
+  const { qb } = this.getSubsetQueries(subset);
+
   if (params.keyword) {
-    qb.whereLike("email", `%${params.keyword}%`);
+    qb.where("users.email", "like", `%${params.keyword}%`);
   }
-  
-  return this.executeSubsetQuery({
-    subset: "A",
-    qb,
-    params,
-  });
+
+  return this.executeSubsetQuery({ subset, qb, params });
 }
 ```
 
@@ -523,7 +561,7 @@ async save(params: UserSaveParams[]): Promise<number[]> {
   for (const param of params) {
     const existing = await this.getPuri("r")
       .where("email", param.email)
-      .whereNot("id", param.id ?? 0)
+      .where("id", "!=", param.id ?? 0)
       .first();
       
     if (existing) {
@@ -582,7 +620,7 @@ async me(): Promise<User | null> {
     return null;
   }
   
-  return this.findById(context.user.id);
+  return this.findById("A", context.user.id);
 }
 ```
 
@@ -592,13 +630,13 @@ async me(): Promise<User | null> {
   <Card title="Business Logic" icon="lightbulb" href="/ko/core-concepts/model/business-logic">
     비즈니스 로직 작성 패턴 배우기
   </Card>
-  <Card title="Stream Decorator" icon="broadcast-tower" href="/ko/api-development/streaming/sse">
+  <Card title="Stream Decorator" icon="broadcast-tower" href="/ko/api-reference/decorators/stream">
     @stream으로 실시간 이벤트 전송하기
   </Card>
-  <Card title="Upload Decorator" icon="upload" href="/ko/api-development/file-upload/handling-uploads">
+  <Card title="Upload Decorator" icon="upload" href="/ko/api-reference/decorators/upload">
     @upload로 파일 업로드 처리하기
   </Card>
-  <Card title="Guards" icon="shield" href="/ko/api-development/authentication/guards">
+  <Card title="Guards" icon="shield" href="/ko/api-development/authentication/protected-routes">
     인증과 권한 검사 구현하기
   </Card>
 </CardGroup>

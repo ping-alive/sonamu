@@ -243,14 +243,12 @@ ROLLBACK;
 
 ```typescript
 test("create user", async () => {
-  const userModel = new UserModel();
-  await userModel.create({ username: "john" });
+  await UserModel.save([{ username: "john" }]);
   // Auto deleted after test
 });
 
 test("next test has clean DB", async () => {
-  const userModel = new UserModel();
-  const { users } = await userModel.getUsers();
+  const { rows: users } = await UserModel.findMany("A", {});
   expect(users).toHaveLength(0); // john from previous test is gone
 });
 ```

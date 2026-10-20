@@ -101,7 +101,7 @@ class UserModel extends BaseModelClass {
     const users = await query
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     // 전체 개수
     const [{ count }] = await rdb.table("users").count({ count: "*" });
@@ -145,7 +145,7 @@ class UserModel extends BaseModelClass {
       .table("posts")
       .where("user_id", id)
       .orderBy("created_at", "desc")
-      .select("*");
+      .selectAll();
 
     return {
       user,
@@ -656,7 +656,7 @@ class UserModel extends BaseModelClass {
   <Card title="@api 데코레이터" icon="at" href="/ko/api-development/creating-apis/api-decorator">
     기본 사용법
   </Card>
-  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/error-handling">
+  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/validation/error-handling">
     API 에러 핸들링
   </Card>
 </CardGroup>

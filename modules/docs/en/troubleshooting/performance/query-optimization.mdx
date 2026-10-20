@@ -11,7 +11,7 @@ This guide covers effective query optimization methods using the Puri query buil
 
 ```typescript
 // Bad example - selecting all columns
-const users = await UserModel.getPuri("r").table("users").select("*");
+const users = await UserModel.getPuri("r").table("users").selectAll();
 
 // Good example - selecting only required columns
 const users = await UserModel.getPuri("r").table("users").select("id", "email", "name");
@@ -160,7 +160,7 @@ const result = await OrderModel.getPuri("r").table("orders")
 
 ```typescript
 // Inefficient - fetch all rows then count
-const users = await UserModel.getPuri("r").table("users").select("*");
+const users = await UserModel.getPuri("r").table("users").selectAll();
 const count = users.length;
 
 // Efficient - count in DB
@@ -278,7 +278,7 @@ const users = await UserModel.getPuri("r").table("users")
 async function getUsersWithDetails(userIds: number[]) {
   const results = [];
   for (const id of userIds) {
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findById("A", id);
     results.push(user);
   }
   return results;
@@ -286,7 +286,7 @@ async function getUsersWithDetails(userIds: number[]) {
 
 // Good - query all at once with whereIn
 async function getUsersWithDetails(userIds: number[]) {
-  return UserModel.getPuri("r").table("users").select("*").whereIn("id", userIds);
+  return UserModel.getPuri("r").table("users").selectAll().whereIn("id", userIds);
 }
 ```
 
@@ -396,7 +396,7 @@ class UserModelClass extends BaseModelClass {
   async findActiveUsers() {
     const start = Date.now();
 
-    const users = await this.getPuri("r").table("users").select("*").where({ status: "active" });
+    const users = await this.getPuri("r").table("users").selectAll().where({ status: "active" });
 
     const duration = Date.now() - start;
 

@@ -330,9 +330,8 @@ export const sendBulkEmail = workflow(
     // Fetch users
     const users = await step
       .define({ name: "fetch_users" }, async () => {
-        return await UserModel.findMany({
-          wq: [["id", "IN", input.userIds]],
-        });
+        const { rows } = await UserModel.findMany("A", { id: input.userIds });
+        return rows;
       })
       .run();
 
@@ -598,7 +597,7 @@ export async function handleExternalApiRecovery() {
      })
      .run();
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

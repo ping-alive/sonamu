@@ -18,7 +18,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.aggressive, // Aggressive compression for this API only
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -35,7 +35,7 @@ class ProductModelClass extends BaseModelClass {
       compress: CompressPresets.aggressive,
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -60,7 +60,7 @@ class ProductModelClass extends BaseModelClass {
       compress: true,
     })
     async getLargeData() {
-      return this.findMany({ num: 10000 });
+      return this.findMany("A", { num: 10000 });
     }
     ```
 
@@ -78,7 +78,7 @@ class ProductModelClass extends BaseModelClass {
       }
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -165,7 +165,7 @@ class DataModelClass extends BaseModelClass {
     compress: true,
   })
   async getLargeData() {
-    return this.findMany({ num: 10000 });
+    return this.findMany("A", { num: 10000 });
   }
 
   // No compression (default)
@@ -208,7 +208,7 @@ async getStatus() {
   compress: CompressPresets.default,  // Default compression
 })
 async getList() {
-  return this.findMany({ num: 100 });
+  return this.findMany("A", { num: 100 });
 }
 ```
 
@@ -222,7 +222,7 @@ async getList() {
   compress: CompressPresets.aggressive,  // Aggressive compression
 })
 async exportData() {
-  return this.findMany({ num: 10000 });
+  return this.findMany("A", { num: 10000 });
 }
 ```
 
@@ -238,7 +238,7 @@ async exportData() {
   compress: CompressPresets.default,
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -284,7 +284,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.default,
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 20 });
+    return this.findMany("A", { page, num: 20 });
   }
 
   // Product detail: default compression
@@ -292,8 +292,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     compress: CompressPresets.default,
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Bulk data export: aggressive compression
@@ -302,7 +303,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.aggressive,
   })
   async exportAll() {
-    return this.findMany({ num: 100000 });
+    return this.findMany("A", { num: 100000 });
   }
 
   // Product image: no compression
@@ -320,7 +321,7 @@ class ProductModelClass extends BaseModelClass {
     compress: false,
   })
   async create(data: ProductSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -454,7 +455,7 @@ While you cannot control compression at runtime based on conditions, you can sep
   compress: CompressPresets.aggressive,
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 
 // Uncompressed version (for special clients)
@@ -464,7 +465,7 @@ async getProducts() {
   compress: false,
 })
 async getProductsRaw() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -487,7 +488,7 @@ plugins: {
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -501,7 +502,7 @@ To verify compression effectiveness:
   compress: CompressPresets.default,
 })
 async getData() {
-  const data = this.findMany({});
+  const data = await this.findMany("A", {});
 
   // Log size in development environment
   if (process.env.NODE_ENV === 'development') {
@@ -570,7 +571,7 @@ Size:
    ```typescript
    // Server CPU usage monitoring needed when using aggressive
    ```
-   </Warning>
+</Warning>
 
 ## Debugging Tips
 

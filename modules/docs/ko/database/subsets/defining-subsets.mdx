@@ -26,10 +26,6 @@ Subset은 Entity JSON 파일의 `subsets` 객체에서 정의합니다.
 }
 ```
 
-<Frame>
-  <img src="/images/subsets/subset-definition-example.png" alt="Entity에서 Subset 정의 예시" />
-</Frame>
-
 ### Subset 정의 규칙
 
 <CodeGroup>
@@ -181,10 +177,6 @@ flowchart LR
 }
 ```
 
-<Frame>
-  <img src="/images/subsets/subset-naming-convention.png" alt="Subset 명명 규칙" />
-</Frame>
-
 ### 도메인별 Subset
 
 ```json
@@ -273,10 +265,6 @@ flowchart LR
   조회만 P Subset 사용 (관계 포함)
 </Info>
 
-<Frame>
-  <img src="/images/subsets/subset-performance-comparison.png" alt="Subset 성능 비교" />
-</Frame>
-
 ## 실전 예제
 
 ### User Entity
@@ -315,12 +303,12 @@ Subset을 정의하면 자동으로 타입이 생성됩니다:
 
 ```bash
 # Subset 변경 후 코드 재생성
-pnpm sonamu generate
+pnpm sonamu sync
 ```
 
 <Warning>
-  Subset을 변경하면 **반드시 Code Generation**을 실행해야 합니다. 그래야 TypeScript 타입이
-  업데이트됩니다.
+  Subset을 변경하면 **반드시 `pnpm sonamu sync`**를 실행해야 합니다(개발 서버는 Entity 파일이 바뀌면
+  자동으로 실행합니다). 그래야 TypeScript 타입이 업데이트됩니다.
 </Warning>
 
 **생성되는 타입**:
@@ -364,10 +352,6 @@ export type UserSubsetMapping = {
 };
 ```
 
-<Frame>
-  <img src="/images/subsets/generated-types.png" alt="생성된 TypeScript 타입" />
-</Frame>
-
 ## 다음 단계
 
 <CardGroup cols={2}>
@@ -383,7 +367,7 @@ export type UserSubsetMapping = {
   <Card
     title="Code Generation"
     icon="wand-magic-sparkles"
-    href="/ko/auto-generation/code-generation"
+    href="/ko/core-concepts/auto-generation/what-gets-generated"
   >
     코드 자동 생성
   </Card>

@@ -133,7 +133,7 @@ class PostModelClass extends BaseModelClass {
     const locale = ctx.locale; // "ko", "en", or "ja"
 
     // Return different responses based on locale
-    const posts = await this.getPuri("r").table("posts").where("locale", locale).select("*");
+    const posts = await this.getPuri("r").table("posts").where("locale", locale).selectAll();
 
     return posts;
   }

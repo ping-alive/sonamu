@@ -128,7 +128,7 @@ async getMyProfile(ctx: Context) {
     throw new UnauthorizedException("Login required");
   }
 
-  return this.findById(ctx.user.id);
+  return this.findById("A", ctx.user.id);
 }
 ```
 
@@ -145,7 +145,7 @@ class NotFoundException extends SoException
 ```typescript
 @api()
 async getUserById(id: number) {
-  const user = await this.findById(id);
+  const user = await this.findOne("A", { id });
 
   if (!user) {
     throw new NotFoundException(`User not found (ID: ${id})`);
@@ -224,7 +224,7 @@ async deleteUserPosts(userId: number) {
     );
   }
 
-  await this.deleteMany(posts.map(p => p.id));
+  await this.del(posts.map(p => p.id));
 }
 ```
 
@@ -241,7 +241,7 @@ class AlreadyProcessedException extends SoException
 ```typescript
 @api()
 async processOrder(orderId: number) {
-  const order = await this.findById(orderId);
+  const order = await this.findById("A", orderId);
 
   if (order.status === "processed") {
     throw new AlreadyProcessedException(
@@ -335,7 +335,7 @@ For simple authentication checks, it's better to use Guards:
 @api({ guards: ["user"] })
 async getMyData(ctx: Context) {
   // ctx.user is guaranteed
-  return this.findById(ctx.user!.id);
+  return this.findById("A", ctx.user!.id);
 }
 
 // Manual check (for more complex logic)
@@ -356,5 +356,5 @@ async updateProfile(ctx: Context, data: ProfileData) {
 ## Related Documentation
 
 - [Custom Exceptions](/en/api-reference/exceptions/custom-errors)
-- [Using Guards](/en/api-development/guards)
-- [Error Handling](/en/api-development/error-handling)
+- [Using Guards](/en/api-development/authentication/protected-routes)
+- [Error Handling](/en/api-development/validation/error-handling)

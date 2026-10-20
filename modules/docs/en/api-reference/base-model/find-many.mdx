@@ -123,14 +123,15 @@ type UserListParams = {
 
   // Filtering
   id?: number | number[]; // ID filter
-  status?: "active" | "inactive"; // Custom filter
+  sonamuFilter?: { status?: "active" | "inactive" | { in: ("active" | "inactive")[] } /* ... */ }; // Per-field filter (see sonamuFilter)
+  status?: "active" | "inactive"; // Custom filter (added in user.types.ts, see Custom Filters)
 
   // Search
   search?: "id" | "email" | "name"; // Search field
   keyword?: string; // Search keyword
 
   // Sorting
-  orderBy?: "id-desc" | "created-desc"; // Sort order
+  orderBy?: "id-desc" | "created_at-desc"; // Sort order
 
   // Query mode
   queryMode?: "list" | "count" | "both"; // Query mode
@@ -268,7 +269,44 @@ const { rows } = await UserModel.findMany("A", { id: [1, 2, 3] });
 
 ### Custom Filters
 
-Additional filters available depending on Entity definition.
+For per-field conditions, use [`sonamuFilter`](/en/api-reference/base-model/sonamu-filter). When you need a filter key of your own (for example one that joins another table or maps to several columns), add it to the entity's `ListParams` and handle it in `findMany`.
+
+<Steps>
+<Step title="1. Extend ListParams in the types file">
+```typescript title="api/src/application/user/user.types.ts"
+import { z } from "zod";
+
+import { UserBaseListParams } from "../sonamu.generated";
+
+// User - ListParams
+export const UserListParams = UserBaseListParams.extend({
+  status: z.enum(["active", "inactive"]).optional(),
+  created_from: z.string().optional(),
+  created_to: z.string().optional(),
+});
+export type UserListParams = z.infer<typeof UserListParams>;
+```
+</Step>
+
+<Step title="2. Handle the key in findMany">
+```typescript title="api/src/application/user/user.model.ts"
+// inside findMany, after getSubsetQueries(subset)
+if (params.status) {
+  qb.where("users.status", params.status);
+}
+if (params.created_from) {
+  qb.where("users.created_at", ">=", params.created_from);
+}
+if (params.created_to) {
+  qb.where("users.created_at", "<=", params.created_to);
+}
+```
+</Step>
+</Steps>
+
+A prop with `"toFilter": true` in the entity JSON is also added to the generated `UserBaseListParams`, but the scaffolded `findMany` doesn't apply it either; add the `qb.where` yourself.
+
+With the keys defined and handled, callers pass them like any other parameter:
 
 ```typescript
 // Status filter
@@ -276,17 +314,16 @@ const { rows } = await UserModel.findMany("A", {
   status: "active",
 });
 
-// Date range filter
+// Date range filter (inclusive on both ends, as implemented above)
 const { rows } = await UserModel.findMany("A", {
   created_from: "2024-01-01",
   created_to: "2024-12-31",
 });
 
-// Combine multiple filters
+// Combine a custom filter with sonamuFilter
 const { rows } = await UserModel.findMany("A", {
   status: "active",
-  role: "admin",
-  verified: true,
+  sonamuFilter: { role: "admin", verified: true },
 });
 ```
 
@@ -409,7 +446,7 @@ Returns total count only (skips SELECT query).
 
 ```typescript
 const { total } = await UserModel.findMany("A", {
-  status: "active",
+  sonamuFilter: { status: "active" },
   queryMode: "count", // No rows
 });
 
@@ -445,7 +482,7 @@ class UserService {
 ```typescript
 async getActiveUsers(page: number = 1) {
   const { rows, total } = await UserModel.findMany("A", {
-    status: "active",
+    sonamuFilter: { status: "active" },
     num: 20,
     page
   });
@@ -638,6 +675,7 @@ async searchUsers(keyword: string) {
       @api({ httpMethod: "GET" })
       async getDashboardStats() {
         // Fetch COUNT only (fast statistics)
+        const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
         const [
           { total: totalUsers },
           { total: activeUsers },
@@ -646,15 +684,15 @@ async searchUsers(keyword: string) {
         ] = await Promise.all([
           UserModel.findMany("A", { queryMode: "count" }),
           UserModel.findMany("A", {
-            status: "active",
+            sonamuFilter: { status: "active" },
             queryMode: "count"
           }),
           OrderModel.findMany("A", {
-            created_from: new Date().toISOString().split('T')[0],
+            sonamuFilter: { created_at: { between: [startOfToday, new Date()] } },
             queryMode: "count"
           }),
           OrderModel.findMany("A", {
-            status: "pending",
+            sonamuFilter: { status: "pending" },
             queryMode: "count"
           })
         ]);
@@ -789,7 +827,7 @@ await UserModel.findMany("A", {
 });
 
 await UserModel.findMany("A", {
-  status: "active", // ✅ Defined field
+  sonamuFilter: { status: "active" }, // ✅ Defined field
 });
 ```
 

@@ -34,7 +34,7 @@ class UserModelClass extends BaseModelClass<UserSubsetKey, UserSubsetMapping, Us
     await wdb.table("users").where("id", id).update(data);
     await this.updateRelatedData(id);
 
-    return this.findById(id);
+    return this.findById("A", id);
   }
 }
 ```
@@ -92,7 +92,7 @@ async updateStatus(id: number) {
 - Transactions behave as if executed serially
 - Prevents all anomalies
 - Safest but slowest
-  </Accordion>
+</Accordion>
 
 ### readOnly
 
@@ -107,10 +107,11 @@ async generateReport(startDate: Date, endDate: Date) {
 
   // Queries multiple tables but doesn't modify
   // Guarantees consistent snapshot
-  const users = await rdb.table("users").select();
+  const users = await rdb.table("users").selectAll();
   const orders = await rdb.table("orders")
-    .whereBetween("created_at", [startDate, endDate])
-    .select();
+    .where("created_at", ">=", startDate)
+    .where("created_at", "<=", endDate)
+    .selectAll();
 
   return this.calculateReport(users, orders);
 }
@@ -139,7 +140,7 @@ async saveData(data: SaveParams) {
 async complexQuery() {
   // Transaction on read DB
   const rdb = this.getPuri("r");
-  return rdb.table("users").select();
+  return rdb.table("users").selectAll();
 }
 ```
 
@@ -270,7 +271,7 @@ async findWithRelations(id: number) {
   const rdb = this.getPuri("r");
 
   const user = await rdb.table("users").where("id", id).first();
-  const posts = await rdb.table("posts").where("user_id", id).select();
+  const posts = await rdb.table("posts").where("user_id", id).selectAll();
 
   return { user, posts };
 }
@@ -660,14 +661,14 @@ async save() {
   Create file upload APIs
 </Card>
 
-<Card title="Database Guide" icon="database" href="/en/core-concepts/database/puri">
+<Card title="Database Guide" icon="database" href="/en/database/puri/basic-queries">
   Use Puri query builder
 </Card>
 
   <Card
     title="Error Handling"
     icon="triangle-exclamation"
-    href="/en/core-concepts/error-handling"
+    href="/en/api-development/validation/error-handling"
   >
     Learn error handling methods
   </Card>

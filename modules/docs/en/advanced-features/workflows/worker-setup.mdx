@@ -33,8 +33,8 @@ export default defineConfig({
 
 **Options**:
 
-- `enableWorker`: Whether to enable Worker (default: true only in daemon mode)
-- `workerOptions.concurrency`: Number of concurrent tasks (default: 1)
+- `enableWorker`: Whether to enable Worker (default: `true` only when `NODE_TYPE=daemon`)
+- `workerOptions.concurrency`: Number of concurrent tasks (default: CPU core count - 1)
 - `workerOptions.usePubSub`: Use PostgreSQL LISTEN/NOTIFY (default: true)
 - `workerOptions.listenDelay`: Wait time after receiving Pub/Sub message (default: 500ms)
 - `contextProvider`: Function to create Context used within Workflows
@@ -64,12 +64,16 @@ const result = await handle.result();
 
 ### 1. Daemon Mode (Auto-enabled)
 
+There is no separate daemon command. When `tasks.enableWorker` is not set, Sonamu enables the Worker
+only for processes started with `NODE_TYPE=daemon`. The Worker is created during `Sonamu.init()` and
+started after the server begins listening.
+
 ```bash
-# Worker starts automatically
-pnpm sonamu daemon
+# Start the built server as a daemon node; the Worker starts with it
+NODE_TYPE=daemon pnpm sonamu start
 ```
 
-In daemon mode, `enableWorker: true` is the default.
+Set `enableWorker` explicitly to override this detection on any node.
 
 ### 2. Separate Worker Process
 
@@ -113,6 +117,10 @@ startWorker();
 pnpm worker
 ```
 
+`startWorker()` starts only the Worker that `Sonamu.init()` created. Set `tasks.enableWorker: true`
+or run this process with `NODE_TYPE=daemon`; otherwise it initializes the task backend without a
+Worker.
+
 ### 3. API Server + Worker
 
 ```typescript
@@ -153,20 +161,23 @@ Customize the Context used in Workflows.
 // sonamu.config.ts
 tasks: {
   enableWorker: true,
-  contextProvider: async (baseContext) => {
-    // Fetch system user
-    const systemUser = await UserModel.findOne({
-      wq: [['email', '=', 'system@example.com']],
-    });
+  contextProvider: async (defaultContext) => {
+    // Look up the system user
+    const systemUser = await BaseModel.getPuri("r")
+      .table("users")
+      .select({ id: "users.id" })
+      .where("users.email", "system@example.com")
+      .first();
 
     return {
-      ...baseContext,
-      user: systemUser,
-      customData: "...",
+      ...defaultContext,
+      systemUserId: systemUser?.id ?? null,
     };
   },
 }
 ```
+
+Declare custom fields such as `systemUserId` in `ContextExtend` so they are typed.
 
 Access via `Sonamu.getContext()` within a Workflow function:
 
@@ -176,55 +187,34 @@ import { Sonamu } from "sonamu";
 
 export const myWorkflow = workflow({ name: "my_workflow" }, async ({ input, step }) => {
   const context = Sonamu.getContext();
-  console.log(context.user); // systemUser
+  console.log(context.systemUserId);
 });
 ```
 
 ## Table Structure
 
-Sonamu automatically creates the following tables:
+The task backend runs its own migrations and creates the `sonamu_tasks` schema in the main database
+with two tables:
 
-```sql
--- Workflow definitions
-CREATE TABLE workflows (
-  id UUID PRIMARY KEY,
-  name TEXT NOT NULL,
-  version TEXT,
-  ...
-);
-
--- Workflow execution records
-CREATE TABLE workflow_runs (
-  id UUID PRIMARY KEY,
-  workflow_id UUID REFERENCES workflows(id),
-  status TEXT,
-  input JSONB,
-  output JSONB,
-  started_at TIMESTAMP,
-  completed_at TIMESTAMP,
-  ...
-);
-
--- Step execution records
-CREATE TABLE workflow_steps (
-  id UUID PRIMARY KEY,
-  workflow_run_id UUID REFERENCES workflow_runs(id),
-  name TEXT,
-  status TEXT,
-  ...
-);
-```
+| Table                         | Contents                                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `sonamu_tasks.workflow_runs`  | One row per run: `workflow_name`, `version`, `status`, `input`, `output`, `error`, `attempts`, timestamps |
+| `sonamu_tasks.step_attempts`  | One row per step attempt: `workflow_run_id`, `step_name`, `status`, `output`, `error`, timestamps |
 
 ## Monitoring
 
 ### Check Running Workflows
 
 ```typescript
-// Query via Puri (workflow_runs is a framework-internal table, not an entity, so use the .knex escape hatch)
+// workflow_runs is a framework-internal table, not an entity, so use Knex directly
 import { BaseModel } from "sonamu";
 
-const puri = BaseModel.getPuri("r");
-const runs = await puri.knex.table("workflow_runs").where("status", "running").select("*");
+const knex = BaseModel.getDB("r");
+const runs = await knex
+  .withSchema("sonamu_tasks")
+  .table("workflow_runs")
+  .where("status", "running")
+  .select();
 ```
 
 ### Logging

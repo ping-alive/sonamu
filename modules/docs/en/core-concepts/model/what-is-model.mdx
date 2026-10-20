@@ -73,7 +73,7 @@ class UserModelClass extends BaseModelClass<
   }
 
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<UserSubsetMapping["A"]> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // Business logic implementation
   }
 }
@@ -132,10 +132,13 @@ export type UserSubsetA = User;
 
 ```typescript title="user.model.ts (Model)"
 class UserModelClass extends BaseModelClass {
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // Business logic
-    const user = await this.getPuri("r").from("users").where("id", id).first();
-    return user;
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    if (!rows[0]) {
+      throw new NotFoundException(`User not found: ${id}`);
+    }
+    return rows[0];
   }
 }
 ```
@@ -182,14 +185,14 @@ async findMany<T extends UserSubsetKey>(
 
 ```typescript
 @api({ httpMethod: "GET", clients: ["axios", "tanstack-query"] })
-async findById(id: number): Promise<User> {
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
   // Method implementation
 }
 ```
 
 **What gets auto-generated**:
 
-- HTTP endpoint: `GET /user/findById?id=1`
+- HTTP endpoint: `GET /user/findById?subset=A&id=1`
 - TypeScript client code
 - TanStack Query hooks
 - API documentation
@@ -248,12 +251,15 @@ class UserModelClass extends BaseModelClass {
 
   // Read
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // ...
   }
 
   @api({ httpMethod: "GET" })
-  async findMany(params: UserListParams): Promise<ListResult<UserListParams, User>> {
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+    subset: T,
+    rawParams?: LP,
+  ): Promise<ListResult<LP, UserSubsetMapping[T]>> {
     // ...
   }
 

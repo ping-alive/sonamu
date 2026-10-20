@@ -234,7 +234,7 @@ export const config: SonamuConfig = {
   compress: CompressPresets.aggressive,  // 압축
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -302,7 +302,7 @@ sequenceDiagram
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -324,7 +324,7 @@ async getData() {
   compress: true,
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -427,7 +427,7 @@ import { performance } from "perf_hooks";
 })
 async getData() {
   const start = performance.now();
-  const data = await this.findMany({});
+  const data = await this.findMany("A", {});
   const dbTime = performance.now() - start;
 
   console.log(`DB: ${dbTime.toFixed(2)}ms`);
@@ -593,7 +593,7 @@ ab -n 1000 -c 10 http://localhost:3000/api/products
    }
    ```
 
-   </Warning>
+</Warning>
 
 ## 성능 벤치마크
 

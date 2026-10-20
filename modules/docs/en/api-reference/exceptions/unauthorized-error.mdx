@@ -22,7 +22,7 @@ async getMyProfile(ctx: Context) {
     throw new UnauthorizedException("Login required");
   }
 
-  return this.findById(ctx.user.id);
+  return this.findById("A", ctx.user.id);
 }
 ```
 
@@ -41,7 +41,7 @@ async updateMyProfile(
     throw new UnauthorizedException("Login required");
   }
 
-  return this.update(ctx.user.id, { name, bio });
+  return this.getPuri("w").table("users").where("id", ctx.user.id).update({ name, bio });
 }
 ```
 
@@ -54,7 +54,7 @@ For simple login checks, using Guards is cleaner:
 @api({ guards: ["user"] })
 async getMyData(ctx: Context) {
   // ctx.user is guaranteed
-  return this.findById(ctx.user!.id);
+  return this.findById("A", ctx.user!.id);
 }
 
 // Guard handling in sonamu.config.ts
@@ -81,7 +81,7 @@ async deletePost(ctx: Context, postId: number) {
     throw new UnauthorizedException("Login required");
   }
 
-  const post = await this.findById(postId);
+  const post = await this.findOne("A", { id: postId });
 
   if (!post) {
     throw new NotFoundException("Post not found");
@@ -134,7 +134,7 @@ async publishPost(ctx: Context, postId: number) {
     throw new UnauthorizedException("Login required");
   }
 
-  const post = await this.findById(postId);
+  const post = await this.findOne("A", { id: postId });
 
   if (!post) {
     throw new NotFoundException("Post not found");
@@ -157,7 +157,7 @@ async publishPost(ctx: Context, postId: number) {
     );
   }
 
-  return this.update(postId, { status: "published" });
+  return this.getPuri("w").table("posts").where("id", postId).update({ status: "published" });
 }
 ```
 
@@ -174,16 +174,15 @@ async addTeamMember(
     throw new UnauthorizedException("Login required");
   }
 
-  const team = await TeamModel.findById(teamId);
+  const team = await TeamModel.findOne("A", { id: teamId });
 
   if (!team) {
     throw new NotFoundException("Team not found");
   }
 
   // Only team admins can add members
-  const membership = await TeamMemberModel.findOne({
-    teamId,
-    userId: ctx.user.id
+  const membership = await TeamMemberModel.findOne("A", {
+    sonamuFilter: { team_id: teamId, user_id: ctx.user.id },
   });
 
   if (!membership) {
@@ -204,11 +203,11 @@ async addTeamMember(
     );
   }
 
-  return TeamMemberModel.create({
+  return TeamMemberModel.save([{
     teamId,
     userId: newMemberId,
     role: "member"
-  });
+  }]);
 }
 ```
 
@@ -285,7 +284,7 @@ async accessRestrictedResource(ctx: Context, resourceId: number) {
   }
 
   // Access restrictions by subscription plan
-  const resource = await ResourceModel.findById(resourceId);
+  const resource = await ResourceModel.findById("A", resourceId);
 
   if (resource.requiredPlan === "premium" && subscription.plan === "basic") {
     throw new UnauthorizedException(
@@ -375,7 +374,7 @@ async complexAuthEndpoint(ctx: Context, postId: number) {
     throw new UnauthorizedException("Login required");
   }
 
-  const post = await PostModel.findById(postId);
+  const post = await PostModel.findById("A", postId);
 
   // Complex permission logic: author, editor, or same team member
   const isAuthor = post.authorId === ctx.user.id;
@@ -489,5 +488,5 @@ async deleteUser(ctx: Context, userId: number) {
 
 - [SoException](/en/api-reference/exceptions/sonamu-error)
 - [AuthContext](/en/api-reference/context/auth-context)
-- [Guards](/en/api-development/guards)
+- [Guards](/en/api-development/authentication/protected-routes)
 - [Custom Exceptions](/en/api-reference/exceptions/custom-errors)

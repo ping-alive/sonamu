@@ -298,7 +298,7 @@ class ProductModel extends BaseModelClass {
     const rdb = this.getPuri("r");
 
     // 테넌트별 데이터만 조회
-    const products = await rdb.table("products").where("tenant_id", context.tenant.id).select("*");
+    const products = await rdb.table("products").where("tenant_id", context.tenant.id).selectAll();
 
     return products;
   }
@@ -494,7 +494,7 @@ class DocumentModel extends BaseModelClass {
       });
     }
 
-    return query.select("*");
+    return query.selectAll();
   }
 }
 ```
@@ -538,7 +538,7 @@ class ProductModel extends BaseModelClass {
     const context = Sonamu.getContext();
     const rdb = this.getPuri("r");
 
-    const products = await rdb.table("products").where("tenant_id", context.tenant?.id).select("*");
+    const products = await rdb.table("products").where("tenant_id", context.tenant?.id).selectAll();
 
     this.cacheService.set("products:list", products);
 
@@ -567,7 +567,7 @@ class ProductModel extends BaseModelClass {
   <Card title="@api 데코레이터" icon="at" href="/ko/api-development/creating-apis/api-decorator">
     API 기본 사용법
   </Card>
-  <Card title="미들웨어" icon="layer-group" href="/ko/api-development/middleware">
+  <Card title="미들웨어" icon="layer-group" href="/ko/configuration/sonamu-config/server#custom">
     요청 전처리
   </Card>
 </CardGroup>

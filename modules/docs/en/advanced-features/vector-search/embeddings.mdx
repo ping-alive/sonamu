@@ -12,11 +12,11 @@ class DocumentModelClass extends BaseModelClass {
   @api({ httpMethod: "POST" })
   async search(query: string) {
     // Keyword search
-    const results = await this.findMany({
-      wq: [
-        ["title", "LIKE", `%${query}%`],
-        ["content", "LIKE", `%${query}%`],
-      ],
+    const results = await this.findMany("A", {
+      sonamuFilter: {
+        title: { contains: query },
+        content: { contains: query },
+      },
     });
     return results;
   }
@@ -68,11 +68,11 @@ flowchart LR
 
 ```typescript
 // 1. When saving a document: text -> embedding -> DB
-await DocumentModel.saveOne({
+await DocumentModel.save([{
   title: "Getting Started with Sonamu",
   content: "...",
   embedding: [0.2, 0.8, -0.3, ...],  // 1024 dimensions
-});
+}]);
 
 // 2. When searching: query -> embedding -> similarity calculation
 const queryEmbedding = [0.3, 0.7, -0.2, ...];
@@ -169,15 +169,15 @@ class DocumentModelClass extends BaseModelClass {
       "document", // document embedding
     );
 
-    // 2. Save to DB (Sonamu's saveOne)
-    const doc = await this.saveOne({
+    // 2. Save to DB (Sonamu's save)
+    const [docId] = await this.save([{
       title,
       content,
       embedding: result.embedding, // array of 1024 numbers
       token_count: result.tokenCount,
-    });
+    }]);
 
-    return doc;
+    return docId;
   }
 }
 ```
@@ -284,12 +284,12 @@ async batchCreateDocuments(documents: Array<{
   // 3. Save to DB
   const savedDocs = await Promise.all(
     documents.map((doc, i) =>
-      this.saveOne({
+      this.save([{
         title: doc.title,
         content: doc.content,
         embedding: embeddings[i].embedding,
         token_count: embeddings[i].tokenCount,
-      })
+      }])
     )
   );
 
@@ -352,11 +352,11 @@ class KnowledgeBaseModelClass extends BaseModelClass {
     const embedding = await Embedding.embedOne(content, "voyage", "document");
 
     // Save
-    return await this.saveOne({
+    return await this.save([{
       title: file.filename,
       content,
       embedding: embedding.embedding,
-    });
+    }]);
   }
 }
 ```
@@ -408,11 +408,11 @@ async createDocument(title: string, content: string) {
       'document'
     );
 
-    return await this.saveOne({
+    return await this.save([{
       title,
       content,
       embedding: embedding.embedding,
-    });
+    }]);
   } catch (error) {
     if (error.message.includes('API_KEY')) {
       throw new Error('Please set your Voyage API key: VOYAGE_API_KEY');
@@ -524,7 +524,7 @@ const embeddings = await Embedding.embed(uniqueTexts, "voyage");
    ```typescript
    console.log(`Total tokens: ${result.tokenCount}`);
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

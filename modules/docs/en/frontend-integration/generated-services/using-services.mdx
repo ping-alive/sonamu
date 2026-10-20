@@ -397,7 +397,7 @@ On the backend, **Context is automatically extracted from the HTTP request**:
 // Backend Model
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async getUser(subset: string, id: number) {
+  async getUser<T extends UserSubsetKey>(subset: T, id: number) {
     // Context is automatically parsed from the HTTP request
     const context = Sonamu.getContext();
 
@@ -410,7 +410,7 @@ class UserModelClass extends BaseModelClass {
       throw new UnauthorizedException("Login is required");
     }
 
-    return this.findById(id, [subset]);
+    return this.findById(subset, id);
   }
 }
 ```
@@ -446,18 +446,17 @@ flowchart LR
 ```typescript
 // Server Component
 export default async function UserPage() {
-  // ✅ Instantiate Model directly on the server
-  const userModel = new UserModel();
-  const user = await userModel.findById(1, ["A"]);
+  // ✅ Call the exported Model instance directly on the server
+  const user = await UserModel.findById("A", 1);
 
   return <div>{user.username}</div>;
 }
 ```
 
-**Why is `new UserModel()` safe?**
+**Why can the exported instance be shared?**
 
-- Models are **stateless**, so creating new instances each time is safe
-- The constructor only initializes Subset queries
+- Each Model file exports one instance (`export const UserModel = new UserModelClass()`); `UserModel` is not a class, so do not call `new UserModel()`
+- Models are **stateless**; the constructor only registers Subset queries
 - Context is dynamically retrieved via `Sonamu.getContext()`
 
 ```typescript
@@ -468,22 +467,25 @@ class UserModelClass extends BaseModelClass {
     // No state stored
   }
 
-  async findById(id: number, subsets: string[]) {
-    // Context is dynamically retrieved here
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    // Context is dynamically retrieved here when needed
     const context = Sonamu.getContext();
 
     // Execute DB query
-    return this.getPuri("r").table("users").where("id", id).first();
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    // ...
   }
 }
+
+export const UserModel = new UserModelClass();
 ```
 
 #### Service vs Model Comparison
 
 | Item              | Service (Frontend)      | Model (Backend)        |
 | ----------------- | ----------------------- | ---------------------- |
-| **Type**          | Namespace               | Class Instance         |
-| **Call Style**    | `UserService.getUser()` | `userModel.findById()` |
+| **Type**          | Namespace               | Singleton instance     |
+| **Call Style**    | `UserService.getUser()` | `UserModel.findById()` |
 | **State**         | Stateless               | Stateless              |
 | **Dependencies**  | None                    | BaseModelClass         |
 | **Context**       | Passed via HTTP headers | `Sonamu.getContext()`  |
@@ -492,7 +494,7 @@ class UserModelClass extends BaseModelClass {
 
 <Warning>
   **Cautions when creating Model instances**: 1. **Server Components only**: Models cannot be imported
-  in Client Components 2. **Create each time**: Singleton pattern unnecessary (stateless) 3. **Context
+  in Client Components 2. **Use the exported instance**: import `UserModel` instead of creating instances 3. **Context
   access**: `Sonamu.getContext()` automatically retrieves from request context
 </Warning>
 

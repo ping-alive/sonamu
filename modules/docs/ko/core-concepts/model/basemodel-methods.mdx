@@ -163,7 +163,7 @@ async findMany<T extends UserSubsetKey>(
   
   // 조건 추가
   if (params.keyword) {
-    qb.whereLike("users.email", `%${params.keyword}%`);
+    qb.where("users.email", "like", `%${params.keyword}%`);
   }
   
   // 실행
@@ -270,7 +270,7 @@ async findMany<T extends UserSubsetKey>(
   const { qb } = this.getSubsetQueries(subset);
   
   if (params.keyword) {
-    qb.whereLike("users.email", `%${params.keyword}%`);
+    qb.where("users.email", "like", `%${params.keyword}%`);
   }
   
   const enhancers = this.createEnhancers({
@@ -657,9 +657,9 @@ async findMany<T extends UserSubsetKey, LP extends UserListParams>(
 
   if (params.keyword && params.search) {
     if (params.search === "email") {
-      qb.whereLike("users.email", `%${params.keyword}%`);
+      qb.where("users.email", "like", `%${params.keyword}%`);
     } else if (params.search === "username") {
-      qb.whereLike("users.username", `%${params.keyword}%`);
+      qb.where("users.username", "like", `%${params.keyword}%`);
     }
   }
 
@@ -717,7 +717,7 @@ async findMany<T extends UserSubsetKey>(
   if (params.keyword) {
     qb.where((builder) => {
       builder
-        .whereLike("users.email", `%${params.keyword}%`)
+        .where("users.email", "like", `%${params.keyword}%`)
         .orWhereLike("users.username", `%${params.keyword}%`)
         .orWhereLike("users.phone", `%${params.keyword}%`);
     });
@@ -768,17 +768,17 @@ async getStatistics(): Promise<UserStatistics> {
   <Card title="Puri Query Builder" icon="database" href="/ko/database/puri/basic-queries">
     타입 안전한 쿼리 빌더 사용법
   </Card>
-  <Card title="Subset" icon="layer-group" href="/ko/core-concepts/model/using-subsets">
+  <Card title="Subset" icon="layer-group" href="/ko/database/subsets/using-subsets">
     Subset 활용한 데이터 조회
   </Card>
   <Card
     title="Transactions"
     icon="arrows-rotate"
-    href="/ko/database/transactions/using-transactions"
+    href="/ko/database/transactions/transactional-decorator"
   >
     트랜잭션 관리 상세 가이드
   </Card>
-  <Card title="Testing" icon="flask" href="/ko/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/ko/testing/writing-tests/test-structure">
     Model 테스트 작성하기
   </Card>
 </CardGroup>

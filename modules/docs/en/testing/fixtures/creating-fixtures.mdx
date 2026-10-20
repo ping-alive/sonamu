@@ -29,30 +29,28 @@ Learn how to define reusable test data using Sonamu's createFixtureLoader.
 ```typescript
 // api/src/testing/fixture.ts
 import { createFixtureLoader } from "sonamu/test";
-import { UserModel } from "@/models/user.model";
-import { PostModel } from "@/models/post.model";
+import { UserModel } from "../application/user/user.model";
+import { PostModel } from "../application/post/post.model";
 
 export const loadFixtures = createFixtureLoader({
   // Fixture name: loader function
   user01: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "john",
       email: "john@example.com",
       password: "password123",
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 
   admin: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "admin",
       email: "admin@example.com",
       password: "admin123",
       role: "admin",
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 });
 ```
@@ -65,7 +63,11 @@ export const loadFixtures = createFixtureLoader({
  *
  * Creates a function that loads fixtures for use in tests
  */
-export function createFixtureLoader<T extends Record<string, () => Promise<unknown>>>(loaders: T) {
+type FixtureLoaderValue = object | string | number | boolean | bigint | symbol | null | undefined;
+
+export function createFixtureLoader<T extends Record<string, () => Promise<FixtureLoaderValue>>>(
+  loaders: T,
+) {
   return async function loadFixtures<K extends keyof T>(
     names: K[],
   ): Promise<{ [P in K]: Awaited<ReturnType<T[P]>> }> {
@@ -89,44 +91,41 @@ export function createFixtureLoader<T extends Record<string, () => Promise<unkno
 ```typescript
 // api/src/testing/fixture.ts
 import { createFixtureLoader } from "sonamu/test";
-import { UserModel } from "@/models/user.model";
+import { UserModel } from "../application/user/user.model";
 
 export const loadFixtures = createFixtureLoader({
   // Guest user
   guestUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "guest",
       email: "guest@example.com",
       password: "password",
       role: "guest",
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 
   // Premium user
   premiumUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "premium",
       email: "premium@example.com",
       password: "password",
       role: "premium",
       subscription_expires_at: new Date("2025-12-31"),
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 
   // Admin
   adminUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "admin",
       email: "admin@example.com",
       password: "password",
       role: "admin",
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 });
 ```
@@ -136,50 +135,50 @@ export const loadFixtures = createFixtureLoader({
 ```typescript
 // api/src/testing/fixture.ts
 import { createFixtureLoader } from "sonamu/test";
-import { UserModel } from "@/models/user.model";
-import { PostModel } from "@/models/post.model";
-import { CommentModel } from "@/models/comment.model";
+import { CommentModel } from "../application/comment/comment.model";
+import { PostModel } from "../application/post/post.model";
+import { UserModel } from "../application/user/user.model";
+
+async function createAuthor() {
+  const [userId] = await UserModel.save([
+    { username: "author", email: "author@example.com", password: "password" },
+  ]);
+  return UserModel.findById("A", userId);
+}
+
+async function createPost(authorId: number) {
+  const [postId] = await PostModel.save([
+    { title: "Author's First Post", content: "This is the content", author_id: authorId },
+  ]);
+  return PostModel.findById("A", postId);
+}
 
 export const loadFixtures = createFixtureLoader({
   // Base user
-  author: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
-      username: "author",
-      email: "author@example.com",
-      password: "password",
-    });
-    return user;
+  author: createAuthor,
+
+  // Author and their post, returned together
+  authorWithPost: async () => {
+    const author = await createAuthor();
+    const post = await createPost(author.id);
+    return { author, post };
   },
 
-  // Author's post (reuses author fixture)
-  authorPost: async () => {
-    // Load other fixture
-    const { author } = await loadFixtures(["author"]);
-
-    const postModel = new PostModel();
-    const { post } = await postModel.create({
-      title: "Author's First Post",
-      content: "This is the content",
-      author_id: author.id, // Set relation
-    });
-    return post;
-  },
-
-  // Post comment (reuses authorPost fixture)
-  postComment: async () => {
-    const { author, authorPost } = await loadFixtures(["author", "authorPost"]);
-
-    const commentModel = new CommentModel();
-    const { comment } = await commentModel.create({
-      content: "Great post!",
-      post_id: authorPost.id,
-      author_id: author.id,
-    });
-    return comment;
+  // Post with a comment by its author
+  postWithComment: async () => {
+    const author = await createAuthor();
+    const post = await createPost(author.id);
+    const [commentId] = await CommentModel.save([
+      { content: "Great post!", post_id: post.id, author_id: author.id },
+    ]);
+    const comment = await CommentModel.findById("A", commentId);
+    return { author, post, comment };
   },
 });
 ```
+
+Loaders are not cached, so each loader that needs related data creates it and returns everything the test reads.
+
 
 ### Creating Multiple Data
 
@@ -187,15 +186,15 @@ export const loadFixtures = createFixtureLoader({
 export const loadFixtures = createFixtureLoader({
   // 10 users
   users10: async () => {
-    const userModel = new UserModel();
     const users = [];
 
     for (let i = 1; i <= 10; i++) {
-      const { user } = await userModel.create({
+      const [userId] = await UserModel.save([{
         username: `user${i}`,
         email: `user${i}@example.com`,
         password: "password",
-      });
+      }]);
+      const user = await UserModel.findById("A", userId);
       users.push(user);
     }
 
@@ -204,22 +203,21 @@ export const loadFixtures = createFixtureLoader({
 
   // User with their posts
   userWith5Posts: async () => {
-    const userModel = new UserModel();
-    const postModel = new PostModel();
-
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "blogger",
       email: "blogger@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
 
     const posts = [];
     for (let i = 1; i <= 5; i++) {
-      const { post } = await postModel.create({
+      const [postId] = await PostModel.save([{
         title: `Post ${i}`,
         content: `Content ${i}`,
         author_id: user.id,
-      });
+      }]);
+      const post = await PostModel.findById("A", postId);
       posts.push(post);
     }
 
@@ -234,62 +232,60 @@ export const loadFixtures = createFixtureLoader({
 export const loadFixtures = createFixtureLoader({
   // Complete blog scenario
   blogScenario: async () => {
-    const userModel = new UserModel();
-    const postModel = new PostModel();
-    const commentModel = new CommentModel();
-
     // 1. Create author
-    const { user: author } = await userModel.create({
+    const [authorId] = await UserModel.save([{
       username: "author",
       email: "author@example.com",
       password: "password",
-    });
+    }]);
+    const author = await UserModel.findById("A", authorId);
 
     // 2. Create readers
-    const readers = await Promise.all([
-      userModel.create({
+    const [[reader1Id], [reader2Id]] = await Promise.all([
+      UserModel.save([{
         username: "reader1",
         email: "reader1@example.com",
         password: "password",
-      }),
-      userModel.create({
+      }]),
+      UserModel.save([{
         username: "reader2",
         email: "reader2@example.com",
         password: "password",
-      }),
+      }]),
     ]);
 
     // 3. Create post
-    const { post } = await postModel.create({
+    const [postId] = await PostModel.save([{
       title: "Popular Post",
       content: "This post has many comments",
       author_id: author.id,
-    });
+    }]);
+    const post = await PostModel.findById("A", postId);
 
     // 4. Create comments
     const comments = await Promise.all([
-      commentModel.create({
+      CommentModel.save([{
         content: "First comment",
         post_id: post.id,
-        author_id: readers[0].user.id,
-      }),
-      commentModel.create({
+        author_id: reader1Id,
+      }]),
+      CommentModel.save([{
         content: "Second comment",
         post_id: post.id,
-        author_id: readers[1].user.id,
-      }),
-      commentModel.create({
+        author_id: reader2Id,
+      }]),
+      CommentModel.save([{
         content: "Author reply",
         post_id: post.id,
         author_id: author.id,
-      }),
+      }]),
     ]);
 
     return {
       author,
-      readers: readers.map((r) => r.user),
+      readerIds: [reader1Id, reader2Id],
       post,
-      comments: comments.map((c) => c.comment),
+      commentIds: comments.flat(),
     };
   },
 });
@@ -300,24 +296,27 @@ export const loadFixtures = createFixtureLoader({
 ### Basic Usage
 
 ```typescript
-// api/src/models/post.model.test.ts
+// api/src/application/post/post.model.test.ts
 import { bootstrap, test } from "sonamu/test";
 import { expect, vi } from "vitest";
 import { PostModel } from "./post.model";
-import { loadFixtures } from "@/testing/fixture";
+import { loadFixtures } from "../../testing/fixture";
 
 bootstrap(vi);
 
 test("get author's posts", async () => {
   // Load fixtures
-  const { author, authorPost } = await loadFixtures(["author", "authorPost"]);
+  const { authorWithPost } = await loadFixtures(["authorWithPost"]);
+  const { author, post } = authorWithPost;
 
   // Test
-  const postModel = new PostModel();
-  const { posts } = await postModel.getPostsByAuthor(author.id);
+  const posts = await PostModel.getPuri("r")
+    .table("posts")
+    .select({ id: "posts.id" })
+    .where("posts.author_id", author.id);
 
   expect(posts).toHaveLength(1);
-  expect(posts[0].id).toBe(authorPost.id);
+  expect(posts[0].id).toBe(post.id);
 });
 ```
 
@@ -326,11 +325,11 @@ test("get author's posts", async () => {
 ```typescript
 test("type-safe fixture usage", async () => {
   // ✅ IDE provides fixture name auto-completion
-  const { author, authorPost } = await loadFixtures(["author", "authorPost"]);
+  const { author, authorWithPost } = await loadFixtures(["author", "authorWithPost"]);
 
   // ✅ Type inference
   author.username; // string
-  authorPost.title; // string
+  authorWithPost.post.title; // string
 
   // ❌ Non-existent fixture
   const { invalid } = await loadFixtures(["invalid"]); // Type error!
@@ -344,7 +343,7 @@ test("load only needed fixtures", async () => {
   // Only what's needed
   const { author } = await loadFixtures(["author"]);
 
-  // authorPost not loaded → creation cost saved
+  // authorWithPost not loaded → creation cost saved
 });
 
 test("load multiple fixtures simultaneously", async () => {
@@ -408,22 +407,20 @@ export const loadFixtures = createFixtureLoader({
 // ✅ Correct: Only required fields
 export const loadFixtures = createFixtureLoader({
   basicUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "user",
       email: "user@example.com",
       password: "password",
       // Only required fields
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 });
 
 // ❌ Wrong: Unnecessary fields
 export const loadFixtures = createFixtureLoader({
   complexUser: async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "user",
       email: "user@example.com",
       password: "password",
@@ -433,8 +430,8 @@ export const loadFixtures = createFixtureLoader({
         /* complex object */
       },
       // Fields not needed for test
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   },
 });
 ```
@@ -442,46 +439,44 @@ export const loadFixtures = createFixtureLoader({
 ### 3. Fixture Reuse
 
 ```typescript
-// ✅ Correct: Reuse from other fixtures
+// ✅ Correct: Share creation logic through plain helper functions
+async function createUser() {
+  const [userId] = await UserModel.save([
+    { username: "user", email: "user@example.com", password: "password" },
+  ]);
+  return UserModel.findById("A", userId);
+}
+
+async function createPost(authorId: number) {
+  const [postId] = await PostModel.save([
+    { title: "Post", content: "Content", author_id: authorId },
+  ]);
+  return PostModel.findById("A", postId);
+}
+
 export const loadFixtures = createFixtureLoader({
-  user: async () => {
-    // Base user
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
-      username: "user",
-      email: "user@example.com",
-      password: "password",
-    });
-    return user;
-  },
+  user: createUser,
 
   userPost: async () => {
-    // Reuse user fixture
-    const { user } = await loadFixtures(["user"]);
-
-    const postModel = new PostModel();
-    const { post } = await postModel.create({
-      title: "Post",
-      content: "Content",
-      author_id: user.id,
-    });
-    return post;
+    const user = await createUser();
+    const post = await createPost(user.id);
+    return { user, post };
   },
 
   userPostComment: async () => {
-    // Reuse userPost fixture (user automatically included)
-    const { user, userPost } = await loadFixtures(["user", "userPost"]);
-
-    const commentModel = new CommentModel();
-    const { comment } = await commentModel.create({
-      content: "Comment",
-      post_id: userPost.id,
-      author_id: user.id,
-    });
-    return comment;
+    const user = await createUser();
+    const post = await createPost(user.id);
+    const [commentId] = await CommentModel.save([
+      { content: "Comment", post_id: post.id, author_id: user.id },
+    ]);
+    const comment = await CommentModel.findById("A", commentId);
+    return { user, post, comment };
   },
 });
 ```
+
+Each loader call creates new rows; loaders are not cached. To get related records that belong together, create them in one loader and return them together. Share creation logic through helper functions instead of calling `loadFixtures` inside a loader: the loader object would reference itself in its own initializer, which TypeScript rejects in strict mode (TS7022).
+
 
 ### 4. Consistent Structure
 
@@ -525,14 +520,13 @@ export const loadFixtures = createFixtureLoader({
 // Dynamically create fixtures
 function createUserFixture(username: string, role: string) {
   return async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username,
       email: `${username}@example.com`,
       password: "password",
       role,
-    });
-    return user;
+    }]);
+    return UserModel.findById("A", userId);
   };
 }
 

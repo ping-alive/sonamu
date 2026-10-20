@@ -129,8 +129,8 @@ export const userLoaderQueries = { ... };
 - `web/src/services/sonamu.generated.ts`
 - `web/src/services/sonamu.generated.sso.ts`
 - `app/src/services/...` (동일)
-  </Step>
-  </Steps>
+</Step>
+</Steps>
 
 ### 트리거 예시
 
@@ -196,12 +196,14 @@ API 클라이언트 함수와 TanStack Query hooks
 **항상 재생성**: ✅
 
 ```typescript
-// Axios 클라이언트
-export async function findUserById(id: number): Promise<User> { ... }
+export namespace UserService {
+  // Axios 클라이언트
+  export async function getUser<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> { ... }
 
-// TanStack Query hooks
-export function useUserById(id: number) { ... }
-export function useSaveUser() { ... }
+  // TanStack Query 훅
+  export const useUser = <T extends UserSubsetKey>(subset: T, id: number, options?: { enabled?: boolean }) => { ... };
+  export const useSaveMutation = () => { ... };
+}
 ```
 
 **생성 기준**: Model의 `@api` 데코레이터가 있는 메서드
@@ -217,7 +219,7 @@ REST Client용 HTTP 테스트 파일
 
 ```http
 ### User.findById
-GET http://localhost:3000/user/findById?id=1
+GET http://localhost:3000/user/findById?subset=A&id=1
 
 ### User.save
 POST http://localhost:3000/user/save
@@ -260,7 +262,7 @@ export namespace UserService {
 ```typescript title="user.model.ts 저장"
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET", clients: ["axios", "tanstack-query"] })
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // ...
   }
 
@@ -421,7 +423,7 @@ i18n 파일이 타겟에 복사됨
 
 - `web/src/i18n/{locale}.ts`
 - `app/src/i18n/{locale}.ts`
-  </Step>
+</Step>
 
 <Step title="2. sd.generated.ts">
 Sonamu Dictionary 파일 생성
@@ -479,12 +481,17 @@ export const SD = {
 
 ```typescript title="services.generated.ts 직접 수정"
 // ❌ 이렇게 하지 마세요!
-export async function findUserById(id: number): Promise<User> {
+export async function getUser<T extends UserSubsetKey>(
+  subset: T,
+  id: number,
+): Promise<UserSubsetMapping[T]> {
   // 커스텀 로직 추가
   console.log("Finding user:", id);
 
-  const { data } = await axios.get("/user/findById", { params: { id } });
-  return data;
+  return fetch({
+    method: "GET",
+    url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+  });
 }
 // → Model 변경 시 덮어씌워짐 💥
 ```
@@ -494,12 +501,12 @@ export async function findUserById(id: number): Promise<User> {
 <Tabs>
 <Tab title="별도 파일 생성">
 ```typescript title="services/user/user.custom.ts"
-import { findUserById } from "../services.generated";
+import { UserService } from "../services.generated";
 
 // 래퍼 함수 생성
-export async function findUserByIdWithLog(id: number) {
+export async function getUserWithLog<T extends UserSubsetKey>(subset: T, id: number) {
 console.log("Finding user:", id);
-return findUserById(id);
+return UserService.getUser(subset, id);
 }
 
 ````
@@ -631,10 +638,7 @@ await Sonamu.syncer.generateTemplate(
   <Card title="Syncer" icon="rotate" href="/ko/core-concepts/auto-generation/syncer">
     Syncer 시스템 깊이 이해하기
   </Card>
-  <Card title="Templates" icon="file-code" href="/ko/advanced/templates/creating-templates">
-    커스텀 템플릿 만들기
-  </Card>
-  <Card title="Testing" icon="flask" href="/ko/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/ko/testing/writing-tests/test-structure">
     생성된 코드 테스트하기
   </Card>
 </CardGroup>

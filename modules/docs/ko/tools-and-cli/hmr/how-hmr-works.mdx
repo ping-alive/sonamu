@@ -167,22 +167,19 @@ curl http://localhost:3000/api/user/1
 // user.api.ts 수정 전
 @api({ httpMethod: "GET" })
 async list() {
-  return UserModel.findMany();
+  return UserModel.findMany("A");
 }
 ```
 
 ```typescript
 // user.api.ts 수정 후
 @api({ httpMethod: "GET" })
-async list(listParams: ListParams & { keyword?: string }) {
-  const where = listParams.keyword
-    ? { name: { $like: `%${listParams.keyword}%` } }
-    : undefined;
+async list(listParams: UserListParams & { name?: string }) {
+  const { name, ...rest } = listParams;
 
-  return UserModel.findMany({
-    where,
-    limit: listParams.num,
-    offset: (listParams.page - 1) * listParams.num,
+  return UserModel.findMany("A", {
+    ...rest,
+    sonamuFilter: name ? { name: { contains: name } } : undefined,
   });
 }
 ```
@@ -210,14 +207,14 @@ User의 활성 상태 체크 로직 추가:
 ```typescript
 // user.model.ts
 export class UserModel extends BaseModelClass {
-  static async findActive() {
-    return this.findMany({
-      where: { status: "active", deletedAt: null },
+  async findActive() {
+    return this.findMany("A", {
+      sonamuFilter: { status: "active", deleted_at: { isNull: true } },
     });
   }
 
-  isActive(): boolean {
-    return this.status === "active" && !this.deletedAt;
+  isActive(user: UserSubsetMapping["A"]): boolean {
+    return user.status === "active" && !user.deleted_at;
   }
 }
 ```
@@ -228,13 +225,13 @@ export class UserModel extends BaseModelClass {
 // post.api.ts
 @api({ httpMethod: "POST" })
 async create(body: PostForm) {
-  const user = await UserModel.findById(body.userId);
+  const user = await UserModel.findById("A", body.userId);
 
-  if (!user.isActive()) {  // 👈 방금 추가한 메서드 바로 사용!
+  if (!UserModel.isActive(user)) {  // 👈 방금 추가한 메서드 바로 사용!
     throw new BadRequestException("User is not active");
   }
 
-  return PostModel.save(body);
+  return PostModel.save([body]);
 }
 ```
 
@@ -515,8 +512,8 @@ Sonamu는 Entity 기반 구조라 경로를 동적으로 생성해야 하므로 
 import { PostModel } from "./post.model"; // 원본: ❌ / Sonamu: ✅
 
 export class UserModel extends BaseModelClass {
-  async getPosts() {
-    return PostModel.findMany({ where: { userId: this.id } });
+  async getPosts(userId: number) {
+    return PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
   }
 }
 ```

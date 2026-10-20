@@ -333,13 +333,12 @@ await ProjectModel.findMany("A", {
 
 ## 기존 필터와의 관계
 
-`sonamuFilter`는 기존 `ListParams`의 커스텀 필터와 함께 사용할 수 있습니다:
+`sonamuFilter`는 기본 `id` 필터나 엔티티의 `ListParams`에 직접 추가한 [커스텀 필터](/ko/api-reference/base-model/find-many#커스텀-필터) 등 다른 `ListParams` 필드와 함께 사용할 수 있습니다:
 
 ```typescript
 const { rows } = await ProjectModel.findMany("A", {
-  // 기존 커스텀 필터
+  // 기본 ListParams 필터
   id: [1, 2, 3],
-  status: "active",
 
   // sonamuFilter
   sonamuFilter: {

@@ -1,649 +1,270 @@
 ---
 title: "Session Management"
-description: "Managing session and token lifecycle"
+description: "Managing better-auth session lifecycle in Sonamu"
 ---
 
-Learn how to effectively manage the lifecycle of sessions and JWT tokens. Session management is an important topic that directly affects user experience and security.
-
-## Session Management Overview
-
-<CardGroup cols={2}>
-  <Card title="Session Store" icon="database">
-    Redis, PostgreSQL Scalable storage
-  </Card>
-  <Card title="Session Expiration" icon="clock">
-    Auto expiration Sliding expiration
-  </Card>
-  <Card title="Token Refresh" icon="arrows-rotate">
-    Refresh Token Access Token reissue
-  </Card>
-  <Card title="Logout" icon="right-from-bracket">
-    Session invalidation Token blacklist
-  </Card>
-</CardGroup>
-
-## Session-Based Authentication
-
-### How Sessions Work
-
-Session-based authentication is a method where the server **stores the user's login state on the server side**. Understanding how it works helps you better handle security and scalability issues.
-
-**Session Authentication Flow**:
-
-1. When user logs in, server generates a session ID
-2. Session data (user ID, etc.) is stored in session store
-3. Session ID is sent to client as a cookie
-4. Each subsequent request authenticates user via session ID in cookie
-
-**Advantages**:
-
-- Server has full control over sessions (can invalidate anytime)
-- Sensitive information is not exposed to client
-- Simple to implement and well-proven method
-
-**Disadvantages**:
-
-- Stores state on server, requiring scalability considerations
-- Session store can become a single point of failure (SPOF)
-
-### Session Store Configuration
-
-**Memory Store (Development Only)**:
-
-Memory store should only be used in development environments. All sessions are lost when the server restarts, and sessions cannot be shared across multiple server instances.
-
-```typescript
-// server.ts (Development environment)
-import fastify from "fastify";
-import fastifySession from "@fastify/session";
-import fastifyCookie from "@fastify/cookie";
-
-const app = fastify();
-
-app.register(fastifyCookie);
-
-app.register(fastifySession, {
-  secret: process.env.SESSION_SECRET!,
-  cookie: {
-    secure: false, // Allow HTTP in development
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
-  },
-  saveUninitialized: false,
-  // Uses memory store if store is not specified
-});
-```
-
-<Warning>
-  **Problems with Memory Store**: - All sessions lost on server restart - Cannot share sessions
-  across multiple server instances - Memory usage growth can degrade performance - **Never use in
-  production**
-</Warning>
-
-**Redis Store (Production)**:
-
-Using Redis as a session store is the industry standard for production environments. Redis is fast, scalable, and supports session sharing across multiple server instances.
-
-```bash
-npm install @fastify/redis connect-redis
-# or
-pnpm add @fastify/redis connect-redis
-```
-
-```typescript
-// server.ts (Production)
-import fastify from "fastify";
-import fastifySession from "@fastify/session";
-import fastifyCookie from "@fastify/cookie";
-import fastifyRedis from "@fastify/redis";
-import RedisStore from "connect-redis";
-
-const app = fastify();
-
-// Redis connection
-app.register(fastifyRedis, {
-  host: process.env.REDIS_HOST || "localhost",
-  port: parseInt(process.env.REDIS_PORT || "6379"),
-  password: process.env.REDIS_PASSWORD,
-  // Connection pool settings
-  lazyConnect: false,
-  enableReadyCheck: true,
-});
-
-app.register(fastifyCookie);
-
-// Use Redis as session store
-app.register(fastifySession, {
-  secret: process.env.SESSION_SECRET!,
-  store: new RedisStore({
-    client: app.redis, // Use Fastify Redis client
-    prefix: "sess:", // Session key prefix
-    ttl: 60 * 60 * 24 * 7, // 7 days (in seconds)
-  }),
-  cookie: {
-    secure: true, // HTTPS required
-    httpOnly: true, // XSS prevention
-    sameSite: "strict", // CSRF prevention
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-  },
-  saveUninitialized: false,
-  resave: false,
-});
-```
-
-**Redis Configuration Explained**:
-
-- `prefix`: Prefix for session keys to distinguish from other data
-- `ttl`: Time To Live, automatic session expiration time (in seconds)
-- `client`: Redis client instance
+Sonamu authentication is built on [better-auth](https://www.better-auth.com/), and better-auth owns
+the session lifecycle: it issues the session cookie, stores sessions, refreshes and expires them, and
+revokes them. This page covers how those sessions reach your APIs and how to configure and control
+them through `server.auth`.
 
 <Info>
-  Redis supports cluster mode for implementing high availability (HA). Using managed services like
-  AWS ElastiCache or Azure Cache for Redis makes operations more convenient.
+  Sonamu has no separate session plugin. Configure everything on this page in `server.auth`, which
+  accepts better-auth options. See [Authentication Setup](/en/api-development/authentication/setup)
+  first if authentication is not enabled yet.
 </Info>
 
-**PostgreSQL Store (Alternative)**:
+## How Sessions Work
 
-If you're already using PostgreSQL, you can use PostgreSQL as a session store without a separate Redis. However, performance is lower than Redis.
+1. A client signs in through a better-auth endpoint such as `POST /api/auth/sign-in/email`.
+2. better-auth creates a row in the `sessions` table (through Sonamu's Knex adapter) and sets a
+   signed session cookie.
+3. For every HTTP and WebSocket request, Sonamu calls better-auth's `getSession` with the request
+   headers and passes the result to the context as `user` and `session`.
+4. Signing out or revoking a session deletes it, and the next request resolves `user` and `session`
+   as `null`.
 
-```bash
-npm install connect-pg-simple
-# or
-pnpm add connect-pg-simple
-```
+The `sessions` table is one of the entities created by `pnpm sonamu auth generate`:
 
-```typescript
-import session from "express-session";
-import connectPgSimple from "connect-pg-simple";
-import pg from "pg";
+| Column       | Description                                    |
+| ------------ | ---------------------------------------------- |
+| `id`         | Session ID                                     |
+| `token`      | Session token stored in the cookie             |
+| `user_id`    | Owner of the session                           |
+| `expires_at` | Expiration time                                |
+| `ip_address` | Client IP at sign-in                           |
+| `user_agent` | Client user agent at sign-in                   |
+| `created_at` | Creation time                                  |
+| `updated_at` | Last refresh time                              |
 
-const PgStore = connectPgSimple(session);
-const pgPool = new pg.Pool({
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || "5432"),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+## Reading the Session in APIs
 
-app.register(fastifySession, {
-  secret: process.env.SESSION_SECRET!,
-  store: new PgStore({
-    pool: pgPool,
-    tableName: "sessions", // Session table name
-  }),
-  cookie: {
-    secure: true,
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-  },
-});
-```
-
-### Session Expiration Strategies
-
-**Fixed Expiration**:
-
-Session expires unconditionally after a set time from creation. High security but may result in poor user experience.
+`user` and `session` are part of the default context. Both are `null` when the request is
+unauthenticated or when `server.auth` is not configured.
 
 ```typescript
-app.register(fastifySession, {
-  secret: process.env.SESSION_SECRET!,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 2, // Unconditional expiration after 2 hours
-  },
-  rolling: false, // Disable sliding expiration
-});
-```
+import { BaseModelClass, Sonamu, UnauthorizedException, api } from "sonamu";
 
-**Sliding Expiration**:
-
-Session expiration time is renewed with each user activity. Suitable for "Remember Me" functionality with good user experience.
-
-```typescript
-app.register(fastifySession, {
-  secret: process.env.SESSION_SECRET!,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-  },
-  rolling: true, // Renew expiration time on each request
-  resave: false, // Save even if session unchanged
-});
-```
-
-**Hybrid Strategy**:
-
-Set short expiration time initially, and apply longer expiration when "Remember Me" is selected.
-
-```typescript
-class AuthModel extends BaseModelClass {
-  @api({ httpMethod: "POST" })
-  async login(params: {
-    email: string;
-    password: string;
-    rememberMe?: boolean;
-  }): Promise<{ user: User }> {
-    const { email, password, rememberMe } = params;
-    const context = Sonamu.getContext();
-
-    // Authentication logic...
-    const user = await this.authenticateUser(email, password);
-
-    // Adjust session expiration based on Remember Me
-    if (rememberMe) {
-      context.request.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30; // 30 days
-    } else {
-      context.request.session.cookie.maxAge = 1000 * 60 * 60 * 2; // 2 hours
-    }
-
-    // Save login info to session
-    await this.loginToSession(user);
-
-    return { user };
-  }
-}
-```
-
-### Session Data Management
-
-Store only minimal information in sessions. Large session size degrades performance and increases storage costs.
-
-```typescript
-// ✅ Good example: Store only minimal info
-context.request.session.userId = user.id;
-context.request.session.role = user.role;
-
-// ❌ Bad example: Storing too much info
-context.request.session.user = {
-  id: user.id,
-  email: user.email,
-  username: user.username,
-  bio: user.bio,
-  profileImage: user.profileImage,
-  preferences: user.preferences,
-  // ... many fields
-};
-```
-
-**Accessing Session Data**:
-
-```typescript
-class UserModel extends BaseModelClass {
+class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async getProfile(): Promise<{ user: User }> {
-    const context = Sonamu.getContext();
-
-    // Get user ID from session
-    const userId = context.request.session.userId;
-
-    if (!userId) {
-      throw new Error("Not authenticated");
+  async getMySession() {
+    const { user, session } = Sonamu.getContext();
+    if (!user || !session) {
+      throw new UnauthorizedException("Login required");
     }
-
-    // Query latest info from database
-    const rdb = this.getPuri("r");
-    const user = await rdb.table("users").where("id", userId).first();
-
-    return { user };
-  }
-}
-```
-
-## JWT Token Management
-
-### How JWT Works
-
-JWT (JSON Web Token) is a **stateless** authentication method. After the server creates a token, all information is contained within the token itself, so the server doesn't need to store anything separately.
-
-**JWT Structure**:
-
-```
-header.payload.signature
-```
-
-- **Header**: Token type and algorithm (e.g., `{"alg": "HS256", "typ": "JWT"}`)
-- **Payload**: User information and claims (e.g., `{"userId": 123, "role": "user"}`)
-- **Signature**: Signature to verify token integrity
-
-**JWT Advantages**:
-
-- Good scalability as server doesn't store state
-- Suitable for microservice environments
-- No separate lookup needed as information is contained in token itself
-
-**JWT Disadvantages**:
-
-- Difficult to forcibly invalidate token from server
-- Token size is larger than cookies
-- If token is stolen, it can be used until expiration
-
-### Access Token and Refresh Token
-
-**Access Token** is a **short-lived token** used for API requests. Usually has a short validity period of 15 minutes to 1 hour. Even if stolen, damage is minimized.
-
-**Refresh Token** is a **long-lived token** used to reissue Access Tokens. Usually has a validity period of 7 to 30 days and is stored on the server for management.
-
-**Why use two tokens?**
-
-If Access Token validity is set to 30 days:
-
-- If stolen, it can be abused for 30 days
-- User permission changes are not immediately reflected
-
-With short Access Token and Refresh Token renewal:
-
-- Stolen Access Token is only valid for a short time
-- Permission changes can be reflected quickly
-- Refresh Token can be stored on server and invalidated
-
-```typescript
-// auth/jwt.ts
-import jwt from "jsonwebtoken";
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
-
-/**
- * Generate Access Token (short-lived)
- */
-export function generateAccessToken(user: User): string {
-  return jwt.sign(
-    {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    },
-    ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: "15m", // 15 minutes
-    },
-  );
-}
-
-/**
- * Generate Refresh Token (long-lived)
- */
-export function generateRefreshToken(user: User): string {
-  return jwt.sign(
-    {
-      userId: user.id,
-      // Minimal info in Refresh Token
-    },
-    REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: "7d", // 7 days
-    },
-  );
-}
-
-/**
- * Verify Access Token
- */
-export function verifyAccessToken(token: string) {
-  try {
-    return jwt.verify(token, ACCESS_TOKEN_SECRET);
-  } catch (error) {
-    return null;
-  }
-}
-
-/**
- * Verify Refresh Token
- */
-export function verifyRefreshToken(token: string) {
-  try {
-    return jwt.verify(token, REFRESH_TOKEN_SECRET);
-  } catch (error) {
-    return null;
-  }
-}
-```
-
-<Warning>
-  **Security Notes**: - **Must use different** secrets for Access Token and Refresh Token - Store
-  Refresh Token on server to enable invalidation - To prevent XSS attacks, store tokens in httpOnly
-  cookies instead of localStorage
-</Warning>
-
-### Refresh Token Database Schema
-
-```sql
-CREATE TABLE refresh_tokens (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token TEXT NOT NULL UNIQUE,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW(),
-
-  INDEX idx_user_id (user_id),
-  INDEX idx_token (token),
-  INDEX idx_expires_at (expires_at)
-);
-```
-
-### Token Refresh Implementation
-
-```typescript
-class AuthModel extends BaseModelClass {
-  /**
-   * Refresh Access Token
-   *
-   * Receives Refresh Token and issues new Access Token.
-   * Verifies both token validity and database storage.
-   */
-  @api({ httpMethod: "POST" })
-  async refreshToken(params: { refreshToken: string }): Promise<{
-    accessToken: string;
-    refreshToken?: string; // For Refresh Token Rotation
-  }> {
-    const { refreshToken } = params;
-
-    // 1. Verify Refresh Token
-    const payload = verifyRefreshToken(refreshToken);
-
-    if (!payload || typeof payload === "string") {
-      throw new Error("Invalid refresh token");
-    }
-
-    // 2. Verify Refresh Token in database
-    const rdb = this.getPuri("r");
-    const storedToken = await rdb
-      .table("refresh_tokens")
-      .where("token", refreshToken)
-      .where("user_id", payload.userId)
-      .where("expires_at", ">", new Date())
-      .first();
-
-    if (!storedToken) {
-      throw new Error("Refresh token not found or expired");
-    }
-
-    // 3. Query user info
-    const user = await rdb.table("users").where("id", payload.userId).first();
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    // 4. Generate new Access Token
-    const accessToken = generateAccessToken(user);
-
-    // 5. Refresh Token Rotation (optional)
-    // Renew Refresh Token together for enhanced security
-    const newRefreshToken = generateRefreshToken(user);
-
-    const wdb = this.getPuri("w");
-
-    // Delete existing Refresh Token
-    await wdb.table("refresh_tokens").where("token", refreshToken).delete();
-
-    // Save new Refresh Token
-    await wdb.table("refresh_tokens").insert({
-      user_id: user.id,
-      token: newRefreshToken,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    });
 
     return {
-      accessToken,
-      refreshToken: newRefreshToken,
+      userId: user.id,
+      expiresAt: session.expiresAt,
+      ipAddress: session.ipAddress,
     };
   }
 }
 ```
 
-**Refresh Token Rotation** is a technique that issues a new Refresh Token each time one is used, enhancing security. Even if a token is stolen, only one of the thief or legitimate user can receive a new token, enabling quick detection of theft.
+The session object uses better-auth's field names (`expiresAt`, `userId`, `ipAddress`), not the
+snake_case column names.
 
-### Token Invalidation (Logout)
+To require a login declaratively, use guards and implement the check in `guardHandler`. See
+[Protected Routes](/en/api-development/authentication/protected-routes).
 
-JWT is valid until expiration by default, but can be forcibly invalidated using a blacklist.
+## Configuring Session Lifetime
+
+Set session options under `server.auth.session`. All values are in seconds.
 
 ```typescript
-class AuthModel extends BaseModelClass {
-  /**
-   * Logout
-   *
-   * Deletes Refresh Token from database and
-   * adds Access Token to blacklist.
-   */
-  @api({ httpMethod: "POST" })
-  async logout(): Promise<{ success: boolean }> {
-    const context = Sonamu.getContext();
+// sonamu.config.ts
+export default defineConfig({
+  server: {
+    auth: {
+      emailAndPassword: { enabled: true },
+      session: {
+        expiresIn: 60 * 60 * 24 * 7, // Session lifetime (default: 7 days)
+        updateAge: 60 * 60 * 24, // Extend the expiration at most once per day (default: 1 day)
+        freshAge: 60 * 60 * 24, // Age at which a session still counts as "fresh" (default: 1 day)
+      },
+    },
+  },
+});
+```
 
-    if (!context.user) {
-      throw new Error("Not authenticated");
+| Option                  | Default  | Description                                                                         |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------- |
+| `expiresIn`             | 7 days   | Lifetime of a session                                                               |
+| `updateAge`             | 1 day    | When a session is used after this interval, its expiration is extended (sliding)    |
+| `disableSessionRefresh` | `false`  | Disable sliding expiration; sessions expire `expiresIn` after sign-in               |
+| `freshAge`              | 1 day    | Sessions older than this are not "fresh" for sensitive operations                   |
+| `cookieCache`           | disabled | Cache the session in a signed cookie to skip the database lookup                    |
+
+**Fixed expiration**: set `disableSessionRefresh: true` so the session always ends `expiresIn` after
+sign-in.
+
+**Sliding expiration** (default): every use after `updateAge` extends the session by `expiresIn`.
+Set `updateAge: 0` to extend on every request.
+
+### Remember Me
+
+`signIn.email` accepts `rememberMe` (default `true`). With `rememberMe: false`, better-auth issues a
+session cookie that is not persisted, so the user is signed out when the browser closes.
+
+```typescript
+await authClient.signIn.email({
+  email: "user@example.com",
+  password: "password123",
+  rememberMe: false,
+});
+```
+
+## Reducing Session Lookups
+
+Sonamu resolves the session on every request. Two better-auth options reduce database load.
+
+**Cookie cache** stores a signed copy of the session in a short-lived cookie:
+
+```typescript
+server: {
+  auth: {
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60, // 5 minutes
+      },
+    },
+  },
+},
+```
+
+<Warning>
+  With the cookie cache enabled, a revoked session can remain valid on other devices until the cached
+  cookie expires (`maxAge`). Keep `maxAge` short.
+</Warning>
+
+**Secondary storage** keeps sessions in a key-value store such as Redis. Implement `get`, `set`, and
+`delete`; `set` receives the TTL in seconds.
+
+```typescript
+import { createClient } from "redis";
+
+const redis = createClient({ url: process.env.REDIS_URL });
+await redis.connect();
+
+export default defineConfig({
+  server: {
+    auth: {
+      secondaryStorage: {
+        get: (key) => redis.get(key),
+        set: async (key, value, ttl) => {
+          if (ttl) await redis.set(key, value, { EX: ttl });
+          else await redis.set(key, value);
+        },
+        delete: async (key) => {
+          await redis.del(key);
+        },
+      },
+      session: {
+        storeSessionInDatabase: true, // Keep rows in the sessions table as well
+      },
+    },
+  },
+});
+```
+
+When secondary storage is set, better-auth stores sessions only there unless
+`storeSessionInDatabase` is `true`, and always reads from it.
+
+## Listing and Revoking Sessions
+
+### From the Client
+
+```typescript
+import { createAuthClient } from "better-auth/react";
+
+export const authClient = createAuthClient({
+  baseURL: "http://localhost:34900/api/auth",
+});
+
+// Sign out of the current session
+await authClient.signOut();
+
+// List the current user's active sessions
+const { data: sessions } = await authClient.listSessions();
+
+// Revoke one session by token
+await authClient.revokeSession({ token: sessions[0].token });
+
+// Revoke every session except the current one
+await authClient.revokeOtherSessions();
+
+// Revoke every session, including the current one
+await authClient.revokeSessions();
+```
+
+### From an API
+
+`Sonamu.auth` is the better-auth instance. Its server API takes the request headers; convert
+Fastify headers with `convertFastifyHeadersToStandard`.
+
+```typescript
+import {
+  BaseModelClass,
+  Sonamu,
+  UnauthorizedException,
+  api,
+  convertFastifyHeadersToStandard,
+} from "sonamu";
+
+class AuthModelClass extends BaseModelClass {
+  @api({ httpMethod: "POST", guards: ["user"] })
+  async logoutOtherDevices(): Promise<{ success: boolean }> {
+    const { request, user } = Sonamu.getContext();
+    if (!user) {
+      throw new UnauthorizedException("Login required");
     }
 
-    const wdb = this.getPuri("w");
-
-    // 1. Delete all Refresh Tokens
-    await wdb.table("refresh_tokens").where("user_id", context.user.id).delete();
-
-    // 2. Add current Access Token to blacklist
-    const authHeader = context.request.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.substring(7);
-
-      // Calculate remaining validity time of Access Token
-      const decoded = jwt.decode(token) as any;
-      const expiresIn = decoded.exp - Math.floor(Date.now() / 1000);
-
-      // Add to Redis blacklist (TTL is remaining token time)
-      const redis = getRedisClient();
-      await redis.setex(`blacklist:${token}`, expiresIn, "1");
-    }
+    const headers = convertFastifyHeadersToStandard(request.headers);
+    await Sonamu.auth.api.revokeOtherSessions({ headers });
 
     return { success: true };
   }
 
-  /**
-   * Logout all sessions (including other devices)
-   */
-  @api({ httpMethod: "POST" })
-  async logoutAll(): Promise<{ success: boolean }> {
-    const context = Sonamu.getContext();
-
-    if (!context.user) {
-      throw new Error("Not authenticated");
-    }
-
-    const wdb = this.getPuri("w");
-
-    // Delete all Refresh Tokens
-    await wdb.table("refresh_tokens").where("user_id", context.user.id).delete();
-
-    return { success: true };
+  @api({ httpMethod: "GET", guards: ["user"] })
+  async mySessions() {
+    const { request } = Sonamu.getContext();
+    const headers = convertFastifyHeadersToStandard(request.headers);
+    return Sonamu.auth.api.listSessions({ headers });
   }
 }
 ```
 
-### Token Blacklist Middleware
+<Note>`Sonamu.auth` throws if `server.auth` is not configured.</Note>
+
+### Limiting Concurrent Logins
+
+To keep a single active session per user, revoke the other sessions right after a successful
+sign-in, for example by calling `authClient.revokeOtherSessions()` on the client after
+`signIn.email` resolves.
+
+## Cleaning Up Expired Sessions
+
+Expired sessions are rejected, but their rows stay in the `sessions` table. Delete them periodically
+with a scheduled workflow.
 
 ```typescript
-// auth/jwt.middleware.ts
-import type { FastifyRequest, FastifyReply } from "fastify";
-
-export async function checkTokenBlacklist(request: FastifyRequest, reply: FastifyReply) {
-  const authHeader = request.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return;
-  }
-
-  const token = authHeader.substring(7);
-
-  // Check blacklist in Redis
-  const redis = getRedisClient();
-  const isBlacklisted = await redis.exists(`blacklist:${token}`);
-
-  if (isBlacklisted) {
-    return reply.status(401).send({
-      error: "Token has been revoked",
-    });
-  }
-}
-```
-
-## Practical Patterns
-
-### Concurrent Login Restriction
-
-How to restrict concurrent access from multiple devices with one account.
-
-```typescript
-class AuthModel extends BaseModelClass {
-  @api({ httpMethod: "POST" })
-  async login(params: { email: string; password: string }): Promise<{ accessToken: string }> {
-    const { email, password } = params;
-
-    // Authentication...
-    const user = await this.authenticateUser(email, password);
-
-    const wdb = this.getPuri("w");
-
-    // Delete all existing sessions (force logout)
-    await wdb.table("refresh_tokens").where("user_id", user.id).delete();
-
-    // Issue new tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    await wdb.table("refresh_tokens").insert({
-      user_id: user.id,
-      token: refreshToken,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    });
-
-    return { accessToken };
-  }
-}
-```
-
-### Cleanup Expired Sessions
-
-Periodically delete expired Refresh Tokens to manage database size.
-
-```typescript
-// src/workflows/cleanup-tokens.workflow.ts
+// src/application/auth/cleanup-sessions.workflow.ts
 import { BaseModel, workflow } from "sonamu";
 
-/**
- * Delete expired Refresh Tokens at midnight every day
- */
-export const cleanupExpiredTokens = workflow(
+export const cleanupExpiredSessions = workflow(
   {
-    name: "cleanup_expired_tokens",
-    schedules: [{ expression: "0 0 * * *" }],
+    name: "cleanup_expired_sessions",
+    schedules: [{ expression: "0 0 * * *" }], // Every day at midnight
   },
   async ({ logger }) => {
-    const wdb = BaseModel.getPuri("w");
-
-    const deleted = await wdb
-      .table("refresh_tokens")
+    const deleted = await BaseModel.getPuri("w")
+      .table("sessions")
       .where("expires_at", "<", new Date())
       .delete();
 
-    logger.info(`Deleted ${deleted} expired refresh tokens`);
+    logger.info(`Deleted ${deleted} expired sessions`);
   },
 );
 ```
@@ -651,11 +272,11 @@ export const cleanupExpiredTokens = workflow(
 ## Cautions
 
 <Warning>
-  **Session/Token Management Cautions**: 1. Manage Session Secret and JWT Secret via environment
-  variables 2. External session store like Redis is required for production 3. Store Refresh Token
-  in database to enable invalidation 4. Set Access Token short, Refresh Token long 5. Set `secure:
-  true` only when using HTTPS 6. `httpOnly: true` is required for XSS prevention 7. Use Redis TTL
-  feature for blacklist
+  1. Set better-auth's `secret` (or the `BETTER_AUTH_SECRET` environment variable) in production;
+  it signs session cookies.
+  2. Set `baseURL` and `trustedOrigins` to the URLs your clients actually use.
+  3. Serve production traffic over HTTPS so better-auth can issue secure cookies.
+  4. Keep `cookieCache.maxAge` short if you rely on revoking sessions.
 </Warning>
 
 ## Next Steps
@@ -674,7 +295,7 @@ export const cleanupExpiredTokens = workflow(
   <Card title="Context" icon="diagram-project" href="/en/api-development/context/sonamu-context">
     Learn more about Context
   </Card>
-  <Card title="Workflows" icon="diagram-next" href="/en/advanced-features/workflows/overview">
+  <Card title="Workflows" icon="diagram-next" href="/en/advanced-features/workflows/workflow-decorator">
     Task scheduling
   </Card>
 </CardGroup>

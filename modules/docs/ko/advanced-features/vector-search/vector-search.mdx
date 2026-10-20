@@ -9,11 +9,11 @@ description: "Sonamu Model에서 pgvector 유사도 검색 구현하기"
 
 ```typescript
 // 문서를 저장했습니다
-await DocumentModel.saveOne({
+await DocumentModel.save([{
   title: "Sonamu 시작하기",
   content: "...",
   embedding: [0.2, 0.8, ...],  // 1024개
-});
+}]);
 
 // 이제 검색하고 싶습니다
 // "TypeScript 프레임워크" 검색 시
@@ -87,11 +87,11 @@ class DocumentModelClass extends BaseModelClass {
 pgvector의 특수 연산자(`<=>`)는 일반 `where` 조건으로 표현할 수 없습니다:
 
 ```typescript
-// ❌ findMany의 wq로는 표현 불가
-await this.findMany({
-  wq: [
+// ❌ findMany의 sonamuFilter로는 표현 불가
+await this.findMany("A", {
+  sonamuFilter: {
     /* pgvector 연산자 어떻게? */
-  ],
+  },
 });
 
 // ✅ Puri의 vectorSimilarity()
@@ -271,7 +271,7 @@ class ProductModelClass extends BaseModelClass {
   @api({ httpMethod: "POST" })
   async recommendSimilarProducts(productId: number, limit: number = 10) {
     // 기준 상품 조회
-    const baseProduct = await this.findById(productId);
+    const baseProduct = await this.findById("A", productId);
 
     if (!baseProduct.embedding) {
       throw new Error("상품 임베딩이 없습니다");
@@ -542,7 +542,7 @@ const results = await rdb
    LIMIT 10  -- OK
    -- LIMIT 1000  -- 느림
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

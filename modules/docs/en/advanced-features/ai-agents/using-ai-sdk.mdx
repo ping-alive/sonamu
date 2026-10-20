@@ -258,15 +258,15 @@ class ProductModelClass extends BaseModelClass {
     });
 
     // Save to DB
-    const product = await this.saveOne({
+    const [productId] = await this.save([{
       name: result.object.title,
       description: result.object.description,
       features: result.object.features,
       price: result.object.price,
       tags: result.object.tags,
-    });
+    }]);
 
-    return product;
+    return productId;
   }
 }
 ```
@@ -330,13 +330,13 @@ class TranscriptionModelClass extends BaseModelClass {
     });
 
     // Save to DB
-    await this.saveOne({
+    await this.save([{
       audio_url: file.url,
       transcription: result.text,
       segments: result.segments,
       language: result.language,
       duration: result.durationInSeconds,
-    });
+    }]);
 
     return {
       text: result.text,
@@ -495,7 +495,7 @@ class ChatModelClass extends BaseModelClass {
   @api({ httpMethod: "POST" })
   async chat(message: string, conversationId: number | null, ctx: Context) {
     // Retrieve conversation history
-    const history = conversationId ? await ConversationModel.findById(conversationId) : null;
+    const history = conversationId ? await ConversationModel.findById("A", conversationId) : null;
 
     const messages = history?.messages || [];
     messages.push({
@@ -523,15 +523,15 @@ class ChatModelClass extends BaseModelClass {
       content: result.text,
     });
 
-    const conversation = await ConversationModel.saveOne({
-      id: conversationId,
+    const [savedConversationId] = await ConversationModel.save([{
+      id: conversationId ?? undefined,
       user_id: ctx.user.id,
       messages,
       token_usage: result.usage.totalTokens,
-    });
+    }]);
 
     return {
-      conversationId: conversation.id,
+      conversationId: savedConversationId,
       message: result.text,
       usage: result.usage,
     };
@@ -601,7 +601,7 @@ class ChatModelClass extends BaseModelClass {
      throw new Error("Image is too large");
    }
    ```
-   </Warning>
+</Warning>
 
 ## Vercel AI SDK Documentation
 

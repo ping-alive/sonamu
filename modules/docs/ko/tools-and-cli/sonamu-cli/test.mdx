@@ -66,8 +66,12 @@ pnpm sonamu test --status
 | `--status`         | `-s`        | DevRunner 상태를 확인하고 종료      |
 
 <Tip>
-  파일 경로는 여러 개를 지정할 수 있습니다: ```bash pnpm sonamu test
-  src/application/user/user.test.ts src/application/post/post.test.ts ```
+  파일 경로는 여러 개를 지정할 수 있습니다:
+
+  ```bash
+  pnpm sonamu test src/application/user/user.test.ts src/application/post/post.test.ts
+  ```
+
 </Tip>
 
 ## Trace 출력
@@ -141,7 +145,7 @@ sequenceDiagram
 
 - **개발 중**: `pnpm sonamu test`로 빠르게 피드백을 받으세요. 코드를 수정하고 바로 테스트를 실행할 수 있습니다.
 - **CI/CD**: `pnpm test`를 사용하세요. 독립적인 환경에서 전체 테스트를 실행합니다.
-  </Info>
+</Info>
 
 ## 상태 확인
 

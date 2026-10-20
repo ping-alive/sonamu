@@ -243,14 +243,12 @@ ROLLBACK;
 
 ```typescript
 test("사용자 생성", async () => {
-  const userModel = new UserModel();
-  await userModel.create({ username: "john" });
+  await UserModel.save([{ username: "john" }]);
   // 테스트 종료 후 자동 삭제
 });
 
 test("다음 테스트는 깨끗한 DB", async () => {
-  const userModel = new UserModel();
-  const { users } = await userModel.getUsers();
+  const { rows: users } = await UserModel.findMany("A", {});
   expect(users).toHaveLength(0); // 이전 테스트의 john이 없음
 });
 ```

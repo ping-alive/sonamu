@@ -257,7 +257,7 @@ export async function down(knex: Knex): Promise<void> {
 **Run**:
 
 ```bash
-pnpm sonamu migrate:latest
+pnpm sonamu migrate run --execute
 ```
 
 ### 4. Creating a Vector Table from Scratch
@@ -331,10 +331,10 @@ CREATE TABLE docs (
 ```typescript
 // Bad order
 await knex.raw("CREATE INDEX ..."); // Index first
-await DocumentModel.saveOne({ embedding }); // Data later
+await DocumentModel.save([{ embedding }]); // Data later
 
 // Good order
-await DocumentModel.saveOne({ embedding }); // Data first (100+ entries)
+await DocumentModel.save([{ embedding }]); // Data first (100+ entries)
 await knex.raw("CREATE INDEX ..."); // Index later
 ```
 
@@ -395,12 +395,12 @@ CREATE TABLE knowledge_base (
 
 ```typescript
 // Save after generating embeddings (see embeddings.mdx)
-await KnowledgeBaseModel.saveOne({
+await KnowledgeBaseModel.save([{
   title: "Getting Started with Sonamu",
   content: "...",
   category: "documentation",
   embedding: [...],  // array of 1024 numbers
-});
+}]);
 ```
 
 **Step 3: Create Index (after 100+ data entries)**
@@ -455,14 +455,14 @@ class KnowledgeBaseModelClass extends BaseModelClass {
 4. **Manage with Migration**: Use Migration instead of direct SQL
 
    ```bash
-   pnpm sonamu migrate:latest
+   pnpm sonamu migrate run --execute
    ```
 
 5. **Extension version**: 0.5.1 or higher recommended
    ```sql
    SELECT vector_version();
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

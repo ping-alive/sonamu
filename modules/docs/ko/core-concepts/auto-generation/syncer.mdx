@@ -455,7 +455,7 @@ Sonamu UI에서 Entity를 정의하거나 `.entity.json` 파일을 수정합니�
 - `sonamu.generated.ts` 갱신
 - `sonamu.generated.sso.ts` 갱신
 - 타겟에 파일 복사
-  </Step>
+</Step>
 
 <Step title="Model 작성">
 비즈니스 로직을 Model에 작성하고 `@api` 데코레이터를 추가합니다.
@@ -465,7 +465,7 @@ Sonamu UI에서 Entity를 정의하거나 `.entity.json` 파일을 수정합니�
 - `services.generated.ts` 갱신
 - `sonamu.generated.http` 갱신
 - SSR 파일 갱신
-  </Step>
+</Step>
 
 <Step title="프론트엔드 개발">
 생성된 API 클라이언트와 Types를 사용하여 UI를 개발합니다.
@@ -496,24 +496,52 @@ Model이나 Entity를 수정하면 HMR로 즉시 반영됩니다.
 
 <AccordionGroup>
   <Accordion title="파일이 생성되지 않음">
-    **확인 사항**: 1. 개발 서버가 실행 중인지 확인 2. 파일이 감시 대상 패턴에 포함되는지 확인 3.
-    강제 재동기화 시도 ```bash pnpm sonamu sync --force ```
+    **확인 사항**:
+
+    1. 개발 서버가 실행 중인지 확인
+    2. 파일이 감시 대상 패턴에 포함되는지 확인
+    3. 강제 재동기화 시도
+
+    ```bash
+    pnpm sonamu sync --force
+    ```
+
   </Accordion>
 
-<Accordion title="타겟에 파일이 복사되지 않음">
-  **확인 사항**: 1. `sonamu.config.ts`의 `sync.targets` 확인 2. 타겟 디렉토리 존재 확인 3. 타겟
-  디렉토리에 `src/services/` 디렉토리 생성 ```bash mkdir -p web/src/services mkdir -p
-  app/src/services ```
-</Accordion>
+  <Accordion title="타겟에 파일이 복사되지 않음">
+    **확인 사항**:
 
-<Accordion title="HMR이 느림">
-  **최적화 방법**: 1. Node.js 최신 버전 사용 (v22+) 2. SSD 사용 (HDD는 느림) 3. 불필요한 파일 제외
-  4. TypeScript 프로젝트 분리 (monorepo)
-</Accordion>
+    1. `sonamu.config.ts`의 `sync.targets` 확인
+    2. 타겟 디렉토리 존재 확인
+    3. 타겟 디렉토리에 `src/services/` 디렉토리 생성
+
+    ```bash
+    mkdir -p web/src/services
+    mkdir -p app/src/services
+    ```
+
+  </Accordion>
+
+  <Accordion title="HMR이 느림">
+    **최적화 방법**:
+
+    1. Node.js 최신 버전 사용 (v22+)
+    2. SSD 사용 (HDD는 느림)
+    3. 불필요한 파일 제외
+    4. TypeScript 프로젝트 분리 (monorepo)
+
+  </Accordion>
 
   <Accordion title="import 에러 발생">
-    **원인**: `sonamu` import가 `./sonamu.shared`로 변환되지 않음 **해결**: ```bash # 강제 재동기화
-    pnpm sonamu sync --force ```
+    **원인**: `sonamu` import가 `./sonamu.shared`로 변환되지 않음
+
+    **해결**:
+
+    ```bash
+    # 강제 재동기화
+    pnpm sonamu sync --force
+    ```
+
   </Accordion>
 </AccordionGroup>
 
@@ -534,10 +562,7 @@ Model이나 Entity를 수정하면 HMR로 즉시 반영됩니다.
   >
     생성된 코드 커스터마이징 방법
   </Card>
-  <Card title="Templates" icon="file-code" href="/ko/advanced/templates/creating-templates">
-    커스텀 템플릿 만들기
-  </Card>
-  <Card title="HMR System" icon="bolt" href="/ko/advanced/hmr/understanding-hmr">
+  <Card title="HMR System" icon="bolt" href="/ko/tools-and-cli/hmr/how-hmr-works">
     HMR 시스템 깊이 이해하기
   </Card>
 </CardGroup>

@@ -167,22 +167,19 @@ Adding pagination and search to `UserApi.list()`:
 // user.api.ts before modification
 @api({ httpMethod: "GET" })
 async list() {
-  return UserModel.findMany();
+  return UserModel.findMany("A");
 }
 ```
 
 ```typescript
 // user.api.ts after modification
 @api({ httpMethod: "GET" })
-async list(listParams: ListParams & { keyword?: string }) {
-  const where = listParams.keyword
-    ? { name: { $like: `%${listParams.keyword}%` } }
-    : undefined;
+async list(listParams: UserListParams & { name?: string }) {
+  const { name, ...rest } = listParams;
 
-  return UserModel.findMany({
-    where,
-    limit: listParams.num,
-    offset: (listParams.page - 1) * listParams.num,
+  return UserModel.findMany("A", {
+    ...rest,
+    sonamuFilter: name ? { name: { contains: name } } : undefined,
   });
 }
 ```
@@ -210,14 +207,14 @@ Adding user active status check logic:
 ```typescript
 // user.model.ts
 export class UserModel extends BaseModelClass {
-  static async findActive() {
-    return this.findMany({
-      where: { status: "active", deletedAt: null },
+  async findActive() {
+    return this.findMany("A", {
+      sonamuFilter: { status: "active", deleted_at: { isNull: true } },
     });
   }
 
-  isActive(): boolean {
-    return this.status === "active" && !this.deletedAt;
+  isActive(user: UserSubsetMapping["A"]): boolean {
+    return user.status === "active" && !user.deleted_at;
   }
 }
 ```
@@ -228,13 +225,13 @@ Save → 2 seconds later → Available in other APIs immediately:
 // post.api.ts
 @api({ httpMethod: "POST" })
 async create(body: PostForm) {
-  const user = await UserModel.findById(body.userId);
+  const user = await UserModel.findById("A", body.userId);
 
-  if (!user.isActive()) {  // 👈 Use the method just added!
+  if (!UserModel.isActive(user)) {  // 👈 Use the method just added!
     throw new BadRequestException("User is not active");
   }
 
-  return PostModel.save(body);
+  return PostModel.save([body]);
 }
 ```
 
@@ -516,8 +513,8 @@ Essential for Sonamu's Entity-based structure where paths must be dynamically ge
 import { PostModel } from "./post.model"; // Original: ❌ / Sonamu: ✅
 
 export class UserModel extends BaseModelClass {
-  async getPosts() {
-    return PostModel.findMany({ where: { userId: this.id } });
+  async getPosts(userId: number) {
+    return PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
   }
 }
 ```

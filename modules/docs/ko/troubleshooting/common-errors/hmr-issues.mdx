@@ -121,7 +121,7 @@ HMR 경계 내에서는 동적 import를 피하세요:
 class UserModelClass extends BaseModelClass {
   async getRelated() {
     const { PostModel } = await import("../post/post.model");
-    return PostModel.findMany();
+    return PostModel.findMany("A");
   }
 }
 
@@ -130,7 +130,7 @@ import { PostModel } from "../post/post.model";
 
 class UserModelClass extends BaseModelClass {
   async getRelated() {
-    return PostModel.findMany();
+    return PostModel.findMany("A");
   }
 }
 ```

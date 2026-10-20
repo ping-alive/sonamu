@@ -21,7 +21,7 @@ async function getUsersWithOrders() {
   for (const user of users) {
     const orders = await OrderModel.getPuri("r")
       .table("orders")
-      .select("*")
+      .selectAll()
       .where({ user_id: user.id });
 
     user.orders = orders; // 100번 쿼리!
@@ -249,7 +249,7 @@ async function getUsersWithOrders() {
   for (const user of users) {
     user.orders = await OrderModel.getPuri("r")
       .table("orders")
-      .select("*")
+      .selectAll()
       .where({ user_id: user.id });
   }
 
@@ -266,7 +266,7 @@ async function getUsersWithOrders() {
   // 2. 모든 주문 한 번에 조회
   const orders = await OrderModel.getPuri("r")
     .table("orders")
-    .select("*")
+    .selectAll()
     .whereIn("user_id", userIds);
 
   // 3. 메모리에서 매핑
@@ -297,7 +297,7 @@ async function getUsersWithOrders() {
 class OrderModelClass extends BaseModelClass {
   // 사용자별 주문 로더
   private userOrdersLoader = new DataLoader(async (userIds: number[]) => {
-    const orders = await this.getPuri("r").table("orders").select("*").whereIn("user_id", userIds);
+    const orders = await this.getPuri("r").table("orders").selectAll().whereIn("user_id", userIds);
 
     // user_id별로 그룹화
     const grouped = userIds.map((userId) => orders.filter((o) => o.user_id === userId));
@@ -337,7 +337,7 @@ class PostModelClass extends BaseModelClass {
 
     // N+1 발생!
     for (const post of posts) {
-      post.author = await UserModel.findById(post.author_id);
+      post.author = await UserModel.findById("A", post.author_id);
       post.comments = await CommentModel.getPuri("r")
         .table("comments")
         .where({ post_id: post.id });
@@ -493,9 +493,9 @@ const result = await PostModel.executeSubsetQuery({
 });
 
 // ❌ 수동 로딩
-const posts = await PostModel.getPuri("r").table("posts").select("*");
+const posts = await PostModel.getPuri("r").table("posts").selectAll();
 for (const post of posts) {
-  post.author = await UserModel.findById(post.author_id);
+  post.author = await UserModel.findById("A", post.author_id);
 }
 ```
 

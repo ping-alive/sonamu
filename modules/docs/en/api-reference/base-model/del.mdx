@@ -121,7 +121,7 @@ async deleteUsers(userIds: number[]) {
 async deleteInactiveUsers() {
   // Query inactive users
   const { rows } = await UserModel.findMany("A", {
-    status: "inactive",
+    sonamuFilter: { status: "inactive" },
     num: 0
   });
 
@@ -165,7 +165,7 @@ class UserFrame {
     await PostModel.del(
       (
         await PostModel.findMany("A", {
-          user_id: userId,
+          sonamuFilter: { user_id: userId },
           num: 0,
         })
       ).rows.map((p) => p.id),
@@ -235,7 +235,7 @@ class PostFrame {
 
         // Delete all user comments
         const { rows: comments } = await CommentModel.findMany("A", {
-          user_id: user.id,
+          sonamuFilter: { user_id: user.id },
           num: 0
         });
         if (comments.length > 0) {
@@ -244,7 +244,7 @@ class PostFrame {
 
         // Delete all user posts
         const { rows: posts } = await PostModel.findMany("A", {
-          user_id: user.id,
+          sonamuFilter: { user_id: user.id },
           num: 0
         });
         if (posts.length > 0) {
@@ -282,7 +282,7 @@ class PostFrame {
 
         // Delete all likes on post
         const { rows: likes } = await LikeModel.findMany("A", {
-          post_id: postId,
+          sonamuFilter: { post_id: postId },
           num: 0
         });
         if (likes.length > 0) {
@@ -291,7 +291,7 @@ class PostFrame {
 
         // Delete all comments on post
         const { rows: comments } = await CommentModel.findMany("A", {
-          post_id: postId,
+          sonamuFilter: { post_id: postId },
           num: 0
         });
         if (comments.length > 0) {
@@ -525,7 +525,7 @@ try {
 async deleteUserWithPosts(userId: number) {
   // Delete posts first
   const { rows: posts } = await PostModel.findMany("A", {
-    user_id: userId,
+    sonamuFilter: { user_id: userId },
     num: 0
   });
 
@@ -724,7 +724,7 @@ await UserModel.save([
   <Card
     title="Foreign Keys"
     icon="link"
-    href="/en/database/migrations/foreign-keys"
+    href="/en/core-concepts/entity/relations#cascade-vs-restrict"
   >
     Configure foreign key constraints
   </Card>

@@ -73,7 +73,7 @@ class UserModelClass extends BaseModelClass<
   }
 
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<UserSubsetMapping["A"]> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // 비즈니스 로직 구현
   }
 }
@@ -132,10 +132,13 @@ export type UserSubsetA = User;
 
 ```typescript title="user.model.ts (Model)"
 class UserModelClass extends BaseModelClass {
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // 비즈니스 로직
-    const user = await this.getPuri("r").from("users").where("id", id).first();
-    return user;
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    if (!rows[0]) {
+      throw new NotFoundException(`User not found: ${id}`);
+    }
+    return rows[0];
   }
 }
 ```
@@ -181,14 +184,14 @@ async findMany<T extends UserSubsetKey>(
 
 ```typescript
 @api({ httpMethod: "GET", clients: ["axios", "tanstack-query"] })
-async findById(id: number): Promise<User> {
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
   // 메서드 구현
 }
 ```
 
 **자동 생성되는 것들**:
 
-- HTTP 엔드포인트: `GET /user/findById?id=1`
+- HTTP 엔드포인트: `GET /user/findById?subset=A&id=1`
 - TypeScript 클라이언트 코드
 - TanStack Query hooks
 - API 문서
@@ -247,12 +250,15 @@ class UserModelClass extends BaseModelClass {
 
   // Read
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // ...
   }
 
   @api({ httpMethod: "GET" })
-  async findMany(params: UserListParams): Promise<ListResult<UserListParams, User>> {
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+    subset: T,
+    rawParams?: LP,
+  ): Promise<ListResult<LP, UserSubsetMapping[T]>> {
     // ...
   }
 

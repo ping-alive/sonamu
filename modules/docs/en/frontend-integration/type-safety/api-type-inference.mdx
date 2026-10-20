@@ -70,7 +70,7 @@ async getUser(userId: number): Promise<{
     email: string;
   };
 }> {
-  const user = await this.findById(userId);
+  const user = await this.findById("A", userId);
   return { user };
 }
 
@@ -135,7 +135,7 @@ class UserModelClass extends BaseModelClass<
       followerCount: number;
     };
   }> {
-    const user = await this.findById(userId);
+    const user = await this.findById("A", userId);
     const stats = await this.getStats(userId);
 
     return { user, stats };

@@ -385,7 +385,7 @@ const sd_config = <K extends DictKey>(key: K): ReturnType<typeof SD<K>> => SD(ke
 ### 사용 예시
 
 ```typescript
-import { useSonamuContext } from "@sonamu-kit/react-components";
+import { useSonamuContext } from "@/contexts/sonamu-provider";
 
 export function WelcomeMessage() {
   const { SD } = useSonamuContext();
@@ -563,7 +563,7 @@ Error: useQueryClient must be used within a QueryClientProvider
 
 ## 다음 단계
 
-- [useTypeForm](/ko/frontend-integration/generated-services/using-services#usetypeform) - 폼 관리와 파일 업로드
+- [useTypeForm](/ko/frontend-integration/getting-started/setup#usetypeform-자동-통합) - 폼 관리와 파일 업로드
 - [useListParams](/ko/frontend-integration/core-hooks/use-list-params) - 리스트 필터링
 - [인증 API 개발](/ko/api-development/authentication/setup) - 백엔드 인증 설정
 - [파일 업로드 API](/ko/advanced-features/storage/file-operations) - 백엔드 스토리지 설정

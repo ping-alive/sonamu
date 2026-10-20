@@ -50,29 +50,25 @@ export const processOrder = workflow(
 
 ## Configuration (sonamu.config.ts)
 
-Workflows require PostgreSQL configuration.
+Workflows store their state in the main PostgreSQL database (the `w` preset), so no separate connection is needed. Configure the Worker in `tasks`:
 
 ```typescript
 import { defineConfig } from "sonamu";
 
 export default defineConfig({
   tasks: {
-    dbConfig: {
-      client: "pg",
-      connection: {
-        host: process.env.DB_HOST,
-        port: 5432,
-        database: process.env.DB_NAME,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-      },
+    enableWorker: true, // Default: true only when NODE_TYPE=daemon
+    workerOptions: {
+      concurrency: 4, // Default: CPU core count - 1
+      usePubSub: true, // Use PostgreSQL LISTEN/NOTIFY
+      listenDelay: 500,
     },
-    worker: {
-      concurrency: 4, // Concurrent execution count
-      usePubSub: true, // Use Pub/Sub
-      listenDelay: 500, // Listen delay (ms)
-    },
+    // Context available inside workflows
+    contextProvider: (defaultContext) => ({
+      ...defaultContext,
+    }),
   },
+  // ...
 });
 ```
 
@@ -1049,7 +1045,7 @@ Workflows automatically log through LogTape:
   Use transactions
 </Card>
 
-<Card title="Scheduling" icon="clock" href="/en/core-concepts/tasks/scheduling">
+<Card title="Scheduling" icon="clock" href="/en/advanced-features/workflows/workflow-decorator#scheduling">
   Task scheduling guide
 </Card>
 

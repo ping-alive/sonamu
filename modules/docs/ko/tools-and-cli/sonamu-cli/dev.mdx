@@ -39,8 +39,12 @@ pnpm dev web
 ```
 
 <Tip>
-  `pnpm dev web`은 `--` 뒤의 인자를 Vite에 그대로 전달합니다. 예를 들어 포트를 변경하려면: ```bash
-  pnpm dev web -- --port 5174 ```
+  `pnpm dev web`은 `--` 뒤의 인자를 Vite에 그대로 전달합니다. 예를 들어 포트를 변경하려면:
+
+  ```bash
+  pnpm dev web -- --port 5174
+  ```
+
 </Tip>
 
 ## 동작 원리
@@ -138,8 +142,9 @@ if (process.env.HOT === "yes") {
 // user.model.ts 수정
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number) {
-    return this.getPuri("r").table("users").where("id", id).first();
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 
@@ -221,7 +226,7 @@ pnpm dev
 // API 엔드포인트 수정
 @api({ httpMethod: "GET" })
 async getUsers() {
-  return this.findMany({ num: 10, page: 1 });
+  return this.findMany("A", { num: 10, page: 1 });
 }
 
 // 저장 → 자동 재시작 → 바로 테스트

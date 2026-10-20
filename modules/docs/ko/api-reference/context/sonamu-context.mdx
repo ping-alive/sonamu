@@ -133,7 +133,7 @@ class PostModelClass extends BaseModelClass {
     const locale = ctx.locale; // "ko", "en", "ja" 중 하나
 
     // locale에 따라 다른 응답
-    const posts = await this.getPuri("r").table("posts").where("locale", locale).select("*");
+    const posts = await this.getPuri("r").table("posts").where("locale", locale).selectAll();
 
     return posts;
   }

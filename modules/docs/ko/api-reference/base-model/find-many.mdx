@@ -123,14 +123,15 @@ type UserListParams = {
 
   // 필터링
   id?: number | number[]; // ID 필터
-  status?: "active" | "inactive"; // 커스텀 필터
+  sonamuFilter?: { status?: "active" | "inactive" | { in: ("active" | "inactive")[] } /* ... */ }; // 필드별 필터 (sonamuFilter 참고)
+  status?: "active" | "inactive"; // 커스텀 필터 (user.types.ts에서 추가, 커스텀 필터 참고)
 
   // 검색
   search?: "id" | "email" | "name"; // 검색 필드
   keyword?: string; // 검색어
 
   // 정렬
-  orderBy?: "id-desc" | "created-desc"; // 정렬 방식
+  orderBy?: "id-desc" | "created_at-desc"; // 정렬 방식
 
   // 쿼리 모드
   queryMode?: "list" | "count" | "both"; // 조회 모드
@@ -268,7 +269,44 @@ const { rows } = await UserModel.findMany("A", { id: [1, 2, 3] });
 
 ### 커스텀 필터
 
-Entity 정의에 따라 추가 필터를 사용할 수 있습니다.
+필드별 조건은 [`sonamuFilter`](/ko/api-reference/base-model/sonamu-filter)를 사용하세요. 다른 테이블을 조인하거나 여러 컬럼에 대응하는 등 직접 정의한 필터 키가 필요하면 엔티티의 `ListParams`에 추가하고 `findMany`에서 처리합니다.
+
+<Steps>
+<Step title="1. types 파일에서 ListParams 확장">
+```typescript title="api/src/application/user/user.types.ts"
+import { z } from "zod";
+
+import { UserBaseListParams } from "../sonamu.generated";
+
+// User - ListParams
+export const UserListParams = UserBaseListParams.extend({
+  status: z.enum(["active", "inactive"]).optional(),
+  created_from: z.string().optional(),
+  created_to: z.string().optional(),
+});
+export type UserListParams = z.infer<typeof UserListParams>;
+```
+</Step>
+
+<Step title="2. findMany에서 키 처리">
+```typescript title="api/src/application/user/user.model.ts"
+// findMany 안, getSubsetQueries(subset) 다음
+if (params.status) {
+  qb.where("users.status", params.status);
+}
+if (params.created_from) {
+  qb.where("users.created_at", ">=", params.created_from);
+}
+if (params.created_to) {
+  qb.where("users.created_at", "<=", params.created_to);
+}
+```
+</Step>
+</Steps>
+
+엔티티 JSON에서 `"toFilter": true`로 지정한 prop도 생성된 `UserBaseListParams`에 추가되지만, 스캐폴드된 `findMany`가 적용해 주지는 않으므로 `qb.where`를 직접 추가해야 합니다.
+
+키를 정의하고 처리하면 다른 파라미터처럼 전달할 수 있습니다:
 
 ```typescript
 // 상태 필터
@@ -276,17 +314,16 @@ const { rows } = await UserModel.findMany("A", {
   status: "active",
 });
 
-// 날짜 범위 필터
+// 날짜 범위 필터 (위 구현대로 양 끝 포함)
 const { rows } = await UserModel.findMany("A", {
   created_from: "2024-01-01",
   created_to: "2024-12-31",
 });
 
-// 여러 필터 조합
+// 커스텀 필터와 sonamuFilter 조합
 const { rows } = await UserModel.findMany("A", {
   status: "active",
-  role: "admin",
-  verified: true,
+  sonamuFilter: { role: "admin", verified: true },
 });
 ```
 
@@ -409,7 +446,7 @@ const { rows } = await UserModel.findMany("A", {
 
 ```typescript
 const { total } = await UserModel.findMany("A", {
-  status: "active",
+  sonamuFilter: { status: "active" },
   queryMode: "count", // rows 없음
 });
 
@@ -445,7 +482,7 @@ class UserService {
 ```typescript
 async getActiveUsers(page: number = 1) {
   const { rows, total } = await UserModel.findMany("A", {
-    status: "active",
+    sonamuFilter: { status: "active" },
     num: 20,
     page
   });
@@ -638,6 +675,7 @@ async searchUsers(keyword: string) {
       @api({ httpMethod: "GET" })
       async getDashboardStats() {
         // COUNT만 조회 (빠른 통계)
+        const startOfToday = new Date(new Date().setHours(0, 0, 0, 0));
         const [
           { total: totalUsers },
           { total: activeUsers },
@@ -646,15 +684,15 @@ async searchUsers(keyword: string) {
         ] = await Promise.all([
           UserModel.findMany("A", { queryMode: "count" }),
           UserModel.findMany("A", {
-            status: "active",
+            sonamuFilter: { status: "active" },
             queryMode: "count"
           }),
           OrderModel.findMany("A", {
-            created_from: new Date().toISOString().split('T')[0],
+            sonamuFilter: { created_at: { between: [startOfToday, new Date()] } },
             queryMode: "count"
           }),
           OrderModel.findMany("A", {
-            status: "pending",
+            sonamuFilter: { status: "pending" },
             queryMode: "count"
           })
         ]);
@@ -789,7 +827,7 @@ await UserModel.findMany("A", {
 });
 
 await UserModel.findMany("A", {
-  status: "active", // ✅ 정의된 필드
+  sonamuFilter: { status: "active" }, // ✅ 정의된 필드
 });
 ```
 

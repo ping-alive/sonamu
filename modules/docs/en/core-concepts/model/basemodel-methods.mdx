@@ -163,7 +163,7 @@ async findMany<T extends UserSubsetKey>(
   
   // Add conditions
   if (params.keyword) {
-    qb.whereLike("users.email", `%${params.keyword}%`);
+    qb.where("users.email", "like", `%${params.keyword}%`);
   }
   
   // Execute
@@ -270,7 +270,7 @@ async findMany<T extends UserSubsetKey>(
   const { qb } = this.getSubsetQueries(subset);
   
   if (params.keyword) {
-    qb.whereLike("users.email", `%${params.keyword}%`);
+    qb.where("users.email", "like", `%${params.keyword}%`);
   }
   
   const enhancers = this.createEnhancers({
@@ -658,9 +658,9 @@ async findMany<T extends UserSubsetKey, LP extends UserListParams>(
 
   if (params.keyword && params.search) {
     if (params.search === "email") {
-      qb.whereLike("users.email", `%${params.keyword}%`);
+      qb.where("users.email", "like", `%${params.keyword}%`);
     } else if (params.search === "username") {
-      qb.whereLike("users.username", `%${params.keyword}%`);
+      qb.where("users.username", "like", `%${params.keyword}%`);
     }
   }
 
@@ -718,7 +718,7 @@ async findMany<T extends UserSubsetKey>(
   if (params.keyword) {
     qb.where((builder) => {
       builder
-        .whereLike("users.email", `%${params.keyword}%`)
+        .where("users.email", "like", `%${params.keyword}%`)
         .orWhereLike("users.username", `%${params.keyword}%`)
         .orWhereLike("users.phone", `%${params.keyword}%`);
     });
@@ -769,17 +769,17 @@ async getStatistics(): Promise<UserStatistics> {
   <Card title="Puri Query Builder" icon="database" href="/en/database/puri/basic-queries">
     Type-safe query builder usage
   </Card>
-  <Card title="Subset" icon="layer-group" href="/en/core-concepts/model/using-subsets">
+  <Card title="Subset" icon="layer-group" href="/en/database/subsets/using-subsets">
     Data retrieval using Subsets
   </Card>
   <Card
     title="Transactions"
     icon="arrows-rotate"
-    href="/en/database/transactions/using-transactions"
+    href="/en/database/transactions/transactional-decorator"
   >
     Detailed transaction management guide
   </Card>
-  <Card title="Testing" icon="flask" href="/en/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/en/testing/writing-tests/test-structure">
     Writing Model tests
   </Card>
 </CardGroup>

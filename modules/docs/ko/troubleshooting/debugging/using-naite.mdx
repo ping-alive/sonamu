@@ -30,7 +30,8 @@ describe("User API", () => {
     // 로그 기록
     Naite.t("user.create.input", { email });
 
-    const user = await UserModel.create({ email });
+    const [userId] = await UserModel.save([{ email }]);
+    const user = await UserModel.findById("A", userId);
 
     Naite.t("user.create.output", { userId: user.id });
 
@@ -63,7 +64,7 @@ test("디버깅 예제", async () => {
 
 ```typescript
 test("API 호출 추적", async () => {
-  const params = { page: 1, limit: 10 };
+  const params = { num: 10, page: 1 };
 
   // 요청 기록
   Naite.t("api.request", {
@@ -71,7 +72,7 @@ test("API 호출 추적", async () => {
     params,
   });
 
-  const users = await UserModel.findMany(params);
+  const { rows: users } = await UserModel.findMany("A", params);
 
   // 응답 기록
   Naite.t("api.response", {
@@ -92,7 +93,7 @@ test("쿼리 추적", async () => {
   // 쿼리 전
   Naite.t("db.query.before", { userId });
 
-  const user = await UserModel.findById(userId);
+  const user = await UserModel.findById("A", userId);
 
   // 쿼리 후
   Naite.t("db.query.after", {
@@ -113,7 +114,7 @@ test("주문 프로세스 추적", async () => {
   Naite.t("order.process.start", { orderId });
 
   // 1. 주문 조회
-  const order = await OrderModel.findById(orderId);
+  const order = await OrderModel.findById("A", orderId);
   Naite.t("order.found", { status: order.status });
 
   // 2. 결제 처리
@@ -331,14 +332,15 @@ test("버그 재현", async () => {
     scenario: "사용자 생성 후 즉시 삭제",
   });
 
-  const user = await UserModel.create({ email: "test@example.com" });
+  const [userId] = await UserModel.save([{ email: "test@example.com" }]);
+  const user = await UserModel.findById("A", userId);
   Naite.t("bug.user.created", user);
 
-  await UserModel.del(user.id);
+  await UserModel.del([user.id]);
   Naite.t("bug.user.deleted", { userId: user.id });
 
   // 다시 조회 시도
-  const deletedUser = await UserModel.findById(user.id);
+  const deletedUser = await UserModel.findOne("A", { id: user.id });
   Naite.t("bug.user.found", { found: !!deletedUser });
 
   expect(deletedUser).toBeNull();

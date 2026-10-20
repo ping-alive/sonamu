@@ -112,7 +112,7 @@ class ProductModelClass extends BaseModelClass {
   // Cache for 1 hour
   @cache({ ttl: "1h" })
   async getFeaturedProducts() {
-    return this.getPuri("r").table("products").select("*").where({ featured: true });
+    return this.getPuri("r").table("products").selectAll().where({ featured: true });
   }
 
   // Cache for 1 day
@@ -163,7 +163,7 @@ class PostModelClass extends BaseModelClass {
   })
   async getUserPosts(userId: number, page: number = 1) {
     return this.getPuri("r")
-      .select("*")
+      .selectAll()
       .where({ user_id: userId })
       .offset((page - 1) * 20)
       .limit(20);
@@ -266,7 +266,7 @@ class CacheService {
   }
 
   async getUser(userId: number) {
-    return this.getWithCache(`user:${userId}`, () => UserModel.findById(userId));
+    return this.getWithCache(`user:${userId}`, () => UserModel.findById("A", userId));
   }
 }
 ```
@@ -283,7 +283,7 @@ class ProductModelClass extends BaseModelClass {
     return Sonamu.cache.getOrSet({
       key: cacheKey,
       ttl: "1h",
-      factory: () => this.findById(id),
+      factory: () => this.findById("A", id),
     });
   }
 }
@@ -315,7 +315,7 @@ class ProductModelClass extends BaseModelClass {
     if (cached) return cached;
 
     // 2. Query DB
-    const product = await this.findById(id);
+    const product = await this.findById("A", id);
 
     // 3. Store in cache (async after response)
     setImmediate(async () => {
@@ -334,7 +334,7 @@ class ProductModelClass extends BaseModelClass {
   // Warm popular products cache on server start
   async warmPopularProducts() {
     const popularProducts = await this.getPuri("r")
-      .select("*")
+      .selectAll()
       .where({ featured: true })
       .orWhere("view_count", ">", 1000);
 
@@ -578,7 +578,7 @@ async getDataWithFallback(id: number) {
   }
 
   // Query DB (when cache is missing or failed)
-  return this.findById(id);
+  return this.findById("A", id);
 }
 ```
 

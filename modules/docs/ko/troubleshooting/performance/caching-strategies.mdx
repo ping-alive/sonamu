@@ -112,7 +112,7 @@ class ProductModelClass extends BaseModelClass {
   // 1시간 캐싱
   @cache({ ttl: "1h" })
   async getFeaturedProducts() {
-    return this.getPuri("r").table("products").select("*").where({ featured: true });
+    return this.getPuri("r").table("products").selectAll().where({ featured: true });
   }
 
   // 1일 캐싱
@@ -163,7 +163,7 @@ class PostModelClass extends BaseModelClass {
   })
   async getUserPosts(userId: number, page: number = 1) {
     return this.getPuri("r")
-      .select("*")
+      .selectAll()
       .where({ user_id: userId })
       .offset((page - 1) * 20)
       .limit(20);
@@ -266,7 +266,7 @@ class CacheService {
   }
 
   async getUser(userId: number) {
-    return this.getWithCache(`user:${userId}`, () => UserModel.findById(userId));
+    return this.getWithCache(`user:${userId}`, () => UserModel.findById("A", userId));
   }
 }
 ```
@@ -283,7 +283,7 @@ class ProductModelClass extends BaseModelClass {
     return Sonamu.cache.getOrSet({
       key: cacheKey,
       ttl: "1h",
-      factory: () => this.findById(id),
+      factory: () => this.findById("A", id),
     });
   }
 }
@@ -315,7 +315,7 @@ class ProductModelClass extends BaseModelClass {
     if (cached) return cached;
 
     // 2. DB 조회
-    const product = await this.findById(id);
+    const product = await this.findById("A", id);
 
     // 3. 캐시 저장 (응답 후 비동기)
     setImmediate(async () => {
@@ -334,7 +334,7 @@ class ProductModelClass extends BaseModelClass {
   // 서버 시작 시 인기 상품 캐시 워밍
   async warmPopularProducts() {
     const popularProducts = await this.getPuri("r")
-      .select("*")
+      .selectAll()
       .where({ featured: true })
       .orWhere("view_count", ">", 1000);
 
@@ -578,7 +578,7 @@ async getDataWithFallback(id: number) {
   }
 
   // DB 조회 (캐시 없거나 실패 시)
-  return this.findById(id);
+  return this.findById("A", id);
 }
 ```
 

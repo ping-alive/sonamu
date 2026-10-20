@@ -11,33 +11,30 @@ Subset은 Model의 메서드를 통해 사용합니다.
 
 ```typescript
 // Subset 1개
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 // 타입: UserSubsetMapping["P"]
 
 // Subset 여러 개 (Union)
-const user = await UserModel.findById(1, ["A", "P"]);
+const subset: "A" | "P" = isAdmin ? "A" : "P";
+const user = await UserModel.findById(subset, 1);
 // 타입: UserSubsetMapping["A"] | UserSubsetMapping["P"]
 ```
 
 ### findOne - 조건으로 단일 레코드
 
 ```typescript
-const user = await UserModel.findOne({
-  where: [["email", "john@test.com"]],
-  subsetKey: "P",
+const user = await UserModel.findOne("P", {
+  sonamuFilter: { email: "john@test.com" },
 });
-// 타입: UserSubsetMapping["P"] | undefined
+// 타입: UserSubsetMapping["P"] | null
 ```
 
 ### findMany - 여러 레코드 조회
 
 ```typescript
-const users = await UserModel.findMany({
-  listParams: {
-    page: 1,
-    pageSize: 20,
-  },
-  subsetKey: "L",
+const { rows: users } = await UserModel.findMany("L", {
+  page: 1,
+  num: 20,
 });
 // 타입: UserSubsetMapping["L"][]
 ```
@@ -133,7 +130,7 @@ onSubsetL("L").where("employee__department.name", "Engineering");
 ### 자동 타입 추론
 
 ```typescript
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 
 // TypeScript가 자동으로 타입 추론
 user.id; // number
@@ -151,10 +148,12 @@ user.password; // Property 'password' does not exist
 #### 기본 교집합
 
 ```typescript
-// Subset A와 P의 교집합
-const user = await UserModel.findById(1, ["A", "P"]);
+// 실행 시점에 A 또는 P 중 하나를 선택
+const subset: "A" | "P" = isAdmin ? "A" : "P";
+const user = await UserModel.findById(subset, 1);
 
-// 타입: 두 Subset에 공통으로 있는 필드만 사용 가능
+// 타입: UserSubsetMapping["A"] | UserSubsetMapping["P"]
+// 두 Subset에 공통으로 있는 필드만 바로 사용 가능
 user.id; // ✅ OK (A, P 모두 포함)
 user.username; // ✅ OK (A, P 모두 포함)
 user.email; // ✅ OK (A, P 모두 포함)
@@ -165,9 +164,9 @@ user.bio; // ❌ Type Error (P에는 없음, A에만 있음)
 
 **교집합이 동작하는 이유**:
 
-- `["A", "P"]`는 Union이 아닌 **Intersection** 타입을 생성
-- 런타임에는 두 Subset 중 **더 큰 Subset**의 데이터가 반환됨
-- 하지만 타입 시스템은 **공통 필드만 보장**
+- subset 인자의 타입이 `"A" | "P"`이면 `findById`의 반환 타입은 `UserSubsetMapping["A"] | UserSubsetMapping["P"]` 유니온이 됨
+- 런타임에는 실제로 전달된 Subset 하나의 데이터가 반환됨
+- 유니온 타입이므로 TypeScript는 **공통 필드만** 바로 접근하도록 허용 (`getSubsetQueries`의 `onSubset(["A", "P"])`는 교집합 타입을 사용)
 
 #### 쿼리에서의 교집합
 
@@ -192,15 +191,15 @@ onSubset(["A", "P"]).where("users.id", 1);
 ```typescript
 async getUserData(userId: number, includeEmployeeInfo: boolean) {
   // 조건에 따라 Subset 선택
-  const subsets = includeEmployeeInfo ? ["P"] : ["A"];
+  const subset = includeEmployeeInfo ? "P" : "A";
 
-  const user = await UserModel.findById(userId, subsets);
+  const user = await UserModel.findById(subset, userId);
 
   // TypeScript 타입:
   // - includeEmployeeInfo가 true면: UserSubsetMapping["P"]
   // - includeEmployeeInfo가 false면: UserSubsetMapping["A"]
-  // - 하지만 변수 subsets의 타입이 ["P"] | ["A"]이므로
-  //   실제로는 교집합 타입이 추론됨
+  // - 하지만 변수 subset의 타입이 "P" | "A"이므로
+  //   두 Subset의 유니온 타입이 추론되어 공통 필드만 바로 접근 가능
 
   return {
     id: user.id,
@@ -217,14 +216,14 @@ async getUserData(userId: number, includeEmployeeInfo: boolean) {
 // 방법 1: 타입 가드 사용
 async getUserDataWithGuard(userId: number, includeEmployeeInfo: boolean) {
   if (includeEmployeeInfo) {
-    const user = await UserModel.findById(userId, ["P"]);
+    const user = await UserModel.findById("P", userId);
     // 여기서 user는 UserSubsetMapping["P"] 타입
     return {
       ...user,
       department: user.employee?.department?.name,
     };
   } else {
-    const user = await UserModel.findById(userId, ["A"]);
+    const user = await UserModel.findById("A", userId);
     // 여기서 user는 UserSubsetMapping["A"] 타입
     return user;
   }
@@ -235,7 +234,7 @@ async getUserDataGeneric<T extends UserSubsetKey>(
   userId: number,
   subset: T
 ): Promise<UserSubsetMapping[T]> {
-  const user = await UserModel.findById(userId, [subset]);
+  const user = await UserModel.findById(subset, userId);
   return user;
 }
 
@@ -392,11 +391,11 @@ async searchUsers(params: {
 // 상황에 따라 다른 Subset 사용
 async getUser(userId: number, detailed: boolean) {
   if (detailed) {
-    return await UserModel.findById(userId, ["P"]);
-    // 타입: UserSubsetMapping["P"] | undefined
+    return await UserModel.findById("P", userId);
+    // 타입: UserSubsetMapping["P"]
   } else {
-    return await UserModel.findById(userId, ["SS"]);
-    // 타입: UserSubsetMapping["SS"] | undefined
+    return await UserModel.findById("SS", userId);
+    // 타입: UserSubsetMapping["SS"]
   }
 }
 ```
@@ -405,10 +404,10 @@ async getUser(userId: number, detailed: boolean) {
 
 ```typescript
 async getUserData(userId: number, role: UserRole) {
-  const subsets = role === "admin" ? ["A"] : ["P"];
+  const subset = role === "admin" ? "A" : "P";
 
-  return await UserModel.findById(userId, subsets);
-  // 타입: UserSubsetMapping["A"] | UserSubsetMapping["P"] | undefined
+  return await UserModel.findById(subset, userId);
+  // 타입: UserSubsetMapping["A"] | UserSubsetMapping["P"]
 }
 ```
 
@@ -418,16 +417,10 @@ async getUserData(userId: number, role: UserRole) {
 
 ```typescript
 // ❌ 나쁨: 목록에서 Subset A 사용 (과도한 데이터)
-const users = await UserModel.findMany({
-  listParams: { page: 1, pageSize: 20 },
-  subsetKey: "A", // 모든 필드 로딩
-});
+const { rows: users } = await UserModel.findMany("A", { page: 1, num: 20 }); // 모든 필드 로딩
 
 // ✅ 좋음: 목록에는 Subset L 사용
-const users = await UserModel.findMany({
-  listParams: { page: 1, pageSize: 20 },
-  subsetKey: "L", // 필요한 필드만
-});
+const { rows: users } = await UserModel.findMany("L", { page: 1, num: 20 }); // 필요한 필드만
 ```
 
 ### JOIN 최소화
@@ -508,7 +501,7 @@ const users = await puri
   <Card title="Subset 정의" icon="pen" href="/ko/database/subsets/defining-subsets">
     Entity에서 Subset 생성
   </Card>
-  <Card title="Model 메서드" icon="cube" href="/ko/core-concepts/model/model-methods">
+  <Card title="Model 메서드" icon="cube" href="/ko/core-concepts/model/basemodel-methods">
     Model CRUD 메서드
   </Card>
   <Card title="Puri 쿼리" icon="database" href="/ko/database/puri/basic-queries">

@@ -27,10 +27,6 @@ export default defineConfig({
         root: path.join(import.meta.dirname, "/../", "public"),
         prefix: "/api/public",
       },
-      session: {
-        secret: process.env.SESSION_SECRET,
-        salt: process.env.SESSION_SALT,
-      },
     },
 
     apiConfig: {
@@ -290,56 +286,14 @@ export default defineConfig({
 
 **Example**: `/api/public/images/logo.png` → `public/images/logo.png` file
 
-### session
+### Sessions and authentication
 
-Enables session management.
+`server.plugins` has no session plugin. Authentication and sessions are configured with
+`server.auth` (Better Auth). For each request, Sonamu resolves the Better Auth session and passes
+`user` and `session` to `contextProvider` through `defaultContext`; both are `null` when the
+request is unauthenticated or `server.auth` is not configured.
 
-**Type**: `boolean | SecureSessionPluginOptions` (optional)
-
-```typescript
-export default defineConfig({
-  server: {
-    plugins: {
-      session: {
-        secret: process.env.SESSION_SECRET || "change-this-secret",
-        salt: process.env.SESSION_SALT || "change-this-salt",
-        cookie: {
-          domain: "localhost",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365 * 10, // 10 years
-        },
-      },
-    },
-  },
-});
-```
-
-<Warning>
-  In production environments, you must set `secret` and `salt` via environment variables!
-</Warning>
-
-**Production settings**:
-
-```typescript
-export default defineConfig({
-  server: {
-    plugins: {
-      session: {
-        secret: process.env.SESSION_SECRET!,
-        salt: process.env.SESSION_SALT!,
-        cookie: {
-          domain: process.env.COOKIE_DOMAIN,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30, // 30 days
-          secure: true, // HTTPS only
-          httpOnly: true,
-          sameSite: "strict",
-        },
-      },
-    },
-  },
-});
-```
+→ [auth settings](/en/configuration/sonamu-config/auth)
 
 ### compress
 
@@ -451,7 +405,7 @@ Configures API behavior.
 
 A function that creates Context for each API call.
 
-**Type**: `(defaultContext, request) => Context`
+**Type**: `(defaultContext, request, reply) => Context | Promise<Context>`
 
 ```typescript
 export default defineConfig({
@@ -461,7 +415,6 @@ export default defineConfig({
         return {
           ...defaultContext,
           ip: request.ip,
-          session: request.session,
           body: request.body,
         };
       },
@@ -476,16 +429,22 @@ export default defineConfig({
 
 A function called when Guard decorators execute.
 
-**Type**: `(guard, request, api) => void | Promise<void>`
+**Type**: `(guard, request, api) => void`
+
+The handler runs synchronously inside the request context, so `Sonamu.getContext()` returns the
+current `user` and `session`. Throw to reject the request; a returned Promise is not awaited.
 
 ```typescript
+import { Sonamu, UnauthorizedException } from "sonamu";
+
 export default defineConfig({
   server: {
     apiConfig: {
       guardHandler: (guard, request, api) => {
         // Permission check logic
-        if (guard === "admin" && !request.session.isAdmin) {
-          throw new UnauthorizedException("Admin only");
+        const { user } = Sonamu.getContext();
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("Login required");
         }
       },
     },
@@ -611,22 +570,12 @@ export default defineConfig({
         root: path.join(import.meta.dirname, "/../", "public"),
         prefix: "/api/public",
       },
-      session: {
-        secret: "dev-secret-change-in-production",
-        salt: "dev-salt-change-in-production",
-        cookie: {
-          domain: "localhost",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365,
-        },
-      },
     },
 
     apiConfig: {
       contextProvider: (defaultContext, request) => ({
         ...defaultContext,
         ip: request.ip,
-        session: request.session,
       }),
     },
 
@@ -642,7 +591,7 @@ export default defineConfig({
 
 ```typescript
 import path from "path";
-import { defineConfig } from "sonamu";
+import { defineConfig, Sonamu, UnauthorizedException } from "sonamu";
 
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
@@ -687,32 +636,19 @@ export default defineConfig({
         prefix: "/api/public",
         maxAge: 86400000, // 1 day
       },
-
-      session: {
-        secret: process.env.SESSION_SECRET!,
-        salt: process.env.SESSION_SALT!,
-        cookie: {
-          domain: process.env.COOKIE_DOMAIN,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30, // 30 days
-          secure: true,
-          httpOnly: true,
-          sameSite: "strict",
-        },
-      },
     },
 
     apiConfig: {
       contextProvider: (defaultContext, request) => ({
         ...defaultContext,
         ip: request.ip,
-        session: request.session,
         userAgent: request.headers["user-agent"],
       }),
 
-      guardHandler: (guard, request) => {
-        if (guard === "admin" && !request.session.isAdmin) {
-          throw new UnauthorizedException("Admin access required");
+      guardHandler: (guard) => {
+        const { user } = Sonamu.getContext();
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("Login required");
         }
       },
     },

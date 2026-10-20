@@ -137,7 +137,7 @@ const RESERVED_KEYWORDS = [
 ### Symptoms
 
 ```typescript
-const users = await UserModel.findMany();
+const { rows: users } = await UserModel.findMany("A");
 // Type: any[]  ❌ Type not properly inferred
 ```
 
@@ -185,7 +185,7 @@ If file is missing or outdated, re-run sync.
 ```typescript
 class UserModelClass extends BaseModelClass {
   async findByEmail(email: string) {
-    return this.findOne({ email });
+    return this.findOne("A", { sonamuFilter: { email } });
     // Error: Property 'findOne' does not exist on type 'UserModelClass'
   }
 }
@@ -253,7 +253,7 @@ type OrderStatus = "pending" | "processing" | "completed";
 class OrderModelClass extends BaseModelClass {
   async updateStatus(id: number, status: OrderStatus) {
     // ✅
-    return this.updateOne({ id }, { status });
+    return this.getPuri("w").table("orders").where("id", id).update({ status });
   }
 }
 ```
@@ -286,20 +286,6 @@ API method parameter type doesn't match Zod schema.
 @api()
 async createUser(email: string, age: number) {  // ✅
   // Sonamu automatically validates with Zod
-}
-```
-
-#### 2. Use Explicit Zod Schema
-
-```typescript
-const CreateUserSchema = z.object({
-  email: z.string().email(),
-  age: z.number().int().positive()
-});
-
-@api({ schema: CreateUserSchema })
-async createUser(data: z.infer<typeof CreateUserSchema>) {
-  // Type safety guaranteed
 }
 ```
 

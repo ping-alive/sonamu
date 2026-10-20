@@ -22,7 +22,7 @@ async getMyProfile(ctx: Context) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  return this.findById(ctx.user.id);
+  return this.findById("A", ctx.user.id);
 }
 ```
 
@@ -41,7 +41,7 @@ async updateMyProfile(
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  return this.update(ctx.user.id, { name, bio });
+  return this.getPuri("w").table("users").where("id", ctx.user.id).update({ name, bio });
 }
 ```
 
@@ -54,7 +54,7 @@ async updateMyProfile(
 @api({ guards: ["user"] })
 async getMyData(ctx: Context) {
   // ctx.user가 보장됨
-  return this.findById(ctx.user!.id);
+  return this.findById("A", ctx.user!.id);
 }
 
 // sonamu.config.ts에서 Guard 처리
@@ -81,7 +81,7 @@ async deletePost(ctx: Context, postId: number) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  const post = await this.findById(postId);
+  const post = await this.findOne("A", { id: postId });
 
   if (!post) {
     throw new NotFoundException("게시물을 찾을 수 없습니다");
@@ -134,7 +134,7 @@ async publishPost(ctx: Context, postId: number) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  const post = await this.findById(postId);
+  const post = await this.findOne("A", { id: postId });
 
   if (!post) {
     throw new NotFoundException("게시물을 찾을 수 없습니다");
@@ -157,7 +157,7 @@ async publishPost(ctx: Context, postId: number) {
     );
   }
 
-  return this.update(postId, { status: "published" });
+  return this.getPuri("w").table("posts").where("id", postId).update({ status: "published" });
 }
 ```
 
@@ -174,16 +174,15 @@ async addTeamMember(
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  const team = await TeamModel.findById(teamId);
+  const team = await TeamModel.findOne("A", { id: teamId });
 
   if (!team) {
     throw new NotFoundException("팀을 찾을 수 없습니다");
   }
 
   // 팀 관리자만 멤버 추가 가능
-  const membership = await TeamMemberModel.findOne({
-    teamId,
-    userId: ctx.user.id
+  const membership = await TeamMemberModel.findOne("A", {
+    sonamuFilter: { team_id: teamId, user_id: ctx.user.id },
   });
 
   if (!membership) {
@@ -204,11 +203,11 @@ async addTeamMember(
     );
   }
 
-  return TeamMemberModel.create({
+  return TeamMemberModel.save([{
     teamId,
     userId: newMemberId,
     role: "member"
-  });
+  }]);
 }
 ```
 
@@ -285,7 +284,7 @@ async accessRestrictedResource(ctx: Context, resourceId: number) {
   }
 
   // 구독 플랜별 접근 제한
-  const resource = await ResourceModel.findById(resourceId);
+  const resource = await ResourceModel.findById("A", resourceId);
 
   if (resource.requiredPlan === "premium" && subscription.plan === "basic") {
     throw new UnauthorizedException(
@@ -375,7 +374,7 @@ async complexAuthEndpoint(ctx: Context, postId: number) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  const post = await PostModel.findById(postId);
+  const post = await PostModel.findById("A", postId);
 
   // 복잡한 권한 로직: 작성자이거나, 편집자이거나, 같은 팀 멤버
   const isAuthor = post.authorId === ctx.user.id;
@@ -489,5 +488,5 @@ async deleteUser(ctx: Context, userId: number) {
 
 - [SoException](/ko/api-reference/exceptions/sonamu-error)
 - [AuthContext](/ko/api-reference/context/auth-context)
-- [Guards](/ko/api-development/guards)
+- [Guards](/ko/api-development/authentication/protected-routes)
 - [커스텀 예외](/ko/api-reference/exceptions/custom-errors)

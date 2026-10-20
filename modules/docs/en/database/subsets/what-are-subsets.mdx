@@ -51,15 +51,15 @@ type UserList = {
 
 ```typescript
 // ✅ Subset A: Full information
-const admin = await UserModel.findById(1, ["A"]);
+const admin = await UserModel.findById("A", 1);
 // Type: { id, created_at, email, username, role, bio, ... }
 
 // ✅ Subset P: Profile + relations
-const profile = await UserModel.findById(1, ["P"]);
+const profile = await UserModel.findById("P", 1);
 // Type: { id, username, employee: { salary, department: { name } } }
 
 // ✅ Subset SS: Summary information
-const summary = await UserModel.findById(1, ["SS"]);
+const summary = await UserModel.findById("SS", 1);
 // Type: { id, username, role, last_login_at }
 ```
 
@@ -184,10 +184,7 @@ Common Subset name patterns:
 ```typescript
 // GET /users - User list
 async list(params: UserListParams) {
-  const users = await UserModel.findMany({
-    listParams: params,
-    subsetKey: "L",  // Use List Subset
-  });
+  const { rows: users } = await UserModel.findMany("L", params); // Use List Subset
 
   // Type: { id: number; username: string; role: string; created_at: Date }[]
   return users.map(user => ({
@@ -204,7 +201,7 @@ async list(params: UserListParams) {
 ```typescript
 // GET /users/:id/profile
 async getProfile(userId: number) {
-  const user = await UserModel.findById(userId, ["P"]);
+  const user = await UserModel.findOne("P", { id: userId });
 
   if (!user) {
     throw new Error("User not found");
@@ -234,7 +231,7 @@ async getProfile(userId: number) {
 
 ```typescript
 // ✅ Using Subset
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 // - Type safe
 // - Code reuse
 // - Easy maintenance

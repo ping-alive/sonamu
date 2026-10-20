@@ -175,16 +175,17 @@ class HotelBookingAgentClass extends BaseAgentClass<{
   })
   async searchHotels(input: { city: string; checkIn: string; checkOut: string; guests: number }) {
     // DB에서 호텔 검색
-    const hotels = await HotelModel.findMany({
-      wq: [
-        ["city", input.city],
-        ["available_from", "<=", input.checkIn],
-        ["available_to", ">=", input.checkOut],
-        ["capacity", ">=", input.guests],
-      ],
+    const hotels = await HotelModel.findMany("A", {
+      sonamuFilter: {
+        city: input.city,
+        // before/after는 경계 미포함(< / >)이며 날짜 필드에는 lte/gte가 없음
+        available_from: { before: new Date(input.checkIn) },
+        available_to: { after: new Date(input.checkOut) },
+        capacity: { gte: input.guests },
+      },
     });
 
-    return hotels.data.map((hotel) => ({
+    return hotels.rows.map((hotel) => ({
       hotelId: hotel.id,
       name: hotel.name,
       price: hotel.price_per_night,
@@ -213,14 +214,15 @@ class HotelBookingAgentClass extends BaseAgentClass<{
     const userId = this.store?.userId;
 
     // 예약 생성
-    const booking = await BookingModel.saveOne({
+    const [bookingId] = await BookingModel.save([{
       user_id: userId,
       hotel_id: input.hotelId,
       check_in: input.checkIn,
       check_out: input.checkOut,
       guests: input.guests,
       status: "confirmed",
-    });
+    }]);
+    const booking = await BookingModel.findById("A", bookingId);
 
     return {
       bookingId: booking.id,
@@ -243,12 +245,10 @@ class HotelBookingAgentClass extends BaseAgentClass<{
     needsApproval: true, // 취소 전 사용자 승인
   })
   async cancelBooking(input: { bookingId: number }) {
-    const booking = await BookingModel.findById(input.bookingId);
+    const booking = await BookingModel.findById("A", input.bookingId);
 
     // 취소 처리
-    await BookingModel.updateOne(["id", booking.id], {
-      status: "cancelled",
-    });
+    await BookingModel.getPuri("w").table("bookings").where("id", booking.id).update({ status: "cancelled" });
 
     // 환불 처리
     const refundAmount = booking.total_price * 0.9; // 10% 수수료
@@ -417,16 +417,16 @@ class EmailAutomationAgentClass extends BaseAgentClass<{
     },
   })
   async searchEmails(input: { query: string; limit: number }) {
-    const emails = await EmailModel.findMany({
-      wq: [
-        ["user_id", this.store?.userId],
-        ["subject", "LIKE", `%${input.query}%`],
-      ],
+    const emails = await EmailModel.findMany("A", {
+      sonamuFilter: {
+        user_id: this.store?.userId,
+        subject: { contains: input.query },
+      },
       num: input.limit,
-      order: [["received_at", "DESC"]],
+      orderBy: "received_at-desc", // email.entity.json의 enums.EmailOrderBy에 "received_at-desc"를 추가하고 findMany의 orderBy 분기에서 처리
     });
 
-    return emails.data.map((email) => ({
+    return emails.rows.map((email) => ({
       id: email.id,
       from: email.from_address,
       subject: email.subject,
@@ -448,9 +448,7 @@ class EmailAutomationAgentClass extends BaseAgentClass<{
     },
   })
   async moveEmail(input: { emailId: number; folder: string }) {
-    await EmailModel.updateOne(["id", input.emailId], {
-      folder: input.folder,
-    });
+    await EmailModel.getPuri("w").table("emails").where("id", input.emailId).update({ folder: input.folder });
 
     return { success: true };
   }
@@ -468,12 +466,13 @@ class EmailAutomationAgentClass extends BaseAgentClass<{
     },
   })
   async addLabels(input: { emailId: number; labels: string[] }) {
-    const email = await EmailModel.findById(input.emailId);
+    const email = await EmailModel.findById("A", input.emailId);
     const currentLabels = email.labels || [];
 
-    await EmailModel.updateOne(["id", input.emailId], {
-      labels: [...currentLabels, ...input.labels],
-    });
+    await EmailModel.getPuri("w")
+      .table("emails")
+      .where("id", input.emailId)
+      .update({ labels: [...currentLabels, ...input.labels] });
 
     return { success: true };
   }
@@ -606,7 +605,7 @@ async getUserProfile() {
   const userId = this.store?.userId;
   const language = this.store?.preferences.language;
 
-  const user = await UserModel.findById(userId);
+  const user = await UserModel.findById("A", userId);
 
   return {
     userId: user.id,
@@ -653,7 +652,7 @@ async getUserProfile() {
 
    ```typescript
    async getOrder(input: { orderId: number }) {
-     const order = await OrderModel.findById(input.orderId);
+     const order = await OrderModel.findOne("A", { id: input.orderId });
      if (!order) {
        throw new Error(`주문 ID ${input.orderId}를 찾을 수 없습니다`);
      }
@@ -677,7 +676,7 @@ async getUserProfile() {
      // ...
    })
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

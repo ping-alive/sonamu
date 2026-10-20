@@ -118,7 +118,7 @@ import { UserModel } from "./application/user/user.model";
 
 // UserModel을 수정해도 반영되지 않음!
 app.get("/users", async (req, res) => {
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 ```
@@ -131,7 +131,7 @@ app.get("/users", async (req, res) => {
   const { UserModel } = await import("./application/user/user.model");
 
   // UserModel을 수정하면 다음 요청 시 최신 코드가 로드됨!
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 ```
@@ -164,8 +164,8 @@ Boundary 파일끼리는 정적 import가 가능합니다 (Sonamu의 개선사�
 import { PostModel } from "./post.model"; // ✅ OK - 둘 다 boundary
 
 export class UserModel extends BaseModelClass {
-  async getPosts() {
-    return PostModel.findMany({ where: { userId: this.id } });
+  async getPosts(userId: number) {
+    return PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
   }
 }
 ```
@@ -245,7 +245,7 @@ import { UserModel } from "../user/user.model";  // ✅ 둘 다 boundary
 
 @api({ httpMethod: "POST" })
 async create(body: PostForm) {
-  const user = await UserModel.findById(body.userId);
+  const user = await UserModel.findById("A", body.userId);
 
   if (!user.canCreatePost()) {  // 👈 방금 추가한 메서드 바로 사용!
     throw new UnauthorizedException("You don't have permission to create posts");
@@ -344,7 +344,7 @@ import { PaymentService } from "../payment/payment.service";
 
 export class OrderModel extends BaseModelClass {
   static async createOrder(productId: number, quantity: number, userId: number) {
-    const product = await ProductModel.findById(productId);
+    const product = await ProductModel.findById("A", productId);
 
     // ProductModel.reserveStock()을 바로 사용 가능!
     await product.reserveStock(quantity);

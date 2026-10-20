@@ -50,7 +50,8 @@ bootstrap(vi);
 
 test("create user", async () => {
   // beforeEach: Transaction starts
-  const user = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
   expect(user.id).toBeDefined();
   // afterEach: Transaction rollback → Not actually saved to DB
 });
@@ -58,7 +59,7 @@ test("create user", async () => {
 test("query users", async () => {
   // New transaction starts
   // Previous test data doesn't exist
-  const users = await userModel.findMany({});
+  const { rows: users } = await UserModel.findMany("A", {});
   expect(users.length).toBe(0);
   // Transaction rollback
 });
@@ -98,49 +99,32 @@ export function bootstrap(vi: VitestUtils) {
 
 ### sonamu.config.ts
 
-Test DB is configured in `sonamu.config.ts`:
+Connection settings come from `SONAMU_DB_*` environment variables, not from `sonamu.config.ts`. With `NODE_ENV=test`, Sonamu reads `.env.test` and uses the `test` preset. If `SONAMU_DB_NAME` is not set, the database name is `<projectName>_test`. Shared Knex options such as the pool go in `database.defaultOptions`.
 
 <CodeGroup>
 
-```typescript sonamu.config.ts
-import type { SonamuConfig } from "sonamu";
+```bash .env.test
+SONAMU_DB_HOST=localhost
+SONAMU_DB_PORT=5432
+SONAMU_DB_USER=postgres
+SONAMU_DB_PASSWORD=password
+SONAMU_DB_NAME=myapp_test
+```
 
-export const config: SonamuConfig = {
+```typescript sonamu.config.ts
+import { defineConfig } from "sonamu";
+
+export default defineConfig({
+  projectName: "myapp",
   database: {
-    name: "myapp",
+    database: "pg",
+    // Shared Knex options for every preset
     defaultOptions: {
-      client: "postgresql",
-      connection: {
-        host: "localhost",
-        port: 5432,
-        user: "postgres",
-        password: "password",
-      },
-    },
-    environments: {
-      // Test environment settings
-      test: {
-        connection: {
-          database: "myapp_test", // Separate test DB
-        },
-        pool: {
-          min: 1,
-          max: 1, // Single connection pool (transaction isolation)
-        },
-      },
-      development: {
-        connection: {
-          database: "myapp_dev",
-        },
-      },
-      production: {
-        connection: {
-          database: "myapp_prod",
-        },
-      },
+      pool: { min: 1, max: 5 },
     },
   },
-};
+  // ...
+});
 ```
 
 ```bash Create Test DB
@@ -151,8 +135,8 @@ createdb myapp_test
 
 **Important**:
 
-- Test DB is **completely separate** from development/production DB
-- Set `pool.max: 1` to use single connection (guarantees transaction isolation)
+- The test DB is **completely separate** from the development and production DBs
+- `database.name` and `database.environments` were removed; Sonamu throws if they are set
 
 ### DB Class Test Mode
 
@@ -229,22 +213,24 @@ async clearTestTransaction(): Promise<void> {
 ### Basic CRUD Test
 
 ```typescript
+import { NotFoundException } from "sonamu";
 import { bootstrap, test } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect, vi } from "vitest";
 
 bootstrap(vi);
 
 test("create and query user", async () => {
   // Create
-  const created = await userModel.create({
+  const [createdId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
-  });
+  }]);
+  const created = await UserModel.findById("A", createdId);
   expect(created.id).toBeDefined();
 
   // Query
-  const found = await userModel.findById(created.id);
+  const found = await UserModel.findById("A", created.id);
   expect(found?.username).toBe("john");
 
   // Auto rollback in afterEach → Not actually saved to DB
@@ -252,25 +238,27 @@ test("create and query user", async () => {
 
 test("update user", async () => {
   // New transaction starts → No data from previous test
-  const user = await userModel.create({ username: "jane" });
+  const [userId] = await UserModel.save([{ username: "jane" }]);
+  const user = await UserModel.findById("A", userId);
 
   // Update
-  await userModel.update(user.id, { username: "jane_updated" });
+  await UserModel.getPuri("w").table("users").where("id", user.id).update({ username: "jane_updated" });
 
   // Verify
-  const updated = await userModel.findById(user.id);
+  const updated = await UserModel.findById("A", user.id);
   expect(updated?.username).toBe("jane_updated");
 
   // Rollback
 });
 
 test("delete user", async () => {
-  const user = await userModel.create({ username: "bob" });
+  const [userId] = await UserModel.save([{ username: "bob" }]);
+  const user = await UserModel.findById("A", userId);
 
-  await userModel.delete(user.id);
+  await UserModel.del([user.id]);
 
-  const deleted = await userModel.findById(user.id);
-  expect(deleted).toBeNull();
+  // The generated findById throws NotFoundException for a missing row
+  await expect(UserModel.findById("A", user.id)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -279,23 +267,28 @@ test("delete user", async () => {
 ```typescript
 test("create post and comments", async () => {
   // Create user
-  const user = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
 
   // Create post
-  const post = await postModel.create({
+  const [postId] = await PostModel.save([{
     author_id: user.id,
     title: "Hello World",
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Create comment
-  const comment = await commentModel.create({
+  await CommentModel.save([{
     post_id: post.id,
     author_id: user.id,
     content: "Nice post!",
-  });
+  }]);
 
   // Verify
-  const comments = await commentModel.findByPostId(post.id);
+  const comments = await CommentModel.getPuri("r")
+    .table("comments")
+    .select({ content: "comments.content" })
+    .where("comments.post_id", post.id);
   expect(comments.length).toBe(1);
   expect(comments[0].content).toBe("Nice post!");
 
@@ -307,17 +300,17 @@ test("create post and comments", async () => {
 
 ```typescript
 test("duplicate username error", async () => {
-  await userModel.create({ username: "john" });
+  await UserModel.save([{ username: "john" }]);
 
   // Try to create with duplicate username
-  await expect(userModel.create({ username: "john" })).rejects.toThrow("Username already exists");
+  await expect(UserModel.save([{ username: "john" }])).rejects.toThrow("Username already exists");
 
   // Transaction rolls back even on error
 });
 
 test("constraint violation", async () => {
   // NOT NULL constraint violation
-  await expect(userModel.create({ username: null as any })).rejects.toThrow();
+  await expect(UserModel.save([{ username: null as any }])).rejects.toThrow();
 
   // Rollback keeps DB state clean
 });
@@ -328,23 +321,22 @@ test("constraint violation", async () => {
 ```typescript
 test("full order creation flow", async () => {
   // 1. Create user
-  const user = await userModel.create({ username: "customer" });
+  const [userId] = await UserModel.save([{ username: "customer" }]);
+  const user = await UserModel.findById("A", userId);
 
   // 2. Create product
-  const product = await productModel.create({
+  const [productId] = await ProductModel.save([{
     name: "Laptop",
     price: 1000000,
     stock: 10,
-  });
+  }]);
+  const product = await ProductModel.findById("A", productId);
 
-  // 3. Create order (includes stock reduction)
-  const order = await orderModel.create({
-    user_id: user.id,
-    items: [{ product_id: product.id, quantity: 2 }],
-  });
+  // 3. Create order with your own business method (includes stock reduction)
+  const order = await OrderModel.placeOrder(user.id, [{ product_id: product.id, quantity: 2 }]);
 
   // 4. Check stock
-  const updatedProduct = await productModel.findById(product.id);
+  const updatedProduct = await ProductModel.findById("A", product.id);
   expect(updatedProduct?.stock).toBe(8); // 10 - 2
 
   // 5. Check order
@@ -360,33 +352,34 @@ test("full order creation flow", async () => {
 
 ```typescript
 import { bootstrap, test } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect, vi } from "vitest";
 
 bootstrap(vi);
 
 test("Test 1: Create data", async () => {
-  const user = await userModel.create({ username: "test1" });
+  const [userId] = await UserModel.save([{ username: "test1" }]);
+  const user = await UserModel.findById("A", userId);
   expect(user.id).toBeDefined();
 
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(1);
 });
 
 test("Test 2: Verify isolation", async () => {
   // Previous test data was rolled back
   // DB should be clean
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(0); // ✅ Passes
 
   // Create new data
-  await userModel.create({ username: "test2" });
-  const newCount = await userModel.count();
+  await UserModel.save([{ username: "test2" }]);
+  const { total: newCount } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(newCount).toBe(1);
 });
 
 test("Test 3: Verify isolation again", async () => {
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(0); // ✅ Passes
 });
 ```
@@ -458,12 +451,13 @@ Some operations execute outside transaction scope, so caution is needed:
 4. **Time functions (NOW(), CURRENT_TIMESTAMP, etc.)**
    ```typescript
    test("check creation time", async () => {
-     const user = await userModel.create({ username: "john" });
+     const [userId] = await UserModel.save([{ username: "john" }]);
+     const user = await UserModel.findById("A", userId);
      // user.created_at is actual current time
      // Can control with vi.useFakeTimers()
    });
    ```
-   </Warning>
+</Warning>
 
 ### File System Mocking
 
@@ -553,7 +547,7 @@ export default defineConfig({
 3. **Clean up external resources**: Files, external API calls, etc. must be cleaned up manually.
 
 4. **Limit parallel execution**: Sequential test execution is recommended for transaction isolation.
-   </Warning>
+</Warning>
 
 ## Next Steps
 
@@ -567,7 +561,7 @@ export default defineConfig({
   <Card title="Naite Logging" icon="pen" href="/en/testing/naite/recording-logs">
     Recording and tracking test logs
   </Card>
-  <Card title="Bootstrap" icon="gear" href="/en/testing/getting-started/bootstrap">
+  <Card title="Bootstrap" icon="gear" href="/en/testing/writing-tests/test-structure#bootstrap-function">
     Test environment initialization
   </Card>
 </CardGroup>

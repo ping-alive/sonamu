@@ -284,7 +284,8 @@ beforeAll(async () => {
 test("create user", async () => {
   Naite.t("user:create:input", { username: "john" });
 
-  const { user } = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
 
   Naite.t("user:create:output", { userId: user.id });
 
@@ -377,10 +378,12 @@ The Extension automatically starts the socket server when it runs:
     Runs all tests once and exits.
   </Tab>
 
-<Tab title="Watch Mode">
-  ```bash pnpm test --watch ``` Automatically re-runs related tests when files change. The most
-  commonly used mode during development.
-</Tab>
+  <Tab title="Watch Mode">
+    ```bash
+    pnpm test --watch
+    ```
+    Automatically re-runs related tests when files change. The most commonly used mode during development.
+  </Tab>
 
   <Tab title="Specific File">
     ```bash
@@ -395,11 +398,6 @@ Tests automatically connect to the Extension and display logs in real-time.
 ## Usage
 
 ### 1. Opening the Naite Viewer Panel
-
-<Frame>
-  <img src="/images/naite-viewer-open-panel.png" alt="Opening Naite Viewer panel in VSCode" />
-  <p>Running 'Naite: Open Viewer' from Command Palette to open the panel</p>
-</Frame>
 
 <Tabs>
   <Tab title="Command Palette" icon="keyboard">
@@ -574,11 +572,6 @@ Naite Viewer displays tests in a 3-level hierarchy:
   </Tab>
 </Tabs>
 
-<Frame>
-  <img src="/images/naite-viewer-main-screen.png" alt="Naite Viewer main screen" />
-  <p>Test logs displayed in actual Naite Viewer (Suite > Test > Trace hierarchy)</p>
-</Frame>
-
 <Info>
   **Real-time Updates**: In watch mode, when you modify a file, tests auto-rerun and the Viewer
   updates immediately. This lets you see the impact of code changes right away.
@@ -611,11 +604,6 @@ user:create:input
 3. `runWithMockContext`: Sonamu's Context wrapper (displayed up to here)
 
 </Accordion>
-
-<Frame>
-  <img src="/images/naite-viewer-callstack.png" alt="Naite Viewer callstack details" />
-  <p>Callstack information and code navigation feature when clicking on a log</p>
-</Frame>
 
 <Tip>
   Clicking each item in the callstack navigates directly to the exact line in that file. This is
@@ -770,15 +758,17 @@ When calling multiple APIs in sequence, track inputs and outputs of each API.
 test("create post → add comment → send notification", async () => {
   // 1. Create post
   Naite.t("api:post:create:request", { title: "Hello" });
-  const { post } = await postModel.create({ title: "Hello" });
+  const [postId] = await PostModel.save([{ title: "Hello" }]);
+  const post = await PostModel.findById("A", postId);
   Naite.t("api:post:create:response", { postId: post.id });
 
   // 2. Add comment
   Naite.t("api:comment:create:request", { postId: post.id, content: "Nice!" });
-  const { comment } = await commentModel.create({
+  const [commentId] = await CommentModel.save([{
     post_id: post.id,
     content: "Nice!",
-  });
+  }]);
+  const comment = await CommentModel.findById("A", commentId);
   Naite.t("api:comment:create:response", { commentId: comment.id });
 
   // 3. Notify author
@@ -866,7 +856,7 @@ test("invalid input handling", async () => {
   try {
     Naite.t("user:create:input", { username: "" }); // Empty value
 
-    await userModel.create({ username: "", email: "test@test.com" });
+    await UserModel.save([{ username: "", email: "test@test.com" }]);
   } catch (error) {
     Naite.t("user:create:error", {
       errorType: error.constructor.name,
@@ -1332,7 +1322,7 @@ When modifying files multiple times in watch mode, previous test logs may remain
 5. **Serialization required**: Values sent to Extension are serialized to JSON. Passing functions or circular reference objects to `Naite.t()` will show a warning.
 
 6. **Avoid excessive logging**: Calling `Naite.t()` inside loops can create thousands of logs, degrading performance.
-   </Warning>
+</Warning>
 
 ## Next Steps
 

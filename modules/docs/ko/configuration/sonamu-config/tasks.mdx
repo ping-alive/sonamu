@@ -21,7 +21,6 @@ export default defineConfig({
     contextProvider: (defaultContext) => ({
       ...defaultContext,
       ip: "127.0.0.1",
-      session: {},
     }),
   },
   // ...
@@ -34,7 +33,7 @@ Worker 프로세스를 활성화할지 결정합니다.
 
 **타입**: `boolean` (선택적)
 
-**기본값**: `false`
+**기본값**: 프로세스가 `NODE_TYPE=daemon`으로 실행되면 `true`, 아니면 `false`
 
 ```typescript
 export default defineConfig({
@@ -95,7 +94,7 @@ Worker가 동시에 처리할 작업 수입니다.
 
 **타입**: `number`
 
-**기본값**: `1`
+**기본값**: CPU 코어 수 - 1 (최소 `1`)
 
 ```typescript
 export default defineConfig({
@@ -182,7 +181,6 @@ export default defineConfig({
       return {
         ...defaultContext,
         ip: "127.0.0.1",
-        session: {},
       };
     },
   },
@@ -206,7 +204,6 @@ export default defineConfig({
       return {
         ...defaultContext,
         ip: "worker",
-        session: {},
         config: {
           apiUrl: process.env.API_URL,
         },
@@ -239,7 +236,6 @@ export default defineConfig({
     contextProvider: (defaultContext) => ({
       ...defaultContext,
       ip: "127.0.0.1",
-      session: {},
     }),
   },
 });
@@ -261,7 +257,6 @@ export default defineConfig({
     contextProvider: (defaultContext) => ({
       ...defaultContext,
       ip: "worker",
-      session: {},
     }),
   },
 });
@@ -292,7 +287,6 @@ export default defineConfig({
     contextProvider: (defaultContext) => ({
       ...defaultContext,
       ip: isProd ? "worker" : "127.0.0.1",
-      session: {},
     }),
   },
 });
@@ -312,7 +306,6 @@ export default defineConfig({
     contextProvider: (defaultContext) => ({
       ...defaultContext,
       ip: "worker",
-      session: {},
       logger: {
         info: (msg) => console.log(`[Worker] ${msg}`),
         error: (msg) => console.error(`[Worker Error] ${msg}`),
@@ -340,7 +333,6 @@ export default defineConfig({
       return {
         ...defaultContext,
         ip: "worker",
-        session: {},
         config,
         services: {
           email: new EmailService(),
@@ -364,7 +356,7 @@ export const sendWelcomeEmail = workflow(
   async ({ input, step }) => {
     const user = await step
       .define({ name: "fetch_user" }, async () => {
-        return await UserModel.findById(input.userId);
+        return await UserModel.findById("A", input.userId);
       })
       .run();
 

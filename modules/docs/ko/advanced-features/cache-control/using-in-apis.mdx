@@ -18,7 +18,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived, // 1분 캐시
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -71,7 +71,7 @@ Content-Type: application/json
       }
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
   </Tab>
@@ -152,7 +152,7 @@ async getData() { ... }
       cacheControl: CachePresets.shortLived,  // 1분
     })
     async getPosts(page: number) {
-      return this.findMany({ page, num: 20 });
+      return this.findMany("A", { page, num: 20 });
     }
     ```
   </Tab>
@@ -165,7 +165,7 @@ async getData() { ... }
       cacheControl: CachePresets.mediumLived,  // 5분
     })
     async getProduct(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
   </Tab>
@@ -195,15 +195,15 @@ async getData() { ... }
   cacheControl: CachePresets.noStore,  // 캐시 금지
 })
 async create(data: ProductSave) {
-  return this.saveOne(data);
+  return this.save([data]);
 }
 
 @api({
   httpMethod: 'PUT',
   cacheControl: CachePresets.noStore,
 })
-async update(id: number, data: Partial<ProductSave>) {
-  return this.updateOne(['id', id], data);
+async update(id: number, data: Partial<ProductSaveParams>) {
+  return this.getPuri("w").table("products").where("id", id).update(data);
 }
 
 @api({
@@ -211,7 +211,7 @@ async update(id: number, data: Partial<ProductSave>) {
   cacheControl: CachePresets.noStore,
 })
 async delete(id: number) {
-  return this.deleteOne(['id', id]);
+  return this.del([id]);
 }
 ```
 
@@ -249,7 +249,7 @@ class ProductModelClass extends BaseModelClass {
     },
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -272,8 +272,8 @@ class OrderModelClass extends BaseModelClass {
     cacheControl: CachePresets.private, // 브라우저만 캐싱
   })
   async getMyOrders(ctx: Context) {
-    return this.findMany({
-      where: [["user_id", ctx.user.id]],
+    return this.findMany("A", {
+      sonamuFilter: { user_id: ctx.user.id },
     });
   }
 }
@@ -296,7 +296,7 @@ class PaymentModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore, // 캐시 금지
   })
   async getPaymentInfo(id: number) {
-    return this.findOne(["id", id]);
+    return this.findOne("A", { id });
   }
 }
 ```
@@ -313,7 +313,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived, // 1분
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 20 });
+    return this.findMany("A", { page, num: 20 });
   }
 
   // 상품 상세 (가끔 변경, public)
@@ -321,8 +321,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     cacheControl: CachePresets.mediumLived, // 5분
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // 카테고리 (거의 안 변함, public)
@@ -358,7 +359,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore, // 캐시 금지
   })
   async createOrder(data: OrderSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -373,7 +374,7 @@ class PostModelClass extends BaseModelClass {
     cacheControl: CachePresets.mediumLived,
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 10 });
+    return this.findMany("A", { page, num: 10 });
   }
 
   // 게시글 상세 (가끔 수정, 10분)
@@ -385,8 +386,9 @@ class PostModelClass extends BaseModelClass {
       staleWhileRevalidate: 1800, // 30분간 Stale 사용
     },
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends PostSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // 인기 게시글 (1시간)
@@ -410,7 +412,7 @@ class UserModelClass extends BaseModelClass {
     cacheControl: CachePresets.mediumLived,
   })
   async getPublicProfile(username: string) {
-    return this.findOne(["username", username]);
+    return this.findOne("A", { sonamuFilter: { username: username } });
   }
 
   // 내 프로필 (private, 재검증)
@@ -419,7 +421,7 @@ class UserModelClass extends BaseModelClass {
     cacheControl: CachePresets.private,
   })
   async getMyProfile(ctx: Context) {
-    return this.findOne(["id", ctx.user.id]);
+    return this.findOne("A", { id: ctx.user.id });
   }
 
   // 프로필 업데이트 (no-store)
@@ -427,8 +429,8 @@ class UserModelClass extends BaseModelClass {
     httpMethod: "PUT",
     cacheControl: CachePresets.noStore,
   })
-  async updateProfile(ctx: Context, data: Partial<UserSave>) {
-    return this.updateOne(["id", ctx.user.id], data);
+  async updateProfile(ctx: Context, data: Partial<UserSaveParams>) {
+    return this.getPuri("w").table("users").where("id", ctx.user.id).update(data);
   }
 }
 ```
@@ -449,7 +451,7 @@ class UserModelClass extends BaseModelClass {
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -473,7 +475,7 @@ CDN에서 Stale 응답을 즉시 반환하면서 백그라운드 갱신:
   }
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -580,7 +582,7 @@ cacheControlHandler: (req) => {
   cacheControl: { maxAge: 60 }  // HTTP 캐시: 1분
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -648,7 +650,7 @@ graph LR
    })
    async getMyData(ctx: Context) { ... }
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

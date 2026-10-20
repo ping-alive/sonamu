@@ -3,7 +3,7 @@ title: "File Operations"
 description: "Guide for file upload, download, and retrieval"
 ---
 
-Sonamu makes file uploads easy to handle with the **@upload** decorator and **UploadedFile** class.
+Sonamu makes file uploads easy to handle with the **@upload** decorator and **BufferedFile** class.
 
 ## File Upload Flow
 
@@ -11,19 +11,19 @@ Sonamu makes file uploads easy to handle with the **@upload** decorator and **Up
 sequenceDiagram
     participant Client
     participant API
-    participant UploadedFile
+    participant BufferedFile
     participant Disk
     participant Storage
 
     Client->>API: POST /upload (multipart/form-data)
     API->>API: @upload decorator execution
-    API->>UploadedFile: new UploadedFile(rawFile)
-    UploadedFile->>UploadedFile: Extract metadata
-    API->>UploadedFile: saveToDisk(disk, key)
-    UploadedFile->>Disk: put(key, buffer)
+    API->>BufferedFile: new BufferedFile(rawFile)
+    BufferedFile->>BufferedFile: Extract metadata
+    API->>BufferedFile: saveToDisk(disk, key)
+    BufferedFile->>Disk: put(key, buffer)
     Disk->>Storage: Save file
-    Disk-->>UploadedFile: Return URL
-    UploadedFile-->>API: URL
+    Disk-->>BufferedFile: Return URL
+    BufferedFile-->>API: URL
     API-->>Client: { url }
 ```
 
@@ -155,7 +155,7 @@ async upload() {
 }
 ```
 
-## UploadedFile Class
+## BufferedFile Class
 
 A class that wraps uploaded files.
 
@@ -212,7 +212,7 @@ A class that wraps uploaded files.
     **URL after saving** (unsigned)
 
     ```typescript
-    await file.saveToDisk("fs", 'uploads/file.pdf');
+    await file.saveToDisk("fs", "uploads/file.pdf");
     console.log(file.url);
     // '/uploads/file.pdf' (fs)
     // 'https://bucket.s3.amazonaws.com/uploads/file.pdf' (s3)
@@ -224,7 +224,7 @@ A class that wraps uploaded files.
     **Signed URL after saving** (S3)
 
     ```typescript
-    await file.saveToDisk("fs", 'uploads/file.pdf');
+    await file.saveToDisk("s3", "uploads/file.pdf");
     console.log(file.signedUrl);
     // 'https://bucket.s3.amazonaws.com/uploads/file.pdf?X-Amz-...'
     ```
@@ -319,7 +319,7 @@ class UserModelClass extends BaseModelClass {
     const url = await file.saveToDisk("fs", key);
 
     // Update DB
-    await this.updateOne(["id", ctx.user.id], {
+    await this.getPuri("w").table("users").where("id", ctx.user.id).update({
       avatar_url: url,
       updated_at: new Date(),
     });
@@ -421,7 +421,7 @@ class MediaModelClass extends BaseModelClass {
     const hash = await file.md5();
 
     // Check if file already exists
-    const existing = await this.findOne(["md5_hash", hash]);
+    const existing = await this.findOne("A", { sonamuFilter: { md5_hash: hash } });
 
     if (existing) {
       // Return existing URL if already exists
@@ -436,13 +436,13 @@ class MediaModelClass extends BaseModelClass {
     const url = await file.saveToDisk("fs", key);
 
     // Save to DB
-    await this.saveOne({
+    await this.save([{
       md5_hash: hash,
       url,
       filename: file.filename,
       size: file.size,
       mimetype: file.mimetype,
-    });
+    }]);
 
     return { url, duplicate: false };
   }
@@ -471,12 +471,12 @@ class FileModelClass extends BaseModelClass {
     const url = await file.saveToDisk(disk, key);
 
     // Save to DB
-    await this.saveOne({
+    await this.save([{
       user_id: ctx.user.id,
       url,
       visibility,
       filename: file.filename,
-    });
+    }]);
 
     return { url, visibility };
   }
@@ -653,7 +653,7 @@ async deleteFile(key: string) {
    if (file.mimetype === 'image/png') { ... }
    ```
 
-   </Warning>
+</Warning>
 
 ## Next Steps
 

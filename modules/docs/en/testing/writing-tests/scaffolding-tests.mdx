@@ -54,31 +54,29 @@ import { UserModel } from "./user.model";
 bootstrap(vi);
 
 test("Create user", async () => {
-  const userModel = new UserModel();
-
   // Write test code
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
 
   expect(user.id).toBeGreaterThan(0);
   expect(user.username).toBe("john");
 });
 
 test("Get user", async () => {
-  const userModel = new UserModel();
-
   // Create test data
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "jane",
     email: "jane@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
 
   // Test retrieval
-  const { user: found } = await userModel.getUser("C", user.id);
+  const found = await UserModel.findById("A", user.id);
 
   expect(found.id).toBe(user.id);
   expect(found.username).toBe("jane");
@@ -116,6 +114,7 @@ pnpm vitest --watch
 ### CRUD Test Pattern
 
 ```typescript
+import { NotFoundException } from "sonamu";
 import { bootstrap, test } from "sonamu/test";
 import { expect, vi } from "vitest";
 import { PostModel } from "./post.model";
@@ -124,13 +123,12 @@ bootstrap(vi);
 
 // Create
 test("Create post", async () => {
-  const postModel = new PostModel();
-
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Test Post",
     content: "Test Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   expect(post.id).toBeGreaterThan(0);
   expect(post.title).toBe("Test Post");
@@ -138,17 +136,16 @@ test("Create post", async () => {
 
 // Read
 test("Get post", async () => {
-  const postModel = new PostModel();
-
   // Create test data
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Test Post",
     content: "Test Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Retrieve
-  const { post: found } = await postModel.getPost("C", post.id);
+  const found = await PostModel.findById("A", post.id);
 
   expect(found.id).toBe(post.id);
   expect(found.title).toBe("Test Post");
@@ -156,43 +153,41 @@ test("Get post", async () => {
 
 // Update
 test("Update post", async () => {
-  const postModel = new PostModel();
-
   // Create test data
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Original Title",
     content: "Original Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Update
-  await postModel.update(post.id, {
+  await PostModel.getPuri("w").table("posts").where("id", post.id).update({
     title: "Updated Title",
   });
 
   // Verify
-  const { post: updated } = await postModel.getPost("C", post.id);
+  const updated = await PostModel.findById("A", post.id);
   expect(updated.title).toBe("Updated Title");
   expect(updated.content).toBe("Original Content"); // Not changed
 });
 
 // Delete
 test("Delete post", async () => {
-  const postModel = new PostModel();
-
   // Create test data
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Test Post",
     content: "Test Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Delete
-  await postModel.delete(post.id);
+  await PostModel.del([post.id]);
 
   // Verify
-  const deleted = await postModel.findById("C", post.id);
-  expect(deleted).toBeNull();
+  // The generated findById throws NotFoundException for a missing row
+  await expect(PostModel.findById("A", post.id)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -200,28 +195,27 @@ test("Delete post", async () => {
 
 ```typescript
 test("User and post relationship", async () => {
-  const userModel = new UserModel();
-  const postModel = new PostModel();
-
   // Create user
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "author",
     email: "author@example.com",
     password: "password",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
 
   // Create post
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "User's Post",
     content: "Content",
     author_id: user.id,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Verify relationship
   expect(post.author_id).toBe(user.id);
 
   // Querying with Subset "C" includes author info
-  const { post: fullPost } = await postModel.getPost("C", post.id);
+  const fullPost = await PostModel.findById("A", post.id);
   expect(fullPost.author?.username).toBe("author");
 });
 ```
@@ -230,29 +224,25 @@ test("User and post relationship", async () => {
 
 ```typescript
 test("Duplicate email validation", async () => {
-  const userModel = new UserModel();
-
   // Create first user
-  await userModel.create({
+  await UserModel.save([{
     username: "user1",
     email: "duplicate@example.com",
     password: "password",
-  });
+  }]);
 
   // Try to create with same email
   await expect(
-    userModel.create({
+    UserModel.save([{
       username: "user2",
       email: "duplicate@example.com",
       password: "password",
-    }),
+    }]),
   ).rejects.toThrow("Email already exists");
 });
 
 test("Get non-existent post", async () => {
-  const postModel = new PostModel();
-
-  await expect(postModel.getPost("C", 999999)).rejects.toThrow("Post not found");
+  await expect(PostModel.findById("A", 999999)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -270,49 +260,47 @@ bootstrap(vi);
 
 describe("User creation", () => {
   test("Normal creation", async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "john",
       email: "john@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
     expect(user.id).toBeGreaterThan(0);
   });
 
   test("Duplicate email validation", async () => {
-    const userModel = new UserModel();
-    await userModel.create({
+    await UserModel.save([{
       username: "user1",
       email: "duplicate@example.com",
       password: "password",
-    });
+    }]);
 
     await expect(
-      userModel.create({
+      UserModel.save([{
         username: "user2",
         email: "duplicate@example.com",
         password: "password",
-      }),
+      }]),
     ).rejects.toThrow();
   });
 });
 
 describe("User retrieval", () => {
   test("Get by ID", async () => {
-    const userModel = new UserModel();
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "test",
       email: "test@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
 
-    const { user: found } = await userModel.getUser("C", user.id);
+    const found = await UserModel.findById("A", user.id);
     expect(found.id).toBe(user.id);
   });
 
   test("Get non-existent user", async () => {
-    const userModel = new UserModel();
-    await expect(userModel.getUser("C", 999999)).rejects.toThrow();
+    await expect(UserModel.findById("A", 999999)).rejects.toThrow();
   });
 });
 ```
@@ -326,35 +314,34 @@ Each test should run independently.
 ```typescript
 // ✅ Correct: Each test is independent
 test("Test 1", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     /* ... */
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   // Auto rollback after test ends
 });
 
 test("Test 2", async () => {
-  const userModel = new UserModel();
   // Starts with clean DB state
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     /* ... */
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
 });
 
 // ❌ Wrong: Dependencies between tests
 let sharedUserId: number;
 
 test("Test 1", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     /* ... */
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   sharedUserId = user.id; // ❌ Shared with other tests
 });
 
 test("Test 2", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.getUser("C", sharedUserId); // ❌ Fails!
+  const user = await UserModel.findById("A", sharedUserId); // ❌ Fails!
 });
 ```
 
@@ -377,20 +364,20 @@ test("Test 1", async () => {
 ```typescript
 test("Update post", async () => {
   // Arrange
-  const postModel = new PostModel();
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Original",
     content: "Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Act
-  await postModel.update(post.id, {
+  await PostModel.getPuri("w").table("posts").where("id", post.id).update({
     title: "Updated",
   });
 
   // Assert
-  const { post: updated } = await postModel.getPost("C", post.id);
+  const updated = await PostModel.findById("A", post.id);
   expect(updated.title).toBe("Updated");
 });
 ```
@@ -416,7 +403,7 @@ test("Update post", async () => {
   <Card title="Vitest Docs" icon="external-link" href="https://vitest.dev">
     Vitest guide
   </Card>
-  <Card title="Model System" icon="cube" href="/en/core-concepts/model-system/overview">
+  <Card title="Model System" icon="cube" href="/en/core-concepts/model/what-is-model">
     Understanding Models
   </Card>
 </CardGroup>

@@ -188,29 +188,28 @@ import { expect } from "vitest";
 import { UserModel } from "@/models/user.model";
 
 test("Create user", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   expect(user.id).toBeGreaterThan(0);
   expect(user.username).toBe("john");
 });
 
 test("Get user", async () => {
-  const userModel = new UserModel();
-  
   // Create test data
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "jane",
     email: "jane@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   // Retrieve
-  const { user: found } = await userModel.getUser("C", user.id);
+  const found = await UserModel.findById("A", user.id);
   
   expect(found.id).toBe(user.id);
   expect(found.username).toBe("jane");
@@ -373,22 +372,21 @@ Test in an authenticated state as a specific user.
 ### Basic Usage
 
 ```typescript
+import { NotFoundException } from "sonamu";
 import { testAs } from "sonamu/test";
 import { expect } from "vitest";
-import { PostModel } from "@/models/post.model";
+import { PostModel } from "../application/post/post.model";
 
 testAs(
   { id: 1, username: "admin", role: "admin" },  // Authenticated user
   "Admin can delete any post",
   async () => {
-    const postModel = new PostModel();
-    
     // Context.user is set to above user
-    await postModel.deletePost(123);
+    await PostModel.deletePost(123);
     
     // Verify deletion
-    const deleted = await postModel.findById("C", 123);
-    expect(deleted).toBeNull();
+    // The generated findById throws NotFoundException for a missing row
+    await expect(PostModel.findById("A", 123)).rejects.toThrow(NotFoundException);
   }
 );
 
@@ -396,11 +394,9 @@ testAs(
   { id: 2, username: "user", role: "user" },  // Regular user
   "Regular user can only delete own posts",
   async () => {
-    const postModel = new PostModel();
-    
     // Context.user.id === 2
     await expect(
-      postModel.deletePost(999)  // Another user's post
+      PostModel.deletePost(999)  // Another user's post
     ).rejects.toThrow("Permission denied");
   }
 );
@@ -408,31 +404,19 @@ testAs(
 
 ### Permission Testing
 
+Guards run only for HTTP requests. Calling a model method directly in a test skips them, so test
+permission checks that you implement inside the method itself, such as `deletePost` above.
+
 ```typescript
 import { testAs } from "sonamu/test";
 
-// Admin test
 testAs(
   { id: 1, role: "admin" },
-  "Admin can view user list",
+  "Admin sees the user list",
   async () => {
-    const userModel = new UserModel();
-    const { users } = await userModel.getUsers({ page: 1, pageSize: 10 });
-    
-    expect(users.length).toBeGreaterThan(0);
-  }
-);
+    const { rows: users } = await UserModel.findMany("A", { num: 10, page: 1 });
 
-// Regular user test
-testAs(
-  { id: 2, role: "user" },
-  "Regular user cannot view user list",
-  async () => {
-    const userModel = new UserModel();
-    
-    await expect(
-      userModel.getUsers({ page: 1, pageSize: 10 })
-    ).rejects.toThrow();
+    expect(users.length).toBeGreaterThan(0);
   }
 );
 ```
@@ -485,24 +469,20 @@ Each test runs in an isolated Transaction and **automatically rolls back**.
 import { test } from "sonamu/test";
 
 test("User creation test", async () => {
-  const userModel = new UserModel();
-  
   // Insert data into database
-  await userModel.create({
+  await UserModel.save([{
     username: "test-user",
     email: "test@example.com",
     password: "password",
-  });
+  }]);
   
   // Auto rollback after test ends
   // → Database maintains clean state
 });
 
 test("Next test starts with clean DB", async () => {
-  const userModel = new UserModel();
-  
   // "test-user" from previous test doesn't exist
-  const { users } = await userModel.getUsers({ page: 1, pageSize: 10 });
+  const { rows: users } = await UserModel.findMany("A", { num: 10, page: 1 });
   expect(users.find(u => u.username === "test-user")).toBeUndefined();
 });
 ```
@@ -516,6 +496,7 @@ test("Next test starts with clean DB", async () => {
 
 ```typescript
 // api/src/models/user.model.test.ts
+import { NotFoundException } from "sonamu";
 import { bootstrap, test, testAs } from "sonamu/test";
 import { expect, vi } from "vitest";
 import { UserModel } from "./user.model";
@@ -525,34 +506,32 @@ bootstrap(vi);
 
 // 2. Test groups (describe is optional)
 test("Create user", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   expect(user.id).toBeGreaterThan(0);
   expect(user.username).toBe("john");
 });
 
 test("Duplicate email validation", async () => {
-  const userModel = new UserModel();
-  
   // Create first user
-  await userModel.create({
+  await UserModel.save([{
     username: "user1",
     email: "duplicate@example.com",
     password: "password",
-  });
+  }]);
   
   // Try to create with same email
   await expect(
-    userModel.create({
+    UserModel.save([{
       username: "user2",
       email: "duplicate@example.com",
       password: "password",
-    })
+    }])
   ).rejects.toThrow("Email already exists");
 });
 
@@ -560,21 +539,20 @@ testAs(
   { id: 1, role: "admin" },
   "Admin can delete users",
   async () => {
-    const userModel = new UserModel();
-    
     // Create user
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "temp",
       email: "temp@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
     
     // Delete
-    await userModel.deleteUser(user.id);
+    await UserModel.del([user.id]);
     
     // Verify
-    const deleted = await userModel.findById("C", user.id);
-    expect(deleted).toBeNull();
+    // The generated findById throws NotFoundException for a missing row
+    await expect(UserModel.findById("A", user.id)).rejects.toThrow(NotFoundException);
   }
 );
 ```
@@ -656,7 +634,7 @@ test("Sync test", () => {  // No async!
   <Card title="Vitest Docs" icon="external-link" href="https://vitest.dev">
     Vitest guide
   </Card>
-  <Card title="Model System" icon="cube" href="/en/core-concepts/model-system/overview">
+  <Card title="Model System" icon="cube" href="/en/core-concepts/model/what-is-model">
     Understanding Models
   </Card>
 </CardGroup>

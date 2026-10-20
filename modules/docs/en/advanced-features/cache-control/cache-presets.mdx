@@ -178,7 +178,7 @@ CachePresets.shortLived;
       cacheControl: CachePresets.shortLived,
     })
     async getPosts(page: number) {
-      return this.findMany({ page, num: 20 });
+      return this.findMany("A", { page, num: 20 });
     }
 
     // CSR fallback
@@ -290,7 +290,7 @@ CachePresets.mediumLived;
       cacheControl: CachePresets.mediumLived,
     })
     async getTerms() {
-      return this.findOne(['type', 'terms']);
+      return this.findOne("A", { sonamuFilter: { type: "terms" } });
     }
     ```
 
@@ -329,7 +329,7 @@ CachePresets.longLived;
       cacheControl: CachePresets.longLived,
     })
     async getCountries() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
 
     // Static configuration
@@ -425,7 +425,7 @@ CachePresets.private;
       cacheControl: CachePresets.private,
     })
     async getMyProfile(ctx: Context) {
-      return this.findOne(['id', ctx.user.id]);
+      return this.findOne("A", { id: ctx.user.id });
     }
 
     // My order list
@@ -434,8 +434,8 @@ CachePresets.private;
       cacheControl: CachePresets.private,
     })
     async getMyOrders(ctx: Context) {
-      return this.findMany({
-        where: [['user_id', ctx.user.id]]
+      return this.findMany("A", {
+        sonamuFilter: { user_id: ctx.user.id },
       });
     }
     ```
@@ -476,7 +476,7 @@ If presets don't fit, you can write your own configuration.
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 
 // Adding Stale-If-Error
@@ -544,7 +544,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived,
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   // Detail: Less frequent changes → Medium cache
@@ -552,8 +552,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     cacheControl: CachePresets.mediumLived,
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Categories: Rarely changes → Long cache
@@ -571,7 +572,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore,
   })
   async create(data: ProductSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -660,7 +661,7 @@ registerSSR({
    cacheControl: CachePresets.immutable;
    ```
 
-   </Warning>
+</Warning>
 
 ## Next Steps
 

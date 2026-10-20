@@ -26,7 +26,7 @@ async createPost(title: string, content: string) {
     throw new BadRequestException("Content cannot exceed 10,000 characters");
   }
 
-  return this.create({ title, content });
+  return this.save([{ title, content }]);
 }
 ```
 
@@ -74,7 +74,7 @@ async updateUser(
     });
   }
 
-  return this.update(userId, { email, age, phoneNumber });
+  return this.getPuri("w").table("users").where("id", userId).update({ email, age, phoneNumber });
 }
 ```
 
@@ -108,7 +108,7 @@ async transferMoney(
     throw new BadRequestException("Cannot transfer to the same account");
   }
 
-  const fromAccount = await AccountModel.findById(fromAccountId);
+  const fromAccount = await AccountModel.findById("A", fromAccountId);
 
   if (fromAccount.userId !== ctx.user!.id) {
     throw new BadRequestException("Can only transfer from your own account");
@@ -223,7 +223,7 @@ async createReservation(
     );
   }
 
-  return this.create({ userId, startDate, endDate, guestCount });
+  return this.save([{ userId, startDate, endDate, guestCount }]);
 }
 ```
 
@@ -300,7 +300,7 @@ async createProduct(
     throw new BadRequestException("Price must be 0 or greater");
   }
 
-  const category = await CategoryModel.findById(categoryId);
+  const category = await CategoryModel.findOne("A", { id: categoryId });
   if (!category) {
     throw new BadRequestException(
       "Category does not exist",
@@ -315,7 +315,7 @@ async createProduct(
     );
   }
 
-  return this.create({ name, price, categoryId });
+  return this.save([{ name, price, categoryId }]);
 }
 ```
 

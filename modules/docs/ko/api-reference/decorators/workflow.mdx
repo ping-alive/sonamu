@@ -50,29 +50,25 @@ export const processOrder = workflow(
 
 ## 설정 (sonamu.config.ts)
 
-워크플로우를 사용하려면 PostgreSQL 설정이 필요합니다.
+워크플로우는 상태를 메인 PostgreSQL 데이터베이스(`w` preset)에 저장하므로 별도 연결 설정이 필요 없습니다. Worker는 `tasks`에서 설정합니다:
 
 ```typescript
 import { defineConfig } from "sonamu";
 
 export default defineConfig({
   tasks: {
-    dbConfig: {
-      client: "pg",
-      connection: {
-        host: process.env.DB_HOST,
-        port: 5432,
-        database: process.env.DB_NAME,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-      },
+    enableWorker: true, // 기본값: NODE_TYPE=daemon일 때만 true
+    workerOptions: {
+      concurrency: 4, // 기본값: CPU 코어 수 - 1
+      usePubSub: true, // PostgreSQL LISTEN/NOTIFY 사용
+      listenDelay: 500,
     },
-    worker: {
-      concurrency: 4, // 동시 실행 수
-      usePubSub: true, // Pub/Sub 사용
-      listenDelay: 500, // 수신 지연 (ms)
-    },
+    // 워크플로우 안에서 쓸 Context
+    contextProvider: (defaultContext) => ({
+      ...defaultContext,
+    }),
   },
+  // ...
 });
 ```
 
@@ -1045,7 +1041,7 @@ console.log("Result:", result);
   트랜잭션 사용하기
 </Card>
 
-<Card title="스케줄링" icon="clock" href="/ko/core-concepts/tasks/scheduling">
+<Card title="스케줄링" icon="clock" href="/ko/advanced-features/workflows/workflow-decorator#스케줄링">
   작업 스케줄링 가이드
 </Card>
 

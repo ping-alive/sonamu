@@ -50,7 +50,8 @@ bootstrap(vi);
 
 test("사용자 생성", async () => {
   // beforeEach: 트랜잭션 시작
-  const user = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
   expect(user.id).toBeDefined();
   // afterEach: 트랜잭션 롤백 → DB에 실제로 저장되지 않음
 });
@@ -58,7 +59,7 @@ test("사용자 생성", async () => {
 test("사용자 조회", async () => {
   // 새로운 트랜잭션 시작
   // 이전 테스트의 데이터는 존재하지 않음
-  const users = await userModel.findMany({});
+  const { rows: users } = await UserModel.findMany("A", {});
   expect(users.length).toBe(0);
   // 트랜잭션 롤백
 });
@@ -98,49 +99,32 @@ export function bootstrap(vi: VitestUtils) {
 
 ### sonamu.config.ts
 
-테스트용 DB는 `sonamu.config.ts`에서 설정합니다:
+연결 정보는 `sonamu.config.ts`가 아니라 `SONAMU_DB_*` 환경 변수에서 읽습니다. `NODE_ENV=test`이면 Sonamu는 `.env.test`를 읽고 `test` preset을 사용합니다. `SONAMU_DB_NAME`이 없으면 데이터베이스 이름은 `<projectName>_test`입니다. pool 같은 공통 Knex 옵션은 `database.defaultOptions`에 둡니다.
 
 <CodeGroup>
 
-```typescript sonamu.config.ts
-import type { SonamuConfig } from "sonamu";
+```bash .env.test
+SONAMU_DB_HOST=localhost
+SONAMU_DB_PORT=5432
+SONAMU_DB_USER=postgres
+SONAMU_DB_PASSWORD=password
+SONAMU_DB_NAME=myapp_test
+```
 
-export const config: SonamuConfig = {
+```typescript sonamu.config.ts
+import { defineConfig } from "sonamu";
+
+export default defineConfig({
+  projectName: "myapp",
   database: {
-    name: "myapp",
+    database: "pg",
+    // 모든 preset에 적용되는 공통 Knex 옵션
     defaultOptions: {
-      client: "postgresql",
-      connection: {
-        host: "localhost",
-        port: 5432,
-        user: "postgres",
-        password: "password",
-      },
-    },
-    environments: {
-      // 테스트 환경 설정
-      test: {
-        connection: {
-          database: "myapp_test", // 별도의 테스트 DB
-        },
-        pool: {
-          min: 1,
-          max: 1, // 단일 연결 풀 (트랜잭션 격리)
-        },
-      },
-      development: {
-        connection: {
-          database: "myapp_dev",
-        },
-      },
-      production: {
-        connection: {
-          database: "myapp_prod",
-        },
-      },
+      pool: { min: 1, max: 5 },
     },
   },
-};
+  // ...
+});
 ```
 
 ```bash 테스트 DB 생성
@@ -151,8 +135,8 @@ createdb myapp_test
 
 **중요**:
 
-- 테스트 DB는 개발/운영 DB와 **완전히 분리**
-- `pool.max: 1`로 설정하여 단일 연결 사용 (트랜잭션 격리 보장)
+- 테스트 DB는 개발/운영 DB와 **완전히 분리**됩니다
+- `database.name`과 `database.environments`는 제거되었으며, 설정하면 Sonamu가 예외를 던집니다
 
 ### DB 클래스의 테스트 모드
 
@@ -229,22 +213,24 @@ async clearTestTransaction(): Promise<void> {
 ### 기본 CRUD 테스트
 
 ```typescript
+import { NotFoundException } from "sonamu";
 import { bootstrap, test } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect, vi } from "vitest";
 
 bootstrap(vi);
 
 test("사용자 생성 및 조회", async () => {
   // 생성
-  const created = await userModel.create({
+  const [createdId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
-  });
+  }]);
+  const created = await UserModel.findById("A", createdId);
   expect(created.id).toBeDefined();
 
   // 조회
-  const found = await userModel.findById(created.id);
+  const found = await UserModel.findById("A", created.id);
   expect(found?.username).toBe("john");
 
   // afterEach에서 자동 롤백 → DB에 실제로는 저장되지 않음
@@ -252,25 +238,27 @@ test("사용자 생성 및 조회", async () => {
 
 test("사용자 업데이트", async () => {
   // 새로운 트랜잭션 시작 → 이전 테스트 데이터 없음
-  const user = await userModel.create({ username: "jane" });
+  const [userId] = await UserModel.save([{ username: "jane" }]);
+  const user = await UserModel.findById("A", userId);
 
   // 업데이트
-  await userModel.update(user.id, { username: "jane_updated" });
+  await UserModel.getPuri("w").table("users").where("id", user.id).update({ username: "jane_updated" });
 
   // 검증
-  const updated = await userModel.findById(user.id);
+  const updated = await UserModel.findById("A", user.id);
   expect(updated?.username).toBe("jane_updated");
 
   // 롤백
 });
 
 test("사용자 삭제", async () => {
-  const user = await userModel.create({ username: "bob" });
+  const [userId] = await UserModel.save([{ username: "bob" }]);
+  const user = await UserModel.findById("A", userId);
 
-  await userModel.delete(user.id);
+  await UserModel.del([user.id]);
 
-  const deleted = await userModel.findById(user.id);
-  expect(deleted).toBeNull();
+  // 생성된 findById는 행이 없으면 NotFoundException을 던짐
+  await expect(UserModel.findById("A", user.id)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -279,23 +267,28 @@ test("사용자 삭제", async () => {
 ```typescript
 test("게시글과 댓글 생성", async () => {
   // 사용자 생성
-  const user = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
 
   // 게시글 생성
-  const post = await postModel.create({
+  const [postId] = await PostModel.save([{
     author_id: user.id,
     title: "Hello World",
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // 댓글 생성
-  const comment = await commentModel.create({
+  await CommentModel.save([{
     post_id: post.id,
     author_id: user.id,
     content: "Nice post!",
-  });
+  }]);
 
   // 검증
-  const comments = await commentModel.findByPostId(post.id);
+  const comments = await CommentModel.getPuri("r")
+    .table("comments")
+    .select({ content: "comments.content" })
+    .where("comments.post_id", post.id);
   expect(comments.length).toBe(1);
   expect(comments[0].content).toBe("Nice post!");
 
@@ -307,10 +300,10 @@ test("게시글과 댓글 생성", async () => {
 
 ```typescript
 test("중복 사용자명 에러", async () => {
-  await userModel.create({ username: "john" });
+  await UserModel.save([{ username: "john" }]);
 
   // 중복 사용자명으로 생성 시도
-  await expect(userModel.create({ username: "john" })).rejects.toThrow(
+  await expect(UserModel.save([{ username: "john" }])).rejects.toThrow(
     "이미 존재하는 사용자명입니다",
   );
 
@@ -319,7 +312,7 @@ test("중복 사용자명 에러", async () => {
 
 test("제약 조건 위반", async () => {
   // NOT NULL 제약 조건 위반
-  await expect(userModel.create({ username: null as any })).rejects.toThrow();
+  await expect(UserModel.save([{ username: null as any }])).rejects.toThrow();
 
   // 롤백으로 DB 상태는 깨끗함
 });
@@ -330,23 +323,22 @@ test("제약 조건 위반", async () => {
 ```typescript
 test("주문 생성 전체 흐름", async () => {
   // 1. 사용자 생성
-  const user = await userModel.create({ username: "customer" });
+  const [userId] = await UserModel.save([{ username: "customer" }]);
+  const user = await UserModel.findById("A", userId);
 
   // 2. 상품 생성
-  const product = await productModel.create({
+  const [productId] = await ProductModel.save([{
     name: "노트북",
     price: 1000000,
     stock: 10,
-  });
+  }]);
+  const product = await ProductModel.findById("A", productId);
 
-  // 3. 주문 생성 (재고 감소 포함)
-  const order = await orderModel.create({
-    user_id: user.id,
-    items: [{ product_id: product.id, quantity: 2 }],
-  });
+  // 3. 직접 구현한 비즈니스 메서드로 주문 생성 (재고 감소 포함)
+  const order = await OrderModel.placeOrder(user.id, [{ product_id: product.id, quantity: 2 }]);
 
   // 4. 재고 확인
-  const updatedProduct = await productModel.findById(product.id);
+  const updatedProduct = await ProductModel.findById("A", product.id);
   expect(updatedProduct?.stock).toBe(8); // 10 - 2
 
   // 5. 주문 확인
@@ -362,33 +354,34 @@ test("주문 생성 전체 흐름", async () => {
 
 ```typescript
 import { bootstrap, test } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect, vi } from "vitest";
 
 bootstrap(vi);
 
 test("테스트 1: 데이터 생성", async () => {
-  const user = await userModel.create({ username: "test1" });
+  const [userId] = await UserModel.save([{ username: "test1" }]);
+  const user = await UserModel.findById("A", userId);
   expect(user.id).toBeDefined();
 
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(1);
 });
 
 test("테스트 2: 격리 확인", async () => {
   // 이전 테스트의 데이터가 롤백되었으므로
   // DB는 깨끗한 상태여야 함
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(0); // ✅ 통과
 
   // 새로운 데이터 생성
-  await userModel.create({ username: "test2" });
-  const newCount = await userModel.count();
+  await UserModel.save([{ username: "test2" }]);
+  const { total: newCount } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(newCount).toBe(1);
 });
 
 test("테스트 3: 다시 격리 확인", async () => {
-  const count = await userModel.count();
+  const { total: count } = await UserModel.findMany("A", { num: 1, page: 1 });
   expect(count).toBe(0); // ✅ 통과
 });
 ```
@@ -460,12 +453,13 @@ test("수동 트랜잭션 제어", async () => {
 4. **시간 함수 (NOW(), CURRENT_TIMESTAMP 등)**
    ```typescript
    test("생성 시각 확인", async () => {
-     const user = await userModel.create({ username: "john" });
+     const [userId] = await UserModel.save([{ username: "john" }]);
+     const user = await UserModel.findById("A", userId);
      // user.created_at은 실제 현재 시각
      // vi.useFakeTimers()로 제어 가능
    });
    ```
-   </Warning>
+</Warning>
 
 ### 파일 시스템 Mocking
 
@@ -555,7 +549,7 @@ export default defineConfig({
 3. **외부 리소스 정리**: 파일, 외부 API 호출 등은 수동으로 정리해야 합니다.
 
 4. **병렬 실행 제한**: 트랜잭션 격리를 위해 테스트는 순차 실행이 권장됩니다.
-   </Warning>
+</Warning>
 
 ## 다음 단계
 
@@ -569,7 +563,7 @@ export default defineConfig({
   <Card title="Naite 로깅" icon="pen" href="/ko/testing/naite/recording-logs">
     테스트 로그 기록 및 추적
   </Card>
-  <Card title="Bootstrap" icon="gear" href="/ko/testing/getting-started/bootstrap">
+  <Card title="Bootstrap" icon="gear" href="/ko/testing/writing-tests/test-structure#bootstrap-함수">
     테스트 환경 초기화
   </Card>
 </CardGroup>

@@ -22,7 +22,7 @@ Learn how to generate URLs for accessing files after saving.
   </Card>
 </CardGroup>
 
-## UploadedFile URL Properties
+## BufferedFile URL Properties
 
 ### url Property (Public URL)
 
@@ -302,7 +302,7 @@ class FileModel extends BaseModelClass {
 
     const rdb = this.getPuri("r");
 
-    const files = await rdb.table("files").whereIn("id", fileIds).select("*");
+    const files = await rdb.table("files").whereIn("id", fileIds).selectAll();
 
     const urls: Record<
       number,
@@ -556,7 +556,7 @@ class FileModel extends BaseModelClass {
     @upload decorator
   </Card>
   <Card
-    title="UploadedFile Class"
+    title="BufferedFile Class"
     icon="file"
     href="/en/api-development/file-upload/uploaded-file-class"
   >

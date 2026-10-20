@@ -13,16 +13,16 @@ import { BaseModelClass, api, cache } from "sonamu";
 class ProductModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
   @cache({ ttl: "10m" })
-  async findById(id: number) {
-    const rdb = this.getPuri("r");
-    return rdb.table("products").where("id", id).first();
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @api({ httpMethod: "GET" })
   @cache({ ttl: "1h", tags: ["products"] })
   async list() {
     const rdb = this.getPuri("r");
-    return rdb.table("products").select();
+    return rdb.table("products").selectAll();
   }
 }
 ```
@@ -102,8 +102,8 @@ async getQuickData() {}
   <Tab title="자동 생성 (기본)" icon="wand-magic-sparkles">
     ```typescript
     @cache({ ttl: "10m" })
-    async findById(id: number) {
-      // 캐시 키: "Product.findById:123"
+    async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+      // 캐시 키: "Product.findById:["A",123]"
     }
 
     @cache({ ttl: "10m" })
@@ -137,7 +137,7 @@ async getQuickData() {}
       ttl: "10m",
       key: (subset: string, id: number) => `product:${subset}:${id}`
     })
-    async findById(subset: string, id: number) {
+    async findById<T extends ProductSubsetKey>(subset: T, id: number) {
       // 캐시 키: "product:A:123"
     }
 
@@ -185,7 +185,7 @@ async getFeatured() {
 }
 
 @cache({ ttl: "10m", tags: ["products"] })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // "products" 태그로 무효화 가능
 }
 
@@ -196,7 +196,7 @@ await Sonamu.cache.deleteByTag({ tags: ["products"] });
 ### grace
 
 <Info>
-  `grace`, `timeouts` 등의 고급 옵션은 BentoCache의 `RawCommonOptions`에서 제공됩니다. 자세한 내용은
+  `grace`, `timeout`, `hardTimeout` 등의 고급 옵션은 BentoCache의 `RawCommonOptions`에서 제공됩니다. 자세한 내용은
   [BentoCache 문서](https://bentocache.dev)를 참고하세요.
 </Info>
 
@@ -225,22 +225,24 @@ async getData() {
   갱신하여 다음 사용자는 신선한 데이터를 받게 하는 패턴입니다.
 </Info>
 
-### timeouts
+### timeout / hardTimeout
 
-캐시 작업의 타임아웃을 설정합니다.
+factory(데코레이터가 붙은 메서드)를 기다리는 시간을 제한합니다.
 
 ```typescript
 @cache({
   ttl: "10m",
-  timeouts: {
-    soft: "100ms",   // 이 시간 내에 캐시 없으면 factory 실행
-    hard: "1s"       // 최대 대기 시간
-  }
+  grace: "6h",
+  timeout: "100ms", // factory가 더 오래 걸리면 stale(grace) 값을 반환
+  hardTimeout: "1s", // factory가 더 오래 걸리면 기다리지 않고 예외 발생
 })
 async getData() {
-  // 100ms 내에 캐시가 없으면 즉시 factory 실행
+  // ...
 }
 ```
+
+`timeout`은 `grace`로 stale 값이 있을 때만 적용되며, factory는 백그라운드에서 계속 실행되어 캐시를
+갱신합니다.
 
 ## 캐시 무효화
 
@@ -252,7 +254,7 @@ class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["products"] })
   async list() {
     const rdb = this.getPuri("r");
-    return rdb.table("products").select();
+    return rdb.table("products").selectAll();
   }
 
   @api({ httpMethod: "POST" })
@@ -273,10 +275,10 @@ class ProductModelClass extends BaseModelClass {
 
 ```typescript
 // 특정 키 삭제
-await Sonamu.cache.delete({ key: "Product.findById:123" });
+await Sonamu.cache.delete({ key: 'Product.findById:["A",123]' });
 
 // 여러 키 삭제
-await Sonamu.cache.deleteMany({ keys: ["Product.findById:123", "Product.findById:456"] });
+await Sonamu.cache.deleteMany({ keys: ['Product.findById:["A",123]', 'Product.findById:["A",456]'] });
 ```
 
 ### 전체 무효화
@@ -308,8 +310,8 @@ async getComplexData() {
   // 읽기 전용 트랜잭션 + 캐싱
   const rdb = this.getPuri("r");
 
-  const users = await rdb.table("users").select();
-  const posts = await rdb.table("posts").select();
+  const users = await rdb.table("users").selectAll();
+  const posts = await rdb.table("posts").selectAll();
 
   return { users, posts };
 }
@@ -323,7 +325,7 @@ async getComplexData() {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // 첫 번째 호출: DB 조회 + 캐시 저장
   // 두 번째 호출: 캐시에서 즉시 반환 (DB 조회 없음)
 }
@@ -333,7 +335,7 @@ async findById(id: number) {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // 캐시에 없음 → factory 실행 (메서드 실행)
   const result = await this.queryDB(id);
   // 결과를 캐시에 저장
@@ -383,7 +385,7 @@ async search(params: { name: string; age: number }) {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   const result = await this.queryDB(id);
   // result가 null이어도 캐시됨
   return result;  // null
@@ -443,13 +445,13 @@ class ProductModelClass extends BaseModelClass {
   async warmupCache() {
     // 인기 상품 미리 캐싱
     const popularIds = [1, 2, 3, 4, 5];
-    await Promise.all(popularIds.map((id) => this.findById(id)));
+    await Promise.all(popularIds.map((id) => this.findById("A", id)));
   }
 
   @cache({ ttl: "1h" })
-  async findById(id: number) {
-    const rdb = this.getPuri("r");
-    return rdb.table("products").where("id", id).first();
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -537,7 +539,7 @@ export default defineConfig({
         const posts = await rdb.table("posts")
           .where("user_id", id)
           .limit(5)
-          .select();
+          .selectAll();
         
         return { user, posts };
       }
@@ -546,7 +548,8 @@ export default defineConfig({
       @transactional()
       async updateProfile(id: number, data: UserUpdateParams) {
         const wdb = this.getPuri("w");
-        await this.upsert(wdb, { id, ...data });
+        wdb.ubRegister("users", { id, ...data });
+        await wdb.ubUpsert("users");
 
         // 해당 사용자 캐시만 무효화
         await Sonamu.cache.delete({ key: `user:profile:${id}` });
@@ -634,7 +637,7 @@ export default defineConfig({
           qb = qb.where("price", "<=", filters.maxPrice);
         }
         
-        return qb.limit(20).select();
+        return qb.limit(20).selectAll();
       }
 
       @api({ httpMethod: "DELETE" })
@@ -664,7 +667,7 @@ export default defineConfig({
   BentoCache 공식 문서
 </Card>
 
-  <Card title="성능 최적화" icon="gauge-high" href="/ko/guides/performance">
+  <Card title="성능 최적화" icon="gauge-high" href="/ko/troubleshooting/performance/caching-strategies">
     성능 최적화 가이드
   </Card>
 </CardGroup>

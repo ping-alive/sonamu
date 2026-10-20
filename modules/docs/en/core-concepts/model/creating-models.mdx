@@ -37,13 +37,13 @@ Generated files:
 - `user.types.ts` - TypeScript types and Zod schemas
 - `sonamu.generated.ts` - Base schemas and Enums
 - `sonamu.generated.sso.ts` - Subset query functions
-  </Step>
+</Step>
 
 <Step title="Generate Model Scaffold">
 Use Sonamu CLI to generate a Model template.
 
 ```bash
-pnpm sonamu generate model --entity User
+pnpm sonamu scaffold model User
 ```
 
 Or generate from the **Scaffolding** tab in Sonamu UI.
@@ -70,24 +70,27 @@ async login(params: LoginParams) {
 
 <CodeGroup>
 ```bash title="Basic usage"
-# Specify Entity name
-pnpm sonamu generate model --entity User
+# Specify the Entity ID
+pnpm sonamu scaffold model User
 
-# Generate multiple Entities at once
-
-pnpm sonamu generate model --entity User,Post,Comment
-
-````
+# Generate multiple Entities at once (batch defaults to dry-run)
+pnpm sonamu scaffold batch --entity User,Post,Comment --template model --execute
+```
 
 ```bash title="Options"
-# Overwrite existing file
-pnpm sonamu generate model --entity User --overwrite
+# Preview the files without writing them
+pnpm sonamu scaffold preview --entity User --template model
 
-# Generate in specific directory
-pnpm sonamu generate model --entity User --output ./custom/path
-````
+# Overwrite existing files
+pnpm sonamu scaffold batch --entity User --template model --overwrite --execute
+```
 
 </CodeGroup>
+
+`scaffold model` fails when the Model file already exists; use `scaffold batch` with `--overwrite`
+to regenerate it. Files are written to the template's fixed location, and there is no output path
+option. `scaffold batch --execute` asks for confirmation in a TTY; add `--confirm` for
+non-interactive runs.
 
 ### Using Sonamu UI
 
@@ -109,7 +112,15 @@ Click the **"Generate"** button to create the Model file.
 </Steps>
 
 <Frame caption="Model Scaffolding">
-  <img src="/modules/docs/images/devWorkflow2.png" alt="Scaffolding" />
+  <video
+    muted
+    loop
+    playsInline
+    controls
+    className="w-full rounded-xl"
+    preload="metadata"
+    src="https://cf.cartanova.ai/sonamu-docs/devWorkflow2.mp4"
+  ></video>
 </Frame>
 
 ## Generated Model Structure
@@ -507,7 +518,7 @@ After creating a Model, learn the following topics:
   <Card title="Puri Query Builder" icon="database" href="/en/database/puri/basic-queries">
     Writing type-safe queries
   </Card>
-  <Card title="Testing" icon="flask" href="/en/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/en/testing/writing-tests/test-structure">
     Writing Model tests
   </Card>
 </CardGroup>

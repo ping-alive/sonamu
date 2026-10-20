@@ -49,8 +49,6 @@ Naite.t("user:create", { userId: 123, username: "john" });
 
 ```typescript 예시 1: 사용자 생성
 test("사용자 생성 흐름", async () => {
-  const userModel = new UserModel();
-
   // 입력 데이터 기록
   const input = {
     username: "john",
@@ -59,7 +57,8 @@ test("사용자 생성 흐름", async () => {
   Naite.t("user:create:input", input);
 
   // 사용자 생성
-  const { user } = await userModel.create(input);
+  const [userId] = await UserModel.save([input]);
+  const user = await UserModel.findById("A", userId);
 
   // 출력 데이터 기록
   Naite.t("user:create:output", {
@@ -71,14 +70,12 @@ test("사용자 생성 흐름", async () => {
 
 ```typescript 예시 2: 게시글 업데이트
 test("게시글 업데이트", async () => {
-  const postModel = new PostModel();
-
   Naite.t("post:update:before", {
     id: 1,
     title: "Old Title",
   });
 
-  await postModel.update(1, { title: "New Title" });
+  await PostModel.getPuri("w").table("posts").where("id", 1).update({ title: "New Title" });
 
   Naite.t("post:update:after", {
     id: 1,
@@ -189,8 +186,9 @@ try {
 // bootstrap.ts
 function getMockContext(): Context {
   return {
-    ip: "127.0.0.1",
-    session: {},
+    transport: "http",
+    headers: {},
+    session: null,
     user: null,
     naiteStore: Naite.createStore(), // 새로운 Map 생성
     // ...
@@ -334,17 +332,34 @@ store.set(name, [...existing, trace]);
 
 <Tabs>
   <Tab title="올바른 방법" icon="check">
-    ```typescript // ✅ 계층적 구조 Naite.t("user:create", {/* ... */}); Naite.t("user:update",{" "}
-    {/* ... */}); Naite.t("user:delete", {/* ... */}); Naite.t("syncer:renderTemplate", {/* ... */}
-    ); Naite.t("syncer:writeFile", {/* ... */}); // wildcard로 쉽게 조회
-    Naite.get("user:*").result(); // 모든 user 관련 Naite.get("syncer:*").result(); // 모든 syncer
-    관련 Naite.get("*:create").result(); // 모든 create 작업 ```
+    ```typescript
+    // ✅ 계층적 구조
+    Naite.t("user:create", { /* ... */ });
+    Naite.t("user:update", { /* ... */ });
+    Naite.t("user:delete", { /* ... */ });
+
+    Naite.t("syncer:renderTemplate", { /* ... */ });
+    Naite.t("syncer:writeFile", { /* ... */ });
+
+    // wildcard로 쉽게 조회
+    Naite.get("user:*").result();         // 모든 user 관련
+    Naite.get("syncer:*").result();       // 모든 syncer 관련
+    Naite.get("*:create").result();       // 모든 create 작업
+    ```
+
   </Tab>
 
   <Tab title="잘못된 방법" icon="xmark">
-    ```typescript // ❌ 평면적 구조 Naite.t("userCreate", {/* ... */}); Naite.t("userUpdate",{" "}
-    {/* ... */}); Naite.t("syncerRender", {/* ... */}); // wildcard 사용 불가 // "user*"로는 매칭 안
-    됨 ```
+    ```typescript
+    // ❌ 평면적 구조
+    Naite.t("userCreate", { /* ... */ });
+    Naite.t("userUpdate", { /* ... */ });
+    Naite.t("syncerRender", { /* ... */ });
+
+    // wildcard 사용 불가
+    // "user*"로는 매칭 안 됨
+    ```
+
   </Tab>
 </Tabs>
 
@@ -352,21 +367,38 @@ store.set(name, [...existing, trace]);
 
 <Steps>
   <Step title="module:function">
-    가장 기본적인 패턴입니다. ```typescript Naite.t("user:create", {/* ... */});
-    Naite.t("post:update", {/* ... */}); Naite.t("syncer:render", {/* ... */}); ```
+    가장 기본적인 패턴입니다.
+
+    ```typescript
+    Naite.t("user:create", { /* ... */ });
+    Naite.t("post:update", { /* ... */ });
+    Naite.t("syncer:render", { /* ... */ });
+    ```
+
   </Step>
 
-<Step title="module:function:action">
-  더 상세한 추적이 필요할 때 사용합니다. ```typescript Naite.t("user:create:input", {/* ... */});
-  Naite.t("user:create:validation", {/* ... */}); Naite.t("user:create:db", {/* ... */});
-  Naite.t("user:create:done", {/* ... */}); ```
-</Step>
+  <Step title="module:function:action">
+    더 상세한 추적이 필요할 때 사용합니다.
+
+    ```typescript
+    Naite.t("user:create:input", { /* ... */ });
+    Naite.t("user:create:validation", { /* ... */ });
+    Naite.t("user:create:db", { /* ... */ });
+    Naite.t("user:create:done", { /* ... */ });
+    ```
+
+  </Step>
 
   <Step title="module:function:action:detail">
-    매우 복잡한 흐름에서 사용합니다. ```typescript Naite.t("order:payment:card:charge:start",{" "}
-    {/* ... */}); Naite.t("order:payment:card:charge:done", {/* ... */});
-    Naite.t("order:payment:bank:transfer:start", {/* ... */});
-    Naite.t("order:payment:bank:transfer:done", {/* ... */}); ```
+    매우 복잡한 흐름에서 사용합니다.
+
+    ```typescript
+    Naite.t("order:payment:card:charge:start", { /* ... */ });
+    Naite.t("order:payment:card:charge:done", { /* ... */ });
+    Naite.t("order:payment:bank:transfer:start", { /* ... */ });
+    Naite.t("order:payment:bank:transfer:done", { /* ... */ });
+    ```
+
   </Step>
 </Steps>
 
@@ -768,7 +800,7 @@ function processItem(item: any) {
 4. **과도한 로깅 금지**: 루프 안에서 호출하면 성능이 저하됩니다.
 
 5. **키 규칙**: `module:function:action` 형식을 권장합니다.
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

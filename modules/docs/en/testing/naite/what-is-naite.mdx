@@ -334,8 +334,6 @@ The most basic usage is recording each step of the test flow.
 
 ```typescript
 test("post creation flow", async () => {
-  const postModel = new PostModel();
-
   // 1. Record input data
   Naite.t("post:create:input", {
     title: "Hello World",
@@ -344,11 +342,12 @@ test("post creation flow", async () => {
   });
 
   // 2. Create post
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Hello World",
     content: "This is content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // 3. Record result
   Naite.t("post:create:output", {
@@ -410,10 +409,10 @@ test("invalid input handling", async () => {
   try {
     Naite.t("user:create:input", { username: "" }); // Empty value
 
-    await userModel.create({
+    await UserModel.save([{
       username: "",
       email: "test@test.com",
-    });
+    }]);
 
     throw new Error("Should have failed");
   } catch (error) {
@@ -608,7 +607,7 @@ sequenceDiagram
 4. **Key naming convention**: The `module:function:action` format is recommended. Consistent rules make finding things easier later.
 
 5. **Serializable values recommended**: Values must be JSON serializable to transmit to VSCode Extension. Avoid functions and circular references.
-   </Warning>
+</Warning>
 
 ## Next Steps
 

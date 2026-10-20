@@ -84,15 +84,28 @@ TypeScript를 JavaScript로 컴파일합니다.
 
 <Steps>
   <Step title="빌드 시작">
-    ``` 📦 API Server Building production-ready API /path/to/project ```
+    ```
+    📦 API Server
+    Building production-ready API
+    /path/to/project
+    ```
   </Step>
 
-<Step title="컴파일 실행">
-  ```bash tsc --noEmit && pnpm exec tsdown --config /path/to/tsdown.config.ts ``` **빌드 도구**:
-  tsdown + OXC/Rolldown
-</Step>
+  <Step title="컴파일 실행">
+    ```bash
+    tsc --noEmit && pnpm exec tsdown --config /path/to/tsdown.config.ts
+    ```
 
-  <Step title="완료">``` ✓ build completed (2.5s) ✓ API build completed in 2.5s ```</Step>
+    **빌드 도구**: tsdown + OXC/Rolldown
+
+  </Step>
+
+  <Step title="완료">
+    ```
+    ✓ build completed (2.5s)
+    ✓ API build completed in 2.5s
+    ```
+  </Step>
 </Steps>
 
 ### 4. Web 프로젝트 빌드 (선택)
@@ -101,17 +114,37 @@ Web 프로젝트가 있는 경우 빌드하고 API 프로젝트로 복사합니�
 
 <Steps>
   <Step title="빌드 시작">
-    ``` 🌐 Web Application Building static web assets /path/to/project/web ```
+    ```
+    🌐 Web Application
+    Building static web assets
+    /path/to/project/web
+    ```
   </Step>
 
-<Step title="Vite 빌드">```bash vite build ``` 정적 에셋을 최적화하고 번들링합니다.</Step>
+  <Step title="Vite 빌드">
+    ```bash
+    vite build
+    ```
 
-<Step title="파일 복사">
-  ```bash web/dist → web-dist ``` API 서버에서 서빙할 수 있도록 복사합니다.
-</Step>
+    정적 에셋을 최적화하고 번들링합니다.
+
+  </Step>
+
+  <Step title="파일 복사">
+    ```bash
+    web/dist → web-dist
+    ```
+
+    API 서버에서 서빙할 수 있도록 복사합니다.
+
+  </Step>
 
   <Step title="완료">
-    ``` ✓ build completed (8.2s) ✓ copy completed (0.1s) ✓ Web build completed in 8.3s ```
+    ```
+    ✓ build completed (8.2s)
+    ✓ copy completed (0.1s)
+    ✓ Web build completed in 8.3s
+    ```
   </Step>
 </Steps>
 
@@ -147,8 +180,7 @@ export default defineConfig({
 | 옵션             | 설명            | 기본값   |
 | ---------------- | --------------- | -------- |
 | `target`         | 컴파일 타겟     | `esnext` |
-| `decorators`     | 데코레이터 지원 | `true`   |
-| `sourceMaps`     | 소스맵 생성     | `inline` |
+| `sourcemap`      | 소스맵 생성     | `inline` |
 | `unbundle`       | 파일 구조 유지  | `true`   |
 
 <Tip>`tsdown.config.ts` 파일이 없으면 Sonamu가 제공하는 기본 API 빌드 설정을 사용합니다.</Tip>
@@ -199,7 +231,7 @@ tsdown 경로로 돌아갑니다. Web과 Expo AOT는 아직 제공하지 않습�
 
 - TypeScript → JavaScript 변환
 - 데코레이터 변환 완료
-- 소스맵 포함 (`.js.map`)
+- 각 파일에 inline 소스맵 포함
 - Import 경로 해석 완료
 
 ### Web 빌드 결과 (선택)
@@ -408,7 +440,7 @@ jobs:
       # 3. Node.js 설정 (pnpm 캐시 활성화)
       - uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
 
       # 4. 의존성 설치
@@ -460,7 +492,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - run: pnpm install
       - run: pnpm test # 테스트 실행
@@ -507,7 +539,7 @@ Docker를 사용하면 **일관된 실행 환경**을 보장할 수 있습니다
 
 ```dockerfile title="Dockerfile"
 # Stage 1: 빌드 스테이지
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -525,7 +557,7 @@ COPY . .
 RUN pnpm build
 
 # Stage 2: 프로덕션 스테이지
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -648,7 +680,7 @@ curl -w "\n%{time_total}s\n" http://localhost:3000/api/users
 ## 다음 단계
 
 <CardGroup cols={2}>
-  <Card title="start" icon="play" href="/ko/tools-and-cli/sonamu-cli/start">
+  <Card title="start" icon="play" href="/ko/tools-and-cli/sonamu-cli/build#빌드-후-실행">
     빌드된 서버 실행하기
   </Card>
   <Card title="dev" icon="code" href="/ko/tools-and-cli/sonamu-cli/dev">

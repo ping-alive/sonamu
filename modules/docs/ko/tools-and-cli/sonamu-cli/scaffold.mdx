@@ -3,7 +3,7 @@ title: "scaffold"
 description: "Entity 기반 코드 자동 생성하기"
 ---
 
-`pnpm scaffold` 명령어는 Entity 정의를 기반으로 **보일러플레이트 코드를 자동 생성**합니다. Model 클래스와 테스트 파일을 몇 초 만에 생성하여 개발 시간을 크게 단축합니다.
+`pnpm sonamu scaffold` 명령어는 Entity 정의를 기반으로 **보일러플레이트 코드를 자동 생성**합니다. Model 클래스와 테스트 파일을 몇 초 만에 생성하여 개발 시간을 크게 단축합니다.
 
 ## 기본 개념
 
@@ -21,10 +21,10 @@ Scaffold는 **Entity를 코드로 변환**하는 자동화 도구입니다:
 Entity를 위한 Model 클래스를 생성합니다.
 
 ```bash
-pnpm scaffold model
+pnpm sonamu scaffold model User
 ```
 
-대화형 프롬프트가 표시됩니다:
+TTY에서 Entity를 생략하면 대화형 프롬프트로 선택합니다:
 
 ```
 ? Please select entity: (Use arrow keys)
@@ -32,6 +32,8 @@ pnpm scaffold model
   Post
   Comment
 ```
+
+`scaffold model`은 Model 파일이 이미 있으면 실패합니다. 다시 생성하려면 [Model 재생성](#model-재생성)을 참고하세요.
 
 **생성되는 파일**:
 
@@ -112,7 +114,7 @@ export const UserModel = new UserModelClass();
 Model을 위한 테스트 파일을 생성합니다.
 
 ```bash
-pnpm scaffold model_test
+pnpm sonamu scaffold model_test User
 ```
 
 **생성되는 파일**:
@@ -148,10 +150,10 @@ Admin 화면의 목록/폼 컴포넌트도 CLI로 생성할 수 있습니다.
 
 ```bash
 # 목록 화면 생성
-pnpm scaffold view_list
+pnpm sonamu scaffold view_list User
 
 # 등록/수정 폼 생성
-pnpm scaffold view_form
+pnpm sonamu scaffold view_form User
 ```
 
 **생성되는 파일**:
@@ -267,17 +269,16 @@ describe.skip("UserModelTest", () => {
 ### 2. 마이그레이션
 
 ```bash
-# 마이그레이션 생성 및 적용
-pnpm migrate run
+# Entity로부터 마이그레이션을 생성한 뒤 적용
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 ```
 
 ### 3. Model 생성
 
 ```bash
 # Model 클래스 생성
-pnpm scaffold model
-
-# Entity: Product 선택
+pnpm sonamu scaffold model Product
 ```
 
 ### 4. 비즈니스 로직 추가
@@ -300,7 +301,10 @@ class ProductModelClass extends BaseModelClass<
 
   // 가격대별 상품 조회
   async findByPriceRange(min: number, max: number) {
-    return this.getPuri("r").table("products").whereBetween("price", [min, max]);
+    return this.getPuri("r")
+      .table("products")
+      .where("price", ">=", min)
+      .where("price", "<=", max);
   }
 }
 ```
@@ -309,9 +313,7 @@ class ProductModelClass extends BaseModelClass<
 
 ```bash
 # 테스트 파일 생성
-pnpm scaffold model_test
-
-# Entity: Product 선택
+pnpm sonamu scaffold model_test Product
 ```
 
 ### 6. 테스트 작성
@@ -390,8 +392,8 @@ class UserModelClass extends BaseModelClass<
     const [stats] = await this.getPuri("r")
       .table("users")
       .select({
-        postCount: this.raw("COUNT(posts.id)"),
-        commentCount: this.raw("COUNT(comments.id)"),
+        postCount: Puri.rawNumber("COUNT(DISTINCT posts.id)"),
+        commentCount: Puri.rawNumber("COUNT(DISTINCT comments.id)"),
       })
       .leftJoin("posts", "posts.user_id", "users.id")
       .leftJoin("comments", "comments.user_id", "users.id")
@@ -437,23 +439,21 @@ describe("User Model - Extended", () => {
 
 ## 여러 Entity 일괄 생성
 
-### 스크립트 활용
+### `scaffold batch` 활용
 
 ```bash
 # 모든 Entity에 대해 Model 생성
-for entity in User Post Comment Category; do
-  echo $entity | pnpm scaffold model
-done
+pnpm sonamu scaffold batch --entity User,Post,Comment,Category --template model --execute
 ```
 
 ### 테스트 일괄 생성
 
 ```bash
 # 모든 Model에 대해 테스트 생성
-for entity in User Post Comment Category; do
-  echo $entity | pnpm scaffold model_test
-done
+pnpm sonamu scaffold batch --entity User,Post,Comment,Category --template model_test --execute
 ```
+
+`scaffold batch`는 `--execute`를 주지 않으면 dry-run입니다. TTY에서는 확인을 요청하며, 비대화형 실행에서는 `--confirm`을 추가합니다. 이미 있는 파일은 `--overwrite`를 주지 않으면 건너뜁니다. 같은 `--entity`/`--template` 선택자로 `scaffold status`나 `scaffold preview`를 실행하면 어떤 파일이 있고 무엇이 쓰일지 확인할 수 있습니다.
 
 ## 실전 팁
 
@@ -484,16 +484,16 @@ done
 
 ```typescript
 // 1. 기본 Model 생성
-pnpm scaffold model
+pnpm sonamu scaffold model User
 
 // 2. 간단한 메서드부터 추가
-async findById(id: number) { ... }
+async findByEmail(email: string) { ... }
 
 // 3. 복잡한 로직 추가
 async complexQuery() { ... }
 
 // 4. 테스트 작성
-pnpm scaffold model_test
+pnpm sonamu scaffold model_test User
 ```
 
 ### 3. 컨벤션 준수
@@ -531,8 +531,9 @@ git commit -m "Add User model and tests"
 # 기존 파일 백업
 cp src/application/user/user.model.ts src/application/user/user.model.ts.bak
 
-# 재생성
-pnpm scaffold model
+# 미리보기 후 기존 파일 위에 재생성
+pnpm sonamu scaffold preview --entity User --template model
+pnpm sonamu scaffold batch --entity User --template model --overwrite --execute
 
 # 필요한 코드 복원
 ```
@@ -544,8 +545,9 @@ pnpm scaffold model
 **해결**:
 
 ```bash
-# 1. 마이그레이션 적용
-pnpm migrate run
+# 1. 마이그레이션 생성 및 적용
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 
 # 2. Model은 수동 업데이트
 # (타입은 자동으로 동기화됨)

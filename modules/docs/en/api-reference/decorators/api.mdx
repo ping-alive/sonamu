@@ -65,7 +65,7 @@ async getProfile() {
 }
 
 @api()
-async findById(id: number) {
+async findById<T extends UserSubsetKey>(subset: T, id: number) {
   // Default path: /user/findById
 }
 ```
@@ -210,7 +210,7 @@ Adds API description. Included in generated types and documentation.
 @api({
   description: "Fetches user profile by ID."
 })
-async findById(id: number) {
+async findById<T extends UserSubsetKey>(subset: T, id: number) {
   // ...
 }
 ```
@@ -323,7 +323,7 @@ async search(params: SearchParams) {
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api()
-  async findById(id: number) {}
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {}
   // Path: /user/findById
 }
 
@@ -378,10 +378,10 @@ async save(data: UserSaveParams) {
 ```typescript
 @api({ httpMethod: "GET" })
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends UserSubsetKey>(subset: T, id: number) {
   // Result cached for 10 minutes
-  const rdb = this.getPuri("r");
-  return rdb.table("users").where("id", id).first();
+  const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+  return rows[0];
 }
 ```
 
@@ -450,7 +450,7 @@ class UtilClass {
 // ✅ Requires BaseModelClass inheritance
 class UserModelClass extends BaseModelClass {
   @api()
-  async findById(id: number) {}
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {}
 }
 ```
 
@@ -472,13 +472,12 @@ fastify.get("/user/findById", async (request, reply) => {
 ### 2. Type Definitions
 
 ```typescript
-// api/src/application/services/UserService.types.ts
-export type UserFindByIdParams = {
-  subset: UserSubsetKey;
-  id: number;
+// web/src/services/sonamu.generated.ts (copied from the API)
+export type UserSubsetKey = z.infer<typeof UserSubsetKey>;
+export type UserSubsetMapping = {
+  A: UserSubsetA;
+  // ...
 };
-
-export type UserFindByIdResult = UserSubsetMapping[UserSubsetKey];
 ```
 
 ### 3. Client Code
@@ -486,23 +485,43 @@ export type UserFindByIdResult = UserSubsetMapping[UserSubsetKey];
 **Axios:**
 
 ```typescript
-// web/src/services/UserService.ts
-export const UserService = {
-  async findById(params: UserFindByIdParams) {
-    return axios.get<UserFindByIdResult>("/user/findById", { params });
-  },
-};
+// web/src/services/services.generated.ts
+// resourceName: "User" → the client function is named getUser
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
+  }
+}
 ```
 
 **TanStack Query:**
 
 ```typescript
-export const useUserFindById = (params: UserFindByIdParams) => {
-  return useQuery({
-    queryKey: ["user", "findById", params],
-    queryFn: () => UserService.findById(params),
-  });
-};
+export namespace UserService {
+  export const getUserQueryOptions = <T extends UserSubsetKey>(subset: T, id: number) =>
+    queryOptions({
+      queryKey: ["User", "getUser", subset, id],
+      queryFn: () => getUser(subset, id),
+    });
+
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) =>
+    useRefreshable(
+      useQuery({
+        ...getUserQueryOptions(subset, id),
+        ...options,
+      }),
+    );
+}
 ```
 
 ## Logging
@@ -511,7 +530,7 @@ The `@api` decorator automatically logs:
 
 ```typescript
 @api({ httpMethod: "GET" })
-async findById(id: number) {
+async findById<T extends UserSubsetKey>(subset: T, id: number) {
   // Automatic log:
   // [DEBUG] api: GET UserModel.findById
 }
@@ -536,9 +555,9 @@ Logs are recorded through LogTape, with categories in `[model:user]` or `[frame:
       }
 
       @api({ httpMethod: "GET" })
-      async findById(id: number) {
-        const rdb = this.getPuri("r");
-        return rdb.table("users").where("id", id).first();
+      async findById<T extends UserSubsetKey>(subset: T, id: number) {
+        const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+        return rows[0];
       }
 
       @api({ httpMethod: "POST" })
@@ -588,10 +607,10 @@ Logs are recorded through LogTape, with categories in `[model:user]` or `[frame:
 
       @api({ httpMethod: "GET" })
       @cache({ ttl: "5m" })
-      async findById(id: number) {
+      async findById<T extends ProductSubsetKey>(subset: T, id: number) {
         // Cached for 5 minutes
-        const rdb = this.getPuri("r");
-        return rdb.table("products").where("id", id).first();
+        const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+        return rows[0];
       }
 
       @api({ httpMethod: "POST" })
@@ -651,7 +670,7 @@ Logs are recorded through LogTape, with categories in `[model:user]` or `[frame:
       async profile() {
         // Authenticated users only
         const { user } = Sonamu.getContext();
-        return UserModel.findById(user.id);
+        return UserModel.findById("A", user.id);
       }
     }
     ```
@@ -674,7 +693,7 @@ Logs are recorded through LogTape, with categories in `[model:user]` or `[frame:
         httpMethod: "GET"
       })
       async userProfile(id: number) {
-        return UserModel.findById(id);
+        return UserModel.findById("A", id);
       }
 
       @api({

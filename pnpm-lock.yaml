@@ -1206,6 +1206,8 @@ importers:
         specifier: catalog:ts-node-compat
         version: '@typescript/typescript6@6.0.2'
 
+  modules/hmr-hook/tmp: {}
+
   modules/hmr-runner:
     dependencies:
       '@adonisjs/ace':

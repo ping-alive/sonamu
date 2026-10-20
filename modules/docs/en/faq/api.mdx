@@ -15,23 +15,18 @@ Attach the `@api` decorator to Model or Frame class methods to create REST API e
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
-    return this.findById(id);
+  async getProfile(id: number): Promise<UserSubsetMapping["A"]> {
+    return this.findById("A", id);
   }
 
   @api({ httpMethod: "POST" })
-  async createUser(params: UserSaveParams): Promise<User> {
-    return this.save(params);
-  }
-
-  @api({ httpMethod: "PUT" })
-  async updateUser(id: number, params: UserSaveParams): Promise<User> {
-    return this.save({ id, ...params });
+  async saveUsers(spa: UserSaveParams[]): Promise<number[]> {
+    return this.save(spa);
   }
 
   @api({ httpMethod: "DELETE" })
-  async deleteUser(id: number): Promise<void> {
-    await this.del(id);
+  async deleteUsers(ids: number[]): Promise<number> {
+    return this.del(ids);
   }
 }
 ```
@@ -39,17 +34,18 @@ class UserModelClass extends BaseModelClass {
 **Auto-generated endpoints:**
 
 ```
-GET    /user/findById?id=1
-POST   /user/createUser
-PUT    /user/updateUser
-DELETE /user/deleteUser?id=1
+GET    /api/user/getProfile?id=1
+POST   /api/user/saveUsers
+DELETE /api/user/deleteUsers
 ```
+
+With the default `api.route.prefix` of `/api`, the paths are `/api/{model}/{method}`. GET parameters are read from the query string; other methods read the JSON body.
 
 </Accordion>
 
 <Accordion title="What are the options for @api decorator?">
 
-**httpMethod (required):**
+**httpMethod (default: `"GET"`):**
 
 ```typescript
 @api({ httpMethod: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" })
@@ -228,7 +224,7 @@ async getMyProfile(): Promise<User> {
   if (!userId) {
     throw new UnauthorizedException("Login is required");
   }
-  return this.findById(userId);
+  return this.findById("A", userId);
 }
 ```
 
@@ -249,12 +245,14 @@ async deleteUser(id: number): Promise<void> {
 
 **NotFoundException (404):**
 
+The generated `findById` already throws `NotFoundException` when the record does not exist. Use `findOne`, which returns `null`, when you need your own handling:
+
 ```typescript
 import { NotFoundException } from "sonamu";
 
 @api({ httpMethod: "GET" })
-async getUserById(id: number): Promise<User> {
-  const user = await this.findById(id);
+async getUserOrFail(id: number): Promise<UserSubsetMapping["A"]> {
+  const user = await this.findOne("A", { id });
   if (!user) {
     throw new NotFoundException("User not found");
   }
@@ -284,7 +282,7 @@ async getMyProfile(): Promise<User> {
     throw new UnauthorizedException("Login is required");
   }
 
-  return this.findById(userId);
+  return this.findById("A", userId);
 }
 ```
 
@@ -324,68 +322,46 @@ context.naiteStore;
 
 <Accordion title="How do I use sessions?">
 
-**Session configuration:**
+Sessions are managed by better-auth. Enable it with `server.auth`; there is no separate session
+setting.
 
 ```typescript
 // sonamu.config.ts
-export default {
+export default defineConfig({
   server: {
-    session: {
-      secret: process.env.SESSION_SECRET || "my-secret",
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        secure: process.env.NODE_ENV === "production",
+    auth: {
+      emailAndPassword: { enabled: true },
+      session: {
+        expiresIn: 60 * 60 * 24, // 24 hours (seconds)
       },
     },
   },
-} satisfies SonamuConfig;
+});
 ```
 
-**Save session:**
+**Sign in / sign out**: clients call the better-auth endpoints (`POST /api/auth/sign-in/email`,
+`POST /api/auth/sign-out`), usually through `authClient` from `better-auth/react`. You do not write
+login APIs that store values in a session.
 
-```typescript
-@api({ httpMethod: "POST" })  // Omit guards = public API
-async login(email: string, password: string): Promise<User> {
-  const user = await this.findOne("A", { email });
-
-  if (!user || !await bcrypt.compare(password, user.password)) {
-    throw new UnauthorizedException("Invalid email or password");
-  }
-
-  const context = Sonamu.getContext();
-  context.session.userId = user.id;
-  context.session.role = user.role;
-
-  return user;
-}
-```
-
-**Read session:**
+**Read the session** in any API:
 
 ```typescript
 @api({ httpMethod: "GET" })
-async getMyInfo(): Promise<User> {
-  const context = Sonamu.getContext();
-  const userId = context.session.userId;
+async getMyInfo() {
+  const { user, session } = Sonamu.getContext();
 
-  if (!userId) {
+  if (!user || !session) {
     throw new UnauthorizedException("Login is required");
   }
 
-  return this.findById(userId);
+  return this.findById("A", user.id);
 }
 ```
 
-**Delete session:**
+`session` is read-only session metadata (`expiresAt`, `ipAddress`, `userAgent`, ...). Store
+per-user data in your own entities instead of the session.
 
-```typescript
-@api({ httpMethod: "POST" })
-async logout(): Promise<{ success: boolean }> {
-  const context = Sonamu.getContext();
-  context.session.destroy();
-  return { success: true };
-}
-```
+→ [Session Management](/en/api-development/authentication/session-management)
 
 </Accordion>
 </AccordionGroup>
@@ -397,28 +373,35 @@ async logout(): Promise<{ success: boolean }> {
 <AccordionGroup>
 <Accordion title="How do I control permissions with Guards?">
 
-**Guard configuration:**
+**Guard implementation:** guard keys (`user`, `admin`, `query`) are checked in
+`server.apiConfig.guardHandler`. It runs inside the request context, so `Sonamu.getContext()`
+returns the current `user`. Throw to reject the request.
 
 ```typescript
 // sonamu.config.ts
-export default {
+import { defineConfig, Sonamu, UnauthorizedException } from "sonamu";
+
+export default defineConfig({
   server: {
     auth: {
-      guards: {
-        user: async (request) => {
-          const userId = request.session.userId;
-          if (!userId) return null;
-          return UserModel.findById(userId);
-        },
-        admin: async (request) => {
-          const user = request.session.user;
-          if (!user || user.role !== "admin") return null;
-          return user;
-        },
+      emailAndPassword: { enabled: true },
+    },
+    apiConfig: {
+      // ... contextProvider
+      guardHandler: (guard) => {
+        const { user } = Sonamu.getContext();
+
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("Login is required");
+        }
+        // Requires a role field added to the User entity
+        if (guard === "admin" && (user as { role?: string } | null)?.role !== "admin") {
+          throw new UnauthorizedException("Admin permission required");
+        }
       },
     },
   },
-} satisfies SonamuConfig;
+});
 ```
 
 **Using Guards:**
@@ -426,23 +409,24 @@ export default {
 ```typescript
 // user login required
 @api({ httpMethod: "GET", guards: ["user"] })
-async getMyProfile(): Promise<User> {
-  const userId = Sonamu.getContext().user?.id;
-  return this.findById(userId!);
+async getMyProfile() {
+  const { user } = Sonamu.getContext();
+  return this.findById("A", user!.id);
 }
 
 // admin permission required
 @api({ httpMethod: "DELETE", guards: ["admin"] })
-async deleteUser(id: number): Promise<void> {
-  await this.del(id);
-}
-
-// user or admin
-@api({ httpMethod: "GET", guards: ["user", "admin"] })
-async viewStats(): Promise<Stats> {
-  // ...
+async deleteUsers(ids: number[]): Promise<number> {
+  return this.del(ids);
 }
 ```
+
+<Info>
+  When several guards are listed, `guardHandler` runs for each of them in order, so the request must
+  pass all of them. `guards: ["user", "admin"]` means "logged in and admin", not "user or admin".
+</Info>
+
+→ [Protected Routes](/en/api-development/authentication/protected-routes)
 
 </Accordion>
 </AccordionGroup>
@@ -458,8 +442,8 @@ async viewStats(): Promise<Stats> {
 
 ```typescript
 @api({ httpMethod: "GET" })
-async getUser(id: number): Promise<User> {
-  return this.findById(id);
+async getUser(id: number): Promise<UserSubsetMapping["A"]> {
+  return this.findById("A", id);
 }
 
 // Response:
@@ -475,16 +459,19 @@ async getUser(id: number): Promise<User> {
 ```typescript
 @api({ httpMethod: "GET" })
 async getUserWithStats(id: number): Promise<{
-  user: User;
-  stats: { postCount: number; commentCount: number };
+  user: UserSubsetMapping["A"];
+  stats: { postCount: number };
 }> {
-  const user = await this.findById(id);
-  const postCount = await PostModel.count({ user_id: id });
-  const commentCount = await CommentModel.count({ user_id: id });
+  const user = await this.findById("A", id);
+  const { postCount } = await this.getPuri("r")
+    .table("posts")
+    .select({ postCount: Puri.count() })
+    .where("posts.user_id", id)
+    .first();
 
   return {
     user,
-    stats: { postCount, commentCount }
+    stats: { postCount },
   };
 }
 ```
@@ -492,15 +479,12 @@ async getUserWithStats(id: number): Promise<{
 **Setting headers:**
 
 ```typescript
-@api({ httpMethod: "GET" })
-async downloadFile(id: number): Promise<Buffer> {
-  const file = await FileModel.findById(id);
+@api({ httpMethod: "GET", contentType: "application/octet-stream" })
+async downloadReport(id: number): Promise<Buffer> {
+  const { reply } = Sonamu.getContext();
+  reply.header("Content-Disposition", `attachment; filename="report-${id}.pdf"`);
 
-  const context = Sonamu.getContext();
-  context.reply.header("Content-Type", "application/pdf");
-  context.reply.header("Content-Disposition", `attachment; filename="${file.name}"`);
-
-  return file.buffer;
+  return buildReportPdf(id); // Your own function that returns a Buffer
 }
 ```
 
@@ -512,9 +496,11 @@ async downloadFile(id: number): Promise<Buffer> {
 
 ```typescript
 @api({ httpMethod: "GET" })
-async listUsers(listParams: UserListParams): Promise<ListResult<UserListParams, UserA>> {
+async listUsers(
+  listParams: UserListParams,
+): Promise<ListResult<UserListParams, UserSubsetMapping["A"]>> {
   // ListResult = { rows: T[], total: number }
-  return this.list("A", listParams);
+  return this.findMany("A", listParams);
 }
 
 // Response:
@@ -539,33 +525,43 @@ async listUsers(listParams: UserListParams): Promise<ListResult<UserListParams, 
 
 **Service files auto-generated:**
 
-When Model files change, `{entity}.service.ts` is auto-generated.
+When Model files change, Sonamu regenerates `services.generated.ts` in each sync target. Each Model gets a `{Entity}Service` namespace with a fetch function and, for `tanstack-query` clients, a hook.
 
 ```typescript
-// web/src/services/user/user.service.ts (auto-generated)
-export const UserService = {
-  async findById(id: number): Promise<User> {
-    const response = await axios.get("/user/findById", { params: { id } });
-    return response.data;
-  },
+// web/src/services/services.generated.ts (auto-generated)
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
+  }
 
-  async createUser(params: UserSaveParams): Promise<User> {
-    const response = await axios.post("/user/createUser", params);
-    return response.data;
-  },
-};
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) => useRefreshable(useQuery({ ...getUserQueryOptions(subset, id), ...options }));
+
+  // ...
+}
 ```
 
 **Using in React:**
 
 ```typescript
-import { UserService } from "@/services/user/user.service";
+import { useEffect, useState } from "react";
+import { UserService } from "@/services/services.generated";
+import type { UserSubsetMapping } from "@/services/sonamu.generated";
 
 function UserProfile({ userId }: { userId: number }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserSubsetMapping["A"] | null>(null);
 
   useEffect(() => {
-    UserService.findById(userId).then(setUser);
+    UserService.getUser("A", userId).then(setUser);
   }, [userId]);
 
   return <div>{user?.name}</div>;
@@ -575,10 +571,10 @@ function UserProfile({ userId }: { userId: number }) {
 **Using TanStack Query hooks:**
 
 ```typescript
-import { useUserFindById } from "@/services/user/user.service";
+import { UserService } from "@/services/services.generated";
 
 function UserProfile({ userId }: { userId: number }) {
-  const { data: user, error, isLoading } = useUserFindById({ id: userId });
+  const { data: user, error, isLoading } = UserService.useUser("A", userId);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -594,8 +590,8 @@ function UserProfile({ userId }: { userId: number }) {
 
 ## Related Documentation
 
-- [API Decorator](/en/api-development/api-decorator)
-- [Context and Session](/en/api-development/context-session)
+- [API Decorator](/en/api-development/creating-apis/api-decorator)
+- [Context and Session](/en/api-development/context/sonamu-context)
 - [Authentication and Authorization](/en/api-development/authentication)
-- [Error Handling](/en/api-development/error-handling)
-- [Frontend Integration](/en/frontend-integration/using-services)
+- [Error Handling](/en/api-development/validation/error-handling)
+- [Frontend Integration](/en/frontend-integration/generated-services/using-services)

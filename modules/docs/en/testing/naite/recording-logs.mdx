@@ -61,8 +61,6 @@ The most basic usage is recording function inputs and outputs.
 
 ```typescript Example 1: User Creation
 test("user creation flow", async () => {
-  const userModel = new UserModel();
-
   // Record input data
   const input = {
     username: "john",
@@ -71,7 +69,8 @@ test("user creation flow", async () => {
   Naite.t("user:create:input", input);
 
   // Create user
-  const { user } = await userModel.create(input);
+  const [userId] = await UserModel.save([input]);
+  const user = await UserModel.findById("A", userId);
 
   // Record output data
   Naite.t("user:create:output", {
@@ -83,14 +82,12 @@ test("user creation flow", async () => {
 
 ```typescript Example 2: Post Update
 test("post update", async () => {
-  const postModel = new PostModel();
-
   Naite.t("post:update:before", {
     id: 1,
     title: "Old Title",
   });
 
-  await postModel.update(1, { title: "New Title" });
+  await PostModel.getPuri("w").table("posts").where("id", 1).update({ title: "New Title" });
 
   Naite.t("post:update:after", {
     id: 1,
@@ -204,8 +201,9 @@ try {
 // bootstrap.ts
 function getMockContext(): Context {
   return {
-    ip: "127.0.0.1",
-    session: {},
+    transport: "http",
+    headers: {},
+    session: null,
     user: null,
     naiteStore: Naite.createStore(), // Create new Map
     // ...
@@ -826,7 +824,7 @@ function processItem(item: any) {
 4. **No excessive logging**: Calling inside loops degrades performance.
 
 5. **Key convention**: The `module:function:action` format is recommended.
-   </Warning>
+</Warning>
 
 ## Next Steps
 

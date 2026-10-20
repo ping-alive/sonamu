@@ -128,12 +128,12 @@ testAs<MyUser>(
 
 ```typescript
 import { test, testAs } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect } from "vitest";
 
 test("사용자 목록 조회 (비인증)", async () => {
   // Mock Context가 자동으로 제공됨
-  const users = await userModel.findMany({});
+  const { rows: users } = await UserModel.findMany("A", {});
   
   expect(Array.isArray(users)).toBe(true);
 });
@@ -143,7 +143,7 @@ testAs(
   "내 프로필 조회 (인증)",
   async () => {
     // context.user = { id: 1, username: "john" }
-    const profile = await userModel.getMyProfile();
+    const profile = await UserModel.getMyProfile();
     
     expect(profile.username).toBe("john");
   }
@@ -154,14 +154,14 @@ testAs(
 
 ```typescript
 import { testAs } from "sonamu/test";
-import { postModel } from "../application/post/post.model";
+import { PostModel } from "../application/post/post.model";
 import { expect } from "vitest";
 
 testAs(
   { id: 1, role: "admin" },
   "관리자는 모든 게시글 삭제 가능",
   async () => {
-    const result = await postModel.delete({ id: 999 });
+    const result = await PostModel.delete({ id: 999 });
     expect(result.success).toBe(true);
   }
 );
@@ -171,7 +171,7 @@ testAs(
   "일반 사용자는 타인 게시글 삭제 불가",
   async () => {
     await expect(
-      postModel.delete({ id: 999 })
+      PostModel.delete({ id: 999 })
     ).rejects.toThrow("권한이 없습니다");
   }
 );
@@ -374,7 +374,7 @@ export const testAs = async <User extends AuthContext["user"]>(
   <Card title="Naite 로깅" icon="pen" href="/ko/testing/naite/recording-logs">
     테스트 로그 기록 및 추적
   </Card>
-  <Card title="Bootstrap" icon="gear" href="/ko/testing/getting-started/bootstrap">
+  <Card title="Bootstrap" icon="gear" href="/ko/testing/writing-tests/test-structure#bootstrap-함수">
     테스트 환경 초기화
   </Card>
 </CardGroup>

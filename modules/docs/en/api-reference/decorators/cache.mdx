@@ -13,16 +13,16 @@ import { BaseModelClass, api, cache } from "sonamu";
 class ProductModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
   @cache({ ttl: "10m" })
-  async findById(id: number) {
-    const rdb = this.getPuri("r");
-    return rdb.table("products").where("id", id).first();
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @api({ httpMethod: "GET" })
   @cache({ ttl: "1h", tags: ["products"] })
   async list() {
     const rdb = this.getPuri("r");
-    return rdb.table("products").select();
+    return rdb.table("products").selectAll();
   }
 }
 ```
@@ -102,8 +102,8 @@ Specifies the cache key.
   <Tab title="Auto-generated (Default)" icon="wand-magic-sparkles">
     ```typescript
     @cache({ ttl: "10m" })
-    async findById(id: number) {
-      // Cache key: "Product.findById:123"
+    async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+      // Cache key: "Product.findById:["A",123]"
     }
 
     @cache({ ttl: "10m" })
@@ -137,7 +137,7 @@ Specifies the cache key.
       ttl: "10m",
       key: (subset: string, id: number) => `product:${subset}:${id}`
     })
-    async findById(subset: string, id: number) {
+    async findById<T extends ProductSubsetKey>(subset: T, id: number) {
       // Cache key: "product:A:123"
     }
 
@@ -185,7 +185,7 @@ async getFeatured() {
 }
 
 @cache({ ttl: "10m", tags: ["products"] })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // Can be invalidated with "products" tag
 }
 
@@ -196,7 +196,7 @@ await Sonamu.cache.deleteByTag({ tags: ["products"] });
 ### grace
 
 <Info>
-  Advanced options like `grace` and `timeouts` are provided by BentoCache's `RawCommonOptions`. See
+  Advanced options like `grace`, `timeout`, and `hardTimeout` are provided by BentoCache's `RawCommonOptions`. See
   [BentoCache documentation](https://bentocache.dev) for details.
 </Info>
 
@@ -225,22 +225,24 @@ async getData() {
   background so the next user gets fresh data.
 </Info>
 
-### timeouts
+### timeout / hardTimeout
 
-Sets timeouts for cache operations.
+Limit how long a caller waits for the factory (the decorated method).
 
 ```typescript
 @cache({
   ttl: "10m",
-  timeouts: {
-    soft: "100ms",   // Execute factory if no cache within this time
-    hard: "1s"       // Maximum wait time
-  }
+  grace: "6h",
+  timeout: "100ms", // Return the stale (grace) value if the factory takes longer
+  hardTimeout: "1s", // Stop waiting and throw if the factory takes longer
 })
 async getData() {
-  // If no cache within 100ms, execute factory immediately
+  // ...
 }
 ```
+
+`timeout` only applies when a stale value is available through `grace`; the factory keeps running
+in the background and refreshes the cache.
 
 ## Cache Invalidation
 
@@ -252,7 +254,7 @@ class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["products"] })
   async list() {
     const rdb = this.getPuri("r");
-    return rdb.table("products").select();
+    return rdb.table("products").selectAll();
   }
 
   @api({ httpMethod: "POST" })
@@ -273,10 +275,10 @@ class ProductModelClass extends BaseModelClass {
 
 ```typescript
 // Delete specific key
-await Sonamu.cache.delete({ key: "Product.findById:123" });
+await Sonamu.cache.delete({ key: 'Product.findById:["A",123]' });
 
 // Delete multiple keys
-await Sonamu.cache.deleteMany({ keys: ["Product.findById:123", "Product.findById:456"] });
+await Sonamu.cache.deleteMany({ keys: ['Product.findById:["A",123]', 'Product.findById:["A",456]'] });
 ```
 
 ### Clear All
@@ -308,8 +310,8 @@ async getComplexData() {
   // Read-only transaction + caching
   const rdb = this.getPuri("r");
 
-  const users = await rdb.table("users").select();
-  const posts = await rdb.table("posts").select();
+  const users = await rdb.table("users").selectAll();
+  const posts = await rdb.table("posts").selectAll();
 
   return { users, posts };
 }
@@ -323,7 +325,7 @@ async getComplexData() {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // First call: Query DB + save to cache
   // Second call: Return from cache immediately (no DB query)
 }
@@ -333,7 +335,7 @@ async findById(id: number) {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   // Not in cache → execute factory (run method)
   const result = await this.queryDB(id);
   // Save result to cache
@@ -385,7 +387,7 @@ async search(params: { name: string; age: number }) {
 
 ```typescript
 @cache({ ttl: "10m" })
-async findById(id: number) {
+async findById<T extends ProductSubsetKey>(subset: T, id: number) {
   const result = await this.queryDB(id);
   // Result is cached even if null
   return result;  // null
@@ -445,13 +447,13 @@ class ProductModelClass extends BaseModelClass {
   async warmupCache() {
     // Pre-cache popular products
     const popularIds = [1, 2, 3, 4, 5];
-    await Promise.all(popularIds.map((id) => this.findById(id)));
+    await Promise.all(popularIds.map((id) => this.findById("A", id)));
   }
 
   @cache({ ttl: "1h" })
-  async findById(id: number) {
-    const rdb = this.getPuri("r");
-    return rdb.table("products").where("id", id).first();
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -539,7 +541,7 @@ export default defineConfig({
         const posts = await rdb.table("posts")
           .where("user_id", id)
           .limit(5)
-          .select();
+          .selectAll();
 
         return { user, posts };
       }
@@ -548,7 +550,8 @@ export default defineConfig({
       @transactional()
       async updateProfile(id: number, data: UserUpdateParams) {
         const wdb = this.getPuri("w");
-        await this.upsert(wdb, { id, ...data });
+        wdb.ubRegister("users", { id, ...data });
+        await wdb.ubUpsert("users");
 
         // Invalidate only this user's cache
         await Sonamu.cache.delete({ key: `user:profile:${id}` });
@@ -636,7 +639,7 @@ export default defineConfig({
           qb = qb.where("price", "<=", filters.maxPrice);
         }
 
-        return qb.limit(20).select();
+        return qb.limit(20).selectAll();
       }
 
       @api({ httpMethod: "DELETE" })
@@ -673,7 +676,7 @@ export default defineConfig({
   <Card
     title="Performance Optimization"
     icon="gauge-high"
-    href="/en/guides/performance"
+    href="/en/troubleshooting/performance/caching-strategies"
   >
     Performance optimization guide
   </Card>

@@ -3,123 +3,152 @@ title: "migrate"
 description: "Managing database migrations"
 ---
 
-The `pnpm migrate` command safely manages database schema changes. It automatically generates migrations based on Entity definitions and can apply them consistently across multiple databases.
+The `pnpm sonamu migrate` commands manage database schema changes. Sonamu compares your Entity
+definitions with a database schema, generates Knex migration files from the difference, and applies
+them to the databases you choose.
 
 ## Basic Concept
 
-Migration is a system for **version controlling** database schema changes:
-
-- **Entity-based**: Auto-generate migrations from Entity definitions
-- **Sequential execution**: Apply migrations in creation order
-- **Multi-DB support**: Manage multiple databases simultaneously
-- **Auto-detection**: Automatically detect Entity changes and generate code
+- **Entity-based**: `migrate generate` writes migration code from the difference between Entities
+  and the database
+- **Files in Git**: generated migrations are stored in `src/migrations/` and committed like any
+  other source file
+- **Explicit execution**: commands that change a database are dry-runs unless you pass `--execute`
+- **Multiple databases**: each Sonamu DB preset (`development`, `staging`, `production`, `test`,
+  `fixture`) is a separate migration target
 
 ## Commands
 
+| Command                                                 | Description                                                      |
+| ------------------------------------------------------- | ---------------------------------------------------------------- |
+| `migrate status`                                        | Show each connection's applied version and pending migrations    |
+| `migrate generate`                                      | Write migration files for Entity changes into `src/migrations/`  |
+| `migrate run [--execute]`                               | Apply pending migrations to the database for the current `NODE_ENV` |
+| `migrate apply TARGET... [--execute]`                   | Apply pending migrations to the listed targets                   |
+| `migrate preview TARGET [--action apply\|rollback]`     | Show which migration files an apply or rollback would run        |
+| `migrate code TARGET`                                   | Show the migration code that would be generated against a target |
+| `migrate connections`                                   | List the configured migration connections                        |
+| `migrate shadow test\|fixture [--execute]`              | Apply pending migrations to a temporary copy of a database       |
+| `migrate rollback TARGET [--execute]`                   | Roll back the latest applied batch on one target                 |
+
+`TARGET` is one of `development`, `staging`, `production`, `fixture`, and `test`.
+
 ### status - Check Status
 
-Check the current migration status.
+```bash
+pnpm sonamu migrate status
+```
+
+For every connection, the result lists the current version and pending migration files. It also
+lists **prepared migrations**: the code Sonamu would generate for Entity changes that do not have a
+migration file yet.
+
+### generate - Generate Migration Files
 
 ```bash
-pnpm migrate status
+pnpm sonamu migrate generate
 ```
 
-**Output example**:
+- Takes no name argument. File names are derived from the change, for example
+  `20240116103045_create__posts.ts` or `20240116103046_alter_users_add1.ts`.
+- Files generated together are timestamped one second apart, so their order is stable.
+- Generation compares against a connection that has no pending migrations. If every connection has
+  pending migrations, the command fails with `MIGRATION_NOT_READY`; apply them first.
 
-```
-Development Master: ✓ Up to date (v20240115_143022)
-Testing: ⚠ 2 pending migrations
-Production: ✓ Up to date (v20240115_143022)
-
-Prepared migrations:
-  • 20240116_101530_add_user_profile
-  • 20240116_102045_create_posts_table
-```
-
-**Status types**:
-
-- `✓ Up to date`: All migrations applied
-- `⚠ N pending`: N migrations not yet applied
-- `❌ Error`: Database connection failed
-
-### run - Run Migrations
-
-Apply all pending migrations.
+### run - Apply to the Current Environment
 
 ```bash
-pnpm migrate run
+# Development (NODE_ENV unset or development)
+pnpm sonamu migrate run --execute
+
+# Production
+NODE_ENV=production pnpm sonamu migrate run --execute --force-reason CHANGE_REQUEST
 ```
 
-**Execution process**:
+- `run` applies pending migrations to the preset for the current `NODE_ENV`. With
+  `NODE_ENV=test`, it applies to both `test` and `fixture`.
+- Without `--execute`, `run` is a dry-run and changes nothing. Use `migrate preview TARGET` to see the
+  plan.
+- `run` does not generate migrations. Run `migrate generate` first.
+- Under `NODE_ENV=production`, `--force-reason` is required.
 
+### apply - Apply to Explicit Targets
+
+```bash
+# Check the plan first
+pnpm sonamu migrate preview development --action apply
+
+# Apply to several targets in order
+pnpm sonamu migrate apply development test --execute
+
+# Production requires a reason
+pnpm sonamu migrate apply production --execute --force-reason CHANGE_REQUEST
 ```
-Running migrations...
 
-Development Master:
-  ✓ 20240116_101530_add_user_profile (0.2s)
-  ✓ 20240116_102045_create_posts_table (0.3s)
+In a TTY, omitting the targets opens a target selection prompt.
 
-Testing:
-  ✓ 20240116_101530_add_user_profile (0.2s)
-  ✓ 20240116_102045_create_posts_table (0.3s)
+### shadow - Validate on a Temporary Copy
 
-All migrations completed successfully!
+```bash
+pnpm sonamu migrate shadow test --execute
 ```
 
-**Auto-generation and application**:
+Sonamu creates `<database>__migration_shadow` from the `test` (or `fixture`) database as a template,
+applies the pending migrations there, and drops it afterward. Only `test` and `fixture` are accepted.
 
-- Detect Entity changes
-- Auto-generate migration code
-- Apply sequentially to all target DBs
+### rollback - Roll Back the Latest Batch
+
+```bash
+# See which files would be rolled back
+pnpm sonamu migrate preview development --action rollback
+
+# Roll back the latest applied batch
+pnpm sonamu migrate rollback development --execute
+```
+
+The target argument is required; `NODE_ENV` does not supply it. A `production` rollback also
+requires `--force-reason`.
 
 <Info>
-  Sonamu analyzes Entity definitions and **automatically generates** necessary migrations. No need
-  to manually write migration files.
+  Commands that change a database ask for confirmation in a TTY. In non-interactive runs, add
+  `--confirm` (for example `--execute --confirm`). See the
+  [CLI reference](/en/tools-and-cli/sonamu-cli/reference) for exit codes and JSON output.
 </Info>
 
 ## Migration Generation
 
-### Auto-generation
+### Change an Entity
 
-When you modify an Entity, Sonamu automatically generates a migration.
+Add a property to the Entity, either in Sonamu UI or in the `.entity.json` file:
 
-```typescript title="user.entity.ts"
-// Change Entity definition
-const UserEntity = {
-  properties: [
-    {
-      name: "email",
-      type: "string",
-      length: 255,
-    },
-    // Add new field
-    {
-      name: "phone",
-      type: "string",
-      length: 20,
-      nullable: true,
-    },
-  ],
-};
+```json title="src/application/user/user.entity.json"
+{
+  "id": "User",
+  "table": "users",
+  "props": [
+    { "name": "id", "type": "integer", "desc": "ID" },
+    { "name": "email", "type": "string", "length": 255, "desc": "Email" },
+    { "name": "phone", "type": "string", "length": 20, "nullable": true, "desc": "Phone" }
+  ]
+}
 ```
 
 ```bash
-# Check status
-pnpm migrate status
+# Check prepared migrations
+pnpm sonamu migrate status
 
-# Output:
-# Prepared migrations:
-#   • 20240116_103045_add_phone_to_users
+# Write the migration file
+pnpm sonamu migrate generate
 
 # Apply
-pnpm migrate run
+pnpm sonamu migrate run --execute
 ```
 
 ### Migration Files
 
 Generated migration files are stored in the `src/migrations/` directory.
 
-```typescript title="src/migrations/20240116_103045_add_phone_to_users.ts"
+```typescript title="src/migrations/20240116103045_alter_users_add1.ts"
 import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
@@ -142,25 +171,23 @@ export async function down(knex: Knex): Promise<void> {
 
 ## Supported Changes
 
-Changes that Sonamu auto-detects and generates migrations for:
+Changes that Sonamu detects and generates migrations for:
 
 | Change Type          | Description         | Example                         |
 | -------------------- | ------------------- | ------------------------------- |
-| Table creation       | Add new Entity      | Create `PostEntity`             |
+| Table creation       | Add new Entity      | Create the `Post` Entity        |
 | Column addition      | Add new property    | Add `phone` field               |
 | Column modification  | Change type/length  | `varchar(100)` → `varchar(255)` |
 | Column deletion      | Remove property     | Delete `deprecated_field`       |
 | Index addition       | Define index        | `indexes` array                 |
-| Foreign key addition | Define relationship | `belongsTo` relation            |
+| Foreign key addition | Define relationship | `BelongsToOne` relation         |
 
 ## Multi-Database Management
-
-Sonamu can manage multiple databases simultaneously.
 
 ### Database Configuration
 
 ```typescript title="sonamu.config.ts"
-export default {
+export default defineConfig({
   projectName: process.env.PROJECT_NAME ?? "MyApp",
   database: {
     database: "pg",
@@ -171,64 +198,42 @@ export default {
       },
     },
   },
-};
+  // ...
+});
 ```
 
 **Migration targets**:
 
-- The current `NODE_ENV` preset by default
-- Explicit presets such as `development`, `staging`, `production`, and `test`
-- Read-only presets are skipped
-- All databases not ending with `_slave`
+- Each DB preset (`development`, `staging`, `production`, `test`, `fixture`) is a target
+- `*_readonly` presets are never migration targets
+- In local environments (`development`, `test`), every target is available; in `staging` and
+  `production`, only the preset for the current `NODE_ENV` is
 
-### Batch Application
+### Applying to Several Databases
 
 ```bash
-# Apply to all databases
-pnpm migrate run
-
-# Output:
-# Development Master: ✓ 2 migrations applied
-# Testing: ✓ 2 migrations applied
-# Production: ✓ 2 migrations applied
+pnpm sonamu migrate apply development test fixture --execute
 ```
 
 ## Practical Workflow
 
 ### 1. Change Entity
 
-```typescript title="user.entity.ts"
-const UserEntity = {
-  properties: [
-    // Existing fields...
-    {
-      name: "profile_image",
-      type: "string",
-      nullable: true,
-    },
-  ],
-};
-```
+Add `profile_image` to the User Entity in Sonamu UI or `user.entity.json`.
 
 ### 2. Check Status
 
 ```bash
-pnpm migrate status
+pnpm sonamu migrate status
 ```
 
-```
-Prepared migrations:
-  • 20240116_110230_add_profile_image_to_users
-```
+The prepared migrations include the new column.
 
-### 3. Apply Migration
+### 3. Generate and Apply
 
 ```bash
-pnpm migrate run
-```
-
-```
-✓ All migrations applied successfully!
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 ```
 
 ### 4. Update Code
@@ -236,14 +241,17 @@ pnpm migrate run
 ```typescript title="user.model.ts"
 class UserModelClass extends BaseModelClass {
   async updateProfileImage(userId: number, imageUrl: string) {
-    await this.getPuri("w").table("users").update({ profile_image: imageUrl }).where("id", userId);
+    await this.getPuri("w")
+      .table("users")
+      .where("id", userId)
+      .update({ profile_image: imageUrl });
   }
 }
 ```
 
 ## Advanced Usage (Programmatic)
 
-Advanced features not provided via CLI commands can be implemented using the `Migrator` class directly.
+Use the `Migrator` class when you need migrations inside a script.
 
 ### Using Migrator Class
 
@@ -252,35 +260,32 @@ import { Migrator } from "sonamu";
 
 const migrator = new Migrator();
 
-// Rollback (last batch)
-await migrator.runAction("rollback", ["development"]);
+// Apply pending migrations to specific targets
+await migrator.apply(["test"]);
 
-// Select specific databases only
-await migrator.runAction("apply", ["test"]);
+// Roll back the latest batch
+await migrator.rollback(["development"]);
 
-// Check status (programmatic)
-const status = await migrator.getStatus();
-console.log(status);
+// Check one connection's status
+const status = await migrator.getConnectionStatus("development");
+console.log(status.currentVersion, status.pending);
 ```
+
+`runAction("apply" | "rollback", targets)` still exists for backward compatibility but is
+deprecated; call `apply` or `rollback` directly.
 
 ### Rollback Script
 
 ```typescript title="src/scripts/rollback-migration.ts"
 import { Migrator, Sonamu } from "sonamu";
 
-Sonamu.runScript(async () => {
+await Sonamu.runScript(async () => {
   const migrator = new Migrator();
 
   console.log("Rolling back last migration batch...");
-  await migrator.runAction("rollback", ["development", "test"]);
+  await migrator.rollback(["development", "test"]);
   console.log("Rollback completed!");
 });
-```
-
-**Run**:
-
-```bash
-pnpm tsx src/scripts/rollback-migration.ts
 ```
 
 <Warning>
@@ -288,24 +293,11 @@ pnpm tsx src/scripts/rollback-migration.ts
   production**.
 </Warning>
 
-### Available Actions
-
-Actions supported by `Migrator.runAction()`:
-
-| Action     | Description         | Use Case                   |
-| ---------- | ------------------- | -------------------------- |
-| `apply`    | Apply migrations    | Apply new schema changes   |
-| `rollback` | Rollback last batch | Revert mistaken migrations |
-
 ## Troubleshooting
 
 ### Migration Conflict
 
-**Problem**: Multiple developers create migrations simultaneously
-
-```
-Error: Migration conflict detected
-```
+**Problem**: Multiple developers generated migrations for overlapping changes.
 
 **Solution**:
 
@@ -313,11 +305,12 @@ Error: Migration conflict detected
 # 1. Get latest code
 git pull
 
-# 2. Check migration status
-pnpm migrate status
+# 2. Apply the migrations from the other branch
+pnpm sonamu migrate run --execute
 
-# 3. Regenerate migrations if needed
-pnpm migrate run
+# 3. Check what is still missing, then regenerate
+pnpm sonamu migrate status
+pnpm sonamu migrate generate
 ```
 
 ### Database Connection Failed
@@ -334,11 +327,11 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 # 1. Check PostgreSQL is running
 psql -U postgres -c "\l"
 
-# 2. Check connection info
-cat sonamu.config.ts
+# 2. List the connections Sonamu uses
+pnpm sonamu migrate connections
 
-# 3. Create database
-createdb -U postgres myapp_dev
+# 3. Start the local database (generated projects)
+pnpm docker:up
 ```
 
 ### Migration Order Error
@@ -349,49 +342,33 @@ createdb -U postgres myapp_dev
 Error: Foreign key constraint violation
 ```
 
-**Solution**:
+**Solution**: referenced tables must be created first. Roll back, adjust the file timestamps so the
+referenced table comes first, and apply again.
 
-When there are foreign key references, referenced tables must be created first.
-
-**Fix method 1: Programmatic rollback and reapply**
-
-```typescript
-// Rollback
-const migrator = new Migrator();
-await migrator.runAction("rollback", ["development"]);
-
-// Modify migration filename (adjust timestamp)
-// 20240116_110230_*.ts → 20240116_110231_*.ts
-
-// Reapply
-await migrator.runAction("apply", ["development"]);
-```
-
-**Fix method 2: Adjust Entity definition order**
-
-```typescript
-// Adjust Entity file order to create users table first
-// Then run pnpm migrate run
+```bash
+pnpm sonamu migrate rollback development --execute
+# Rename, e.g. 20240116110230_*.ts → 20240116110231_*.ts
+pnpm sonamu migrate apply development --execute
 ```
 
 ## Best Practices
 
 ### 1. Apply Frequently
 
-```bash
-# Migrate frequently in small units
-pnpm migrate run  # Daily
-```
+Generate and apply migrations in small units instead of accumulating large changes.
 
 ### 2. Test Before Production
 
 ```bash
-# Verify in test DB first
-pnpm migrate status
-pnpm migrate run
+# Validate on a temporary copy, then on the test database
+pnpm sonamu migrate shadow test --execute
+pnpm sonamu migrate apply test --execute
 
-# Apply to production if no issues
+# Check the production plan before applying
+pnpm sonamu migrate preview production --action apply
 ```
+
+See [Production Approval](/en/database/migrations/production-approval) for approval workflows.
 
 ### 3. Backup Required
 
@@ -400,7 +377,7 @@ pnpm migrate run
 pg_dump -U postgres myapp_prod > backup_$(date +%Y%m%d).sql
 
 # Apply migration
-pnpm migrate run
+pnpm sonamu migrate apply production --execute --force-reason CHANGE_REQUEST
 ```
 
 ### 4. Consider Rollback Possibility

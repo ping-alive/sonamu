@@ -28,7 +28,7 @@ async getData() {
     // 설정 데이터 (거의 변경 안됨)
     @cache({ ttl: "forever", tags: ["config"] })
     async getConfig() {
-      return this.findOne(['key', 'app_config']);
+      return this.findOne("A", { sonamuFilter: { key: "app_config" } });
     }
     
     // 카테고리 (가끔 변경)
@@ -48,13 +48,13 @@ async getData() {
     // 사용자 프로필 (가끔 변경)
     @cache({ ttl: "1h", tags: ["user"] })
     async getUserProfile(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     
     // 상품 정보 (재고/가격 변경)
     @cache({ ttl: "30m", tags: ["product"] })
     async getProduct(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
     
@@ -68,7 +68,7 @@ async getData() {
     // 게시글 목록 (자주 추가)
     @cache({ ttl: "5m", tags: ["post", "list"] })
     async getPostList() {
-      return this.findMany({ num: 20, page: 1 });
+      return this.findMany("A", { num: 20, page: 1 });
     }
     
     // 실시간 통계 (계속 변경)
@@ -204,7 +204,7 @@ sequenceDiagram
     @cache({ ttl: "5m" })
     // grace 없음
     async getUser(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
   </Card>
@@ -339,8 +339,8 @@ class TenantServiceModelClass extends BaseModelClass {
       ttl: "1h",
       tags: ["service"],
       factory: async () => {
-        return this.findMany({
-          where: [["tenant_id", tenantId]],
+        return this.findMany("A", {
+          sonamuFilter: { tenant_id: tenantId },
         });
       },
     });
@@ -385,7 +385,7 @@ async getData(id: number) {
   if (cached) return cached;
 
   // 2. DB 조회
-  const data = await this.findOne(['id', id]);
+  const data = await this.findOne("A", { id });
 
   // 3. 캐싱
   await Sonamu.cache.set({
@@ -406,9 +406,10 @@ async getData(id: number) {
 
 ```typescript
 @api()
-async update(id: number, data: Partial<DataSave>) {
+async update(id: number, data: Partial<DataSaveParams>) {
   // 1. DB 업데이트
-  const result = await this.updateOne(['id', id], data);
+  await this.getPuri("w").table("data").where("id", id).update(data);
+  const result = await this.findOne("A", { id });
 
   // 2. 캐시 갱신
   await Sonamu.cache.set({
@@ -479,8 +480,9 @@ class ProductModelClass extends BaseModelClass {
     tags: ["product"],
   })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -495,7 +497,7 @@ class ProductModelClass extends BaseModelClass {
     // 결제 정보 (캐싱 없음 또는 짧은 TTL)
     @cache({ ttl: "30s", grace: false })
     async getPaymentInfo(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     
     // 재고 정보 (짧은 TTL + 즉시 무효화)
@@ -513,13 +515,13 @@ class ProductModelClass extends BaseModelClass {
     // 사용자 프로필 (적당한 TTL)
     @cache({ ttl: "10m", tags: ["user"] })
     async getUserProfile(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     
     // 주문 상태 (짧은 TTL + Grace)
     @cache({ ttl: "2m", grace: "10m", tags: ["order"] })
     async getOrderStatus(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
   </Tab>
@@ -620,8 +622,8 @@ class BatchCacheModelClass extends BaseModelClass {
     }
 
     // 2. DB에서 조회
-    const items = await this.findMany({
-      where: [["id", "in", uncachedIds]],
+    const items = await this.findMany("A", {
+      id: uncachedIds,
     });
 
     // 3. 배치 캐싱
@@ -653,14 +655,14 @@ class ConditionalCacheModelClass extends BaseModelClass {
 
     // 캐시 사용 여부 선택
     if (!useCache) {
-      return this.findOne(["id", id]);
+      return this.findOne("A", { id });
     }
 
     return Sonamu.cache.getOrSet({
       key: cacheKey,
       ttl: "10m",
       factory: async () => {
-        return this.findOne(["id", id]);
+        return this.findOne("A", { id });
       },
     });
   }
@@ -702,7 +704,7 @@ class ConditionalCacheModelClass extends BaseModelClass {
    // ❌ 불필요한 Grace
    @cache({ ttl: "5m", grace: "1h" })
    async getUser(id: number) {
-     return this.findOne(['id', id]);  // 빠른 조회
+     return this.findOne("A", { id });  // 빠른 조회
    }
 
    // ✅ Grace 없이 충분
@@ -720,7 +722,7 @@ class ConditionalCacheModelClass extends BaseModelClass {
    const userCache = Sonamu.cache.namespace(`user:${userId}`);
    ```
 
-   </Warning>
+</Warning>
 
 ## 전략 요약표
 

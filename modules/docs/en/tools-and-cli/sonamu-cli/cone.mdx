@@ -3,12 +3,12 @@ title: "cone"
 description: "Generate and upgrade cone metadata with AI"
 ---
 
-The `pnpm cone gen` command uses AI (LLM) to generate or upgrade **cone metadata** for Entities. You can improve template cones created by `stub entity` with AI, or regenerate existing cones.
+The `pnpm sonamu cone gen` command uses AI (LLM) to generate or upgrade **cone metadata** for Entities. You can improve template cones created by `stub entity` with AI, or regenerate existing cones.
 
 ## Basic Usage
 
 ```bash
-pnpm cone gen <entityId> [options]
+pnpm sonamu cone gen <entityId> [options]
 ```
 
 <Note>
@@ -19,53 +19,35 @@ pnpm cone gen <entityId> [options]
 
 | Option                  | Description                                                                            | Example                              |
 | ----------------------- | -------------------------------------------------------------------------------------- | ------------------------------------ |
-| (none)                  | Generate only empty fixtureHints (preserves existing values)                           | `pnpm cone gen Product`              |
-| `--regenerate`          | Overwrite existing cones and regenerate all                                            | `pnpm cone gen Product --regenerate` |
-| `--locale <ko\|en\|ja>` | Specify generation language (default: `sonamu.config.ts` `i18n.defaultLocale` or `ko`) | `pnpm cone gen Product --locale en`  |
-| `--all`                 | Generate cones for all Entities at once                                                | `pnpm cone gen all`                  |
+| (none)                  | Generate only empty fixtureHints (preserves existing values)                           | `pnpm sonamu cone gen Product`              |
+| `--regenerate`          | Overwrite existing cones and regenerate all                                            | `pnpm sonamu cone gen Product --regenerate` |
+| `--locale <ko\|en\|ja>` | Specify generation language (default: `sonamu.config.ts` `i18n.defaultLocale` or `ko`) | `pnpm sonamu cone gen Product --locale en`  |
+| `all` as the Entity     | Generate cones for all Entities at once                                                | `pnpm sonamu cone gen all`                  |
 
 ## Examples
 
 ### Generate cones for a single Entity
 
 ```bash
-pnpm cone gen Product
-# 🌟 Generating AI-powered cones for Product...
-# ✅ Done! (1234 tokens used)
-# 💰 Estimated cost: ~$0.0111
+pnpm sonamu cone gen Product
 ```
 
 ### Regenerate existing cones
 
 ```bash
-pnpm cone gen Product --regenerate
-# 🌟 Regenerating AI-powered cones for Product...
-# ✅ Done! (1567 tokens used)
-# 💰 Estimated cost: ~$0.0141
+pnpm sonamu cone gen Product --regenerate
 ```
 
 ### Generate cones in English
 
 ```bash
-pnpm cone gen Product --locale en
+pnpm sonamu cone gen Product --locale en
 ```
 
 ### Batch generate for all Entities
 
 ```bash
-pnpm cone gen all
-# 🌟 Generating AI-powered cones for 5 entities...
-#
-# Processing User...
-#   ✓ User (1234 tokens)
-#
-# Processing Product...
-#   ✓ Product (1567 tokens)
-#
-# ...
-#
-# ✅ Done! Total: 5678 tokens used
-# 💰 Estimated cost: ~$0.0511
+pnpm sonamu cone gen all
 ```
 
 ## How It Works
@@ -84,13 +66,13 @@ A typical cone workflow:
 
 ```bash
 # 1. Create Entity (includes template cones by default)
-pnpm stub entity Product
+pnpm sonamu stub entity Product
 
 # 2. Upgrade cones with AI
-pnpm cone gen Product
+pnpm sonamu cone gen Product
 
 # 3. Regenerate in a specific language if needed
-pnpm cone gen Product --regenerate --locale en
+pnpm sonamu cone gen Product --regenerate --locale en
 ```
 
 ## Next Steps

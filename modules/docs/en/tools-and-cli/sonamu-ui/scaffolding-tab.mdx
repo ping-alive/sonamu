@@ -3,7 +3,7 @@ title: "Scaffolding Tab"
 description: "Auto-generate code"
 ---
 
-In the Scaffolding tab, you can **auto-generate Model and test code based on Entities**. It provides the CLI `pnpm scaffold` command through a visual interface.
+In the Scaffolding tab, you can **auto-generate Model and test code based on Entities**. It provides the CLI `pnpm sonamu scaffold` command through a visual interface.
 
 ## Scaffolding Tab Structure
 
@@ -34,8 +34,8 @@ The Scaffolding tab consists of two main areas:
 
 | Code Type       | Description            | Status            | CLI Command                |
 | --------------- | ---------------------- | ----------------- | -------------------------- |
-| **Model Class** | Model class for Entity | ✅ Available      | `pnpm scaffold model`      |
-| **Model Test**  | Model test file        | ✅ Available      | `pnpm scaffold model_test` |
+| **Model Class** | Model class for Entity | ✅ Available      | `pnpm sonamu scaffold model`      |
+| **Model Test**  | Model test file        | ✅ Available      | `pnpm sonamu scaffold model_test` |
 | **View List**   | List View component    | 🚧 In Development | -                          |
 | **View Form**   | Form View component    | 🚧 In Development | -                          |
 
@@ -269,7 +269,7 @@ The TemplateKey list on the Scaffolding tab includes View templates in addition 
 | `view_search_input` | Search input component used by the list screen |
 
 <Info>
-  The same templates are available from the CLI: `pnpm scaffold view_list`, `pnpm scaffold
+  The same templates are available from the CLI: `pnpm sonamu scaffold view_list`, `pnpm sonamu scaffold
   view_form`.
 </Info>
 

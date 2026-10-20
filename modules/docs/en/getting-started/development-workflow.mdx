@@ -134,7 +134,7 @@ Apply the entity definition to the database.
     controls
     className="w-full rounded-xl"
     preload="metadata"
-    src="/modules/docs/images/devWorkflow1.mp4"
+    src="/images/devWorkflow1.mp4"
   ></video>
 </Frame>
 
@@ -315,10 +315,10 @@ When running the dev server with `pnpm dev`, file changes are automatically sync
 You can manually sync if needed:
 
 ```bash
-pnpm sync
+pnpm sonamu sync
 ```
 
-`pnpm sync` performs the following tasks:
+`pnpm sonamu sync` performs the following tasks:
 
 1. **Copy sonamu.shared.ts** - Copy common types and utilities to Web
 2. **Detect changed files** - Check changed files based on checksums
@@ -521,7 +521,9 @@ Add `like_count` field to Post entity
 </Step>
 
 <Step title="2. Migration">
-  ```sql ALTER TABLE posts ADD COLUMN like_count INTEGER DEFAULT 0; ```
+```sql
+ALTER TABLE posts ADD COLUMN like_count INTEGER DEFAULT 0;
+```
 </Step>
 
 <Step title="3. Add Business Logic to Model">
@@ -606,7 +608,7 @@ During development, keep `pnpm dev` running and just modify files - they'll sync
 If sync state seems wrong:
 
 1. Restart dev server
-2. Run `pnpm sync` manually
+2. Run `pnpm sonamu sync` manually
 3. Delete `sonamu.lock` and restart
 
 ## Next Steps

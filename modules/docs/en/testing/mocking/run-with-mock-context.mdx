@@ -128,12 +128,12 @@ testAs<MyUser>(
 
 ```typescript
 import { test, testAs } from "sonamu/test";
-import { userModel } from "../application/user/user.model";
+import { UserModel } from "../application/user/user.model";
 import { expect } from "vitest";
 
 test("user list query (unauthenticated)", async () => {
   // Mock Context is provided automatically
-  const users = await userModel.findMany({});
+  const { rows: users } = await UserModel.findMany("A", {});
   
   expect(Array.isArray(users)).toBe(true);
 });
@@ -143,7 +143,7 @@ testAs(
   "my profile query (authenticated)",
   async () => {
     // context.user = { id: 1, username: "john" }
-    const profile = await userModel.getMyProfile();
+    const profile = await UserModel.getMyProfile();
     
     expect(profile.username).toBe("john");
   }
@@ -154,14 +154,14 @@ testAs(
 
 ```typescript
 import { testAs } from "sonamu/test";
-import { postModel } from "../application/post/post.model";
+import { PostModel } from "../application/post/post.model";
 import { expect } from "vitest";
 
 testAs(
   { id: 1, role: "admin" },
   "admin can delete any post",
   async () => {
-    const result = await postModel.delete({ id: 999 });
+    const result = await PostModel.delete({ id: 999 });
     expect(result.success).toBe(true);
   }
 );
@@ -171,7 +171,7 @@ testAs(
   "regular user cannot delete others' posts",
   async () => {
     await expect(
-      postModel.delete({ id: 999 })
+      PostModel.delete({ id: 999 })
     ).rejects.toThrow("Permission denied");
   }
 );
@@ -374,7 +374,7 @@ export const testAs = async <User extends AuthContext["user"]>(
   <Card title="Naite Logging" icon="pen" href="/en/testing/naite/recording-logs">
     Recording and tracking test logs
   </Card>
-  <Card title="Bootstrap" icon="gear" href="/en/testing/getting-started/bootstrap">
+  <Card title="Bootstrap" icon="gear" href="/en/testing/writing-tests/test-structure#bootstrap-function">
     Test environment initialization
   </Card>
 </CardGroup>

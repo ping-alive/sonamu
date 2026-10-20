@@ -42,7 +42,7 @@ Puri 쿼리 빌더 래퍼 객체를 반환합니다.
 const wdb = this.getPuri("w");
 
 // Puri 쿼리 빌더 메서드 사용
-const users = await wdb.table("users").where("status", "active").select();
+const users = await wdb.table("users").where("status", "active").selectAll();
 ```
 
 ## PuriWrapper 메서드
@@ -55,10 +55,10 @@ const users = await wdb.table("users").where("status", "active").select();
 const wdb = this.getPuri("w");
 
 // table() 사용
-const users = await wdb.table("users").where("status", "active").select();
+const users = await wdb.table("users").where("status", "active").selectAll();
 
 // from() 사용 (동일)
-const posts = await wdb.from("posts").where("published", true).select();
+const posts = await wdb.from("posts").where("published", true).selectAll();
 ```
 
 ### transaction
@@ -159,7 +159,7 @@ class UserModelClass extends BaseModelClass {
       .where("status", "active")
       .orderBy("created_at", "desc")
       .limit(10)
-      .select();
+      .selectAll();
 
     return users;
   }
@@ -307,7 +307,8 @@ class UserModelClass extends BaseModelClass {
         const rdb = this.getPuri("r");
 
         const sales = await rdb.table("orders")
-          .whereBetween("created_at", [startDate, endDate])
+          .where("created_at", ">=", startDate)
+          .where("created_at", "<=", endDate)
           .groupBy(rdb.raw("DATE(created_at)"))
           .select({
             date: rdb.raw("DATE(created_at)"),
@@ -469,7 +470,7 @@ class UserModelClass extends BaseModelClass {
           const [order] = await trx.table("orders")
             .where("id", orderId)
             .forUpdate()  // 락 걸기
-            .select();
+            .selectAll();
 
           if (!order) {
             throw new Error("Order not found");
@@ -478,14 +479,14 @@ class UserModelClass extends BaseModelClass {
           // 2. 주문 항목 조회
           const items = await trx.table("order_items")
             .where("order_id", orderId)
-            .select();
+            .selectAll();
 
           // 3. 재고 확인 및 차감
           for (const item of items) {
             const [product] = await trx.table("products")
               .where("id", item.product_id)
               .forUpdate()
-              .select();
+              .selectAll();
 
             if (product.stock < item.quantity) {
               throw new Error(`Insufficient stock for ${product.name}`);
@@ -530,7 +531,7 @@ Puri 쿼리 빌더 + UpsertBuilder를 제공합니다.
 const wdb = this.getPuri("w");
 
 // Puri 쿼리 빌더
-await wdb.table("users").where("id", 1).select();
+await wdb.table("users").where("id", 1).selectAll();
 
 // UpsertBuilder
 wdb.ubRegister("users", { ... });
@@ -586,7 +587,7 @@ const wdb = this.getPuri("w");
 const users = await wdb
   .table("users")
   .where("status", "active") // status 필드 자동 완성
-  .select();
+  .selectAll();
 
 users[0].email; // ✅ 타입 추론됨
 
@@ -603,7 +604,7 @@ await wdb.table("users").where("unknown_field", "value"); // 존재하지 않는
 ```typescript
 // ✅ 올바름: 읽기는 "r"
 const rdb = this.getPuri("r");
-const users = await rdb.table("users").select();
+const users = await rdb.table("users").selectAll();
 
 // ✅ 올바름: 쓰기는 "w"
 const wdb = this.getPuri("w");
@@ -647,14 +648,14 @@ const users = await rdb
   .table("users")
   .where("status", "active") // status에 인덱스 필요
   .where("created_at", ">", startDate) // created_at에 인덱스 필요
-  .select();
+  .selectAll();
 ```
 
 ### 2. SELECT 필드 제한
 
 ```typescript
 // ❌ 모든 필드 조회
-const users = await rdb.table("users").select();
+const users = await rdb.table("users").selectAll();
 
 // ✅ 필요한 필드만
 const users = await rdb.table("users").select("id", "email", "name");

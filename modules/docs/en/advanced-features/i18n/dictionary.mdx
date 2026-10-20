@@ -139,7 +139,7 @@ class UserModelClass extends BaseModelClass {
 
   @api({ httpMethod: "POST" })
   async register(params: UserRegisterParams) {
-    const existing = await this.findOne("A", { email: params.email });
+    const existing = await this.findOne("A", { sonamuFilter: { email: params.email } });
     if (existing) {
       throw new BadRequestException(SD("user.email.duplicate"));
     }

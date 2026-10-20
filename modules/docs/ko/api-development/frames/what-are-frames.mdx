@@ -42,7 +42,7 @@ class UserModelClass extends BaseModelClass<
   async list(): Promise<User[]> {
     // users 테이블 조회
     const rdb = this.getPuri("r");
-    return rdb.table("users").select("*");
+    return rdb.table("users").selectAll();
   }
 
   @api({ httpMethod: "POST" })
@@ -414,7 +414,7 @@ Frame으로 시작했지만 다음 상황이 되면 Model로 전환 고려:
   <Card title="@api 데코레이터" icon="at" href="/ko/api-development/creating-apis/api-decorator">
     API 기본 사용법
   </Card>
-  <Card title="Model" icon="database" href="/ko/core-concepts/entities">
+  <Card title="Model" icon="database" href="/ko/core-concepts/model/what-is-model">
     Entity 기반 API
   </Card>
 </CardGroup>

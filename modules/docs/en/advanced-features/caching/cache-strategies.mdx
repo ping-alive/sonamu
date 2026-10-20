@@ -28,7 +28,7 @@ async getData() {
     // Configuration data (almost never changes)
     @cache({ ttl: "forever", tags: ["config"] })
     async getConfig() {
-      return this.findOne(['key', 'app_config']);
+      return this.findOne("A", { sonamuFilter: { key: "app_config" } });
     }
 
     // Categories (occasionally changes)
@@ -49,13 +49,13 @@ async getData() {
     // User profile (occasionally changes)
     @cache({ ttl: "1h", tags: ["user"] })
     async getUserProfile(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
 
     // Product info (inventory/price changes)
     @cache({ ttl: "30m", tags: ["product"] })
     async getProduct(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
 
@@ -70,7 +70,7 @@ async getData() {
     // Post list (frequently added)
     @cache({ ttl: "5m", tags: ["post", "list"] })
     async getPostList() {
-      return this.findMany({ num: 20, page: 1 });
+      return this.findMany("A", { num: 20, page: 1 });
     }
 
     // Real-time stats (constantly changing)
@@ -209,7 +209,7 @@ sequenceDiagram
     @cache({ ttl: "5m" })
     // No grace
     async getUser(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
 
@@ -345,8 +345,8 @@ class TenantServiceModelClass extends BaseModelClass {
       ttl: "1h",
       tags: ["service"],
       factory: async () => {
-        return this.findMany({
-          where: [["tenant_id", tenantId]],
+        return this.findMany("A", {
+          sonamuFilter: { tenant_id: tenantId },
         });
       },
     });
@@ -391,7 +391,7 @@ async getData(id: number) {
   if (cached) return cached;
 
   // 2. DB query
-  const data = await this.findOne(['id', id]);
+  const data = await this.findOne("A", { id });
 
   // 3. Cache
   await Sonamu.cache.set({
@@ -412,9 +412,10 @@ async getData(id: number) {
 
 ```typescript
 @api()
-async update(id: number, data: Partial<DataSave>) {
+async update(id: number, data: Partial<DataSaveParams>) {
   // 1. DB update
-  const result = await this.updateOne(['id', id], data);
+  await this.getPuri("w").table("data").where("id", id).update(data);
+  const result = await this.findOne("A", { id });
 
   // 2. Cache refresh
   await Sonamu.cache.set({
@@ -485,8 +486,9 @@ class ProductModelClass extends BaseModelClass {
     tags: ["product"],
   })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -501,7 +503,7 @@ class ProductModelClass extends BaseModelClass {
     // Payment info (no caching or short TTL)
     @cache({ ttl: "30s", grace: false })
     async getPaymentInfo(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
 
     // Inventory info (short TTL + immediate invalidation)
@@ -520,13 +522,13 @@ class ProductModelClass extends BaseModelClass {
     // User profile (moderate TTL)
     @cache({ ttl: "10m", tags: ["user"] })
     async getUserProfile(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
 
     // Order status (short TTL + Grace)
     @cache({ ttl: "2m", grace: "10m", tags: ["order"] })
     async getOrderStatus(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
 
@@ -629,8 +631,8 @@ class BatchCacheModelClass extends BaseModelClass {
     }
 
     // 2. Query from DB
-    const items = await this.findMany({
-      where: [["id", "in", uncachedIds]],
+    const items = await this.findMany("A", {
+      id: uncachedIds,
     });
 
     // 3. Batch cache
@@ -662,14 +664,14 @@ class ConditionalCacheModelClass extends BaseModelClass {
 
     // Choose whether to use cache
     if (!useCache) {
-      return this.findOne(["id", id]);
+      return this.findOne("A", { id });
     }
 
     return Sonamu.cache.getOrSet({
       key: cacheKey,
       ttl: "10m",
       factory: async () => {
-        return this.findOne(["id", id]);
+        return this.findOne("A", { id });
       },
     });
   }
@@ -711,7 +713,7 @@ class ConditionalCacheModelClass extends BaseModelClass {
    // ❌ Unnecessary Grace
    @cache({ ttl: "5m", grace: "1h" })
    async getUser(id: number) {
-     return this.findOne(['id', id]);  // Fast query
+     return this.findOne("A", { id });  // Fast query
    }
 
    // ✅ Sufficient without Grace
@@ -729,7 +731,7 @@ class ConditionalCacheModelClass extends BaseModelClass {
    const userCache = Sonamu.cache.namespace(`user:${userId}`);
    ```
 
-   </Warning>
+</Warning>
 
 ## Strategy Summary Table
 

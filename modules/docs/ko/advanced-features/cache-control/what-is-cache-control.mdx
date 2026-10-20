@@ -70,31 +70,79 @@ Cache-Control: public, max-age=3600
 
 <Tabs>
   <Tab title="저장 위치" icon="location-dot">
-    **public vs private** ```http Cache-Control: public, max-age=3600 ``` - **public**: 모든
-    캐시에서 저장 가능 (브라우저, CDN, 프록시) - 용도: 모든 사용자에게 동일한 응답 (상품 목록,
-    공지사항) ```http Cache-Control: private, max-age=3600 ``` - **private**: 브라우저에서만 저장
-    가능 (CDN/프록시는 불가) - 용도: 사용자별로 다른 응답 (마이페이지, 장바구니)
+    **public vs private**
+
+    ```http
+    Cache-Control: public, max-age=3600
+    ```
+    - **public**: 모든 캐시에서 저장 가능 (브라우저, CDN, 프록시)
+    - 용도: 모든 사용자에게 동일한 응답 (상품 목록, 공지사항)
+
+    ```http
+    Cache-Control: private, max-age=3600
+    ```
+    - **private**: 브라우저에서만 저장 가능 (CDN/프록시는 불가)
+    - 용도: 사용자별로 다른 응답 (마이페이지, 장바구니)
+
   </Tab>
 
-<Tab title="캐시 금지" icon="ban">
-  **no-store vs no-cache** ```http Cache-Control: no-store ``` - **no-store**: 캐시 저장 자체를 금지
-  - 용도: 민감한 데이터, 개인정보 - 효과: 항상 서버에 요청 ```http Cache-Control: no-cache ``` -
-  **no-cache**: 캐시는 저장하되 **매번 재검증** 필요 - 용도: 최신 상태 확인이 중요한 데이터 - 효과:
-  서버에 "변경되었나요?" 확인 → 변경 없으면 304 Not Modified
-</Tab>
+  <Tab title="캐시 금지" icon="ban">
+    **no-store vs no-cache**
 
-<Tab title="만료 시간" icon="clock">
-  **max-age** ```http Cache-Control: public, max-age=60 ``` - 브라우저 캐시 유효 시간 (초 단위) -
-  60초 = 1분, 3600초 = 1시간 **s-maxage** ```http Cache-Control: public, max-age=60, s-maxage=300
-  ``` - CDN/프록시 캐시 유효 시간 - 브라우저: 60초, CDN: 300초 (5분) - 용도: CDN에서 더 오래
-  캐싱하고 싶을 때
-</Tab>
+    ```http
+    Cache-Control: no-store
+    ```
+    - **no-store**: 캐시 저장 자체를 금지
+    - 용도: 민감한 데이터, 개인정보
+    - 효과: 항상 서버에 요청
+
+    ```http
+    Cache-Control: no-cache
+    ```
+    - **no-cache**: 캐시는 저장하되 **매번 재검증** 필요
+    - 용도: 최신 상태 확인이 중요한 데이터
+    - 효과: 서버에 "변경되었나요?" 확인 → 변경 없으면 304 Not Modified
+
+  </Tab>
+
+  <Tab title="만료 시간" icon="clock">
+    **max-age**
+
+    ```http
+    Cache-Control: public, max-age=60
+    ```
+    - 브라우저 캐시 유효 시간 (초 단위)
+    - 60초 = 1분, 3600초 = 1시간
+
+    **s-maxage**
+
+    ```http
+    Cache-Control: public, max-age=60, s-maxage=300
+    ```
+    - CDN/프록시 캐시 유효 시간
+    - 브라우저: 60초, CDN: 300초 (5분)
+    - 용도: CDN에서 더 오래 캐싱하고 싶을 때
+
+  </Tab>
 
   <Tab title="재검증" icon="rotate">
-    **must-revalidate** ```http Cache-Control: public, max-age=3600, must-revalidate ``` - 만료 후
-    **반드시 재검증** 필요 - Stale 응답 사용 불가 **immutable** ```http Cache-Control: public,
-    max-age=31536000, immutable ``` - 캐시된 응답이 **절대 변경되지 않음** - 용도: 해시가 포함된
-    정적 파일 (`bundle-abc123.js`) - 효과: 재검증 없이 캐시만 사용
+    **must-revalidate**
+
+    ```http
+    Cache-Control: public, max-age=3600, must-revalidate
+    ```
+    - 만료 후 **반드시 재검증** 필요
+    - Stale 응답 사용 불가
+
+    **immutable**
+
+    ```http
+    Cache-Control: public, max-age=31536000, immutable
+    ```
+    - 캐시된 응답이 **절대 변경되지 않음**
+    - 용도: 해시가 포함된 정적 파일 (`bundle-abc123.js`)
+    - 효과: 재검증 없이 캐시만 사용
+
   </Tab>
 </Tabs>
 
@@ -194,7 +242,7 @@ Sonamu에는 두 가지 캐싱 메커니즘이 있습니다:
       cacheControl: { maxAge: 3600 }
     })
     async getProducts() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
     
@@ -214,7 +262,7 @@ Sonamu에는 두 가지 캐싱 메커니즘이 있습니다:
     @cache({ ttl: "10m" })
     @api()
     async getProducts() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
     
@@ -239,7 +287,7 @@ Sonamu에는 두 가지 캐싱 메커니즘이 있습니다:
   cacheControl: { maxAge: 60 }  // HTTP 캐시
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -285,7 +333,7 @@ graph TD
   }
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -300,8 +348,8 @@ async getProducts() {
   }
 })
 async getMyOrders(ctx: Context) {
-  return this.findMany({
-    where: [['user_id', ctx.user.id]]
+  return this.findMany("A", {
+    sonamuFilter: { user_id: ctx.user.id },
   });
 }
 ```
@@ -342,7 +390,7 @@ registerSSR({
   }
 })
 async createPayment(data: PaymentSave) {
-  return this.saveOne(data);
+  return this.save([data]);
 }
 ```
 
@@ -409,7 +457,7 @@ async createPayment(data: PaymentSave) {
    })
    async getData() { ... }
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

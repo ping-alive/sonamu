@@ -344,7 +344,7 @@ export const config: SonamuConfig = {
   compress: true,  // 이 API만 압축
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -462,7 +462,7 @@ curl -H "Accept-Encoding: gzip" http://localhost:3000/api/products -v
 
 4. **HTTPS에서만 brotli 지원**: HTTP에서는 gzip 사용
 5. **압축 해제 오류 주의**: 클라이언트가 제대로 압축 해제하는지 확인
-   </Warning>
+</Warning>
 
 ## 성능 영향
 
@@ -484,7 +484,7 @@ curl -H "Accept-Encoding: gzip" http://localhost:3000/api/products -v
 // ✅ 권장: 큰 JSON 응답
 @api({ compress: true })
 async getLargeData() {
-  return this.findMany({ num: 1000 });  // 100KB+
+  return this.findMany("A", { num: 1000 });  // 100KB+
 }
 
 // ❌ 비권장: 작은 응답

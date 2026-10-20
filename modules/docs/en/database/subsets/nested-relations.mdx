@@ -159,7 +159,7 @@ export const DepartmentSubsetLoaders: PuriLoaderQueries<DepartmentSubsetKey> = {
 **Usage Example**:
 
 ```typescript
-const dept = await DepartmentModel.findById(1, ["P"]);
+const dept = await DepartmentModel.findById("P", 1);
 
 // Type:
 // {
@@ -210,7 +210,7 @@ export const ProjectSubsetLoaders: PuriLoaderQueries<ProjectSubsetKey> = {
 **Usage Example**:
 
 ```typescript
-const project = await ProjectModel.findById(1, ["P"]);
+const project = await ProjectModel.findById("P", 1);
 
 // Type:
 // {
@@ -232,10 +232,6 @@ project.members.forEach((member) => {
 ```
 
 ## Nested LoaderQuery
-
-<Frame>
-  <img src="/images/subsets/nested-loader.png" alt="Nested LoaderQuery structure" />
-</Frame>
 
 LoaderQuery can be **nested recursively**:
 
@@ -307,23 +303,15 @@ export const DepartmentSubsetLoaders: PuriLoaderQueries<DepartmentSubsetKey> = {
 
 ## How Batch Loading Works
 
-<Frame>
-  <img
-    src="/images/subsets/batch-loading-solution.png"
-    alt="N+1 problem and Batch Loading solution"
-  />
-</Frame>
-
 ### N+1 Problem
 
 ```typescript
 // ❌ N+1 problem occurs
-const users = await UserModel.findMany({ subsetKey: "L" }); // 1 query
+const { rows: users } = await UserModel.findMany("L"); // 1 query
 
 for (const user of users) {
-  const posts = await PostModel.findMany({
-    where: [["user_id", user.id]],
-    subsetKey: "L",
+  const { rows: posts } = await PostModel.findMany("L", {
+    sonamuFilter: { user_id: user.id },
   }); // N queries (one per user)
 
   console.log(`${user.username}: ${posts.length} posts`);
@@ -336,9 +324,7 @@ for (const user of users) {
 
 ```typescript
 // ✅ Solved with Batch Loading
-const users = await UserModel.findMany({
-  subsetKey: "A", // A Subset includes posts Loader
-});
+const { rows: users } = await UserModel.findMany("A"); // A Subset includes posts Loader
 
 // Query 1: SELECT * FROM users
 // Query 2: SELECT * FROM posts WHERE user_id IN (1, 2, 3, ...)
@@ -356,7 +342,7 @@ users.forEach((user) => {
 
 ```typescript
 async getDepartmentWithEmployees(deptId: number) {
-  const dept = await DepartmentModel.findById(deptId, ["P"]);
+  const dept = await DepartmentModel.findOne("P", { id: deptId });
 
   if (!dept) {
     throw new NotFoundException("Department not found");
@@ -380,7 +366,7 @@ async getDepartmentWithEmployees(deptId: number) {
 
 ```typescript
 async getProjectDashboard(projectId: number) {
-  const project = await ProjectModel.findById(projectId, ["Dashboard"]);
+  const project = await ProjectModel.findOne("Dashboard", { id: projectId });
 
   if (!project) {
     throw new NotFoundException("Project not found");
@@ -419,7 +405,7 @@ async getProjectDashboard(projectId: number) {
 
 ```typescript
 // User Subset with posts and comments
-const user = await UserModel.findById(userId, ["Activity"]);
+const user = await UserModel.findById("Activity", userId);
 
 const summary = {
   user: {
@@ -520,7 +506,7 @@ const summary = {
   <Card title="Using Subsets" icon="code" href="/en/database/subsets/using-subsets">
     Use Subsets in Model
   </Card>
-  <Card title="Model Methods" icon="cube" href="/en/core-concepts/model/model-methods">
+  <Card title="Model Methods" icon="cube" href="/en/core-concepts/model/basemodel-methods">
     Model CRUD methods
   </Card>
   <Card title="Puri Joins" icon="link" href="/en/database/puri/joins">

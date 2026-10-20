@@ -221,7 +221,7 @@ export type CompanyStatsType = z.infer<typeof CompanyStatsType>;
 const enhancers = this.createEnhancers({
   WithStats: async (row) => {
     const departments = await DepartmentModel.findMany("P", {
-      company_id: row.id,
+      sonamuFilter: { company_id: row.id },
     });
 
     return {
@@ -390,8 +390,8 @@ When Model class grows, you can **separate independent logic into Frame classes*
 
 ```typescript
 class UserModelClass extends BaseModelClass {
-  async findById() { ... }
-  async save() { ... }
+  async findById(subset, id) { ... }
+  async save(spa) { ... }
   // Logic unrelated to Entity
   async sendEmail() { ... }
   async uploadAvatar() { ... }
@@ -477,8 +477,8 @@ const errors = EntityManager.schemaValidate(entity);
 
 ## Related Documentation
 
-- [Defining Entities](/en/core-concepts/entities/defining-entities)
-- [Property Types](/en/core-concepts/entities/property-types)
-- [Entity Relations](/en/core-concepts/entities/entity-relationships)
-- [Model Classes](/en/core-concepts/model-classes/basemodel)
-- [Frame Classes](/en/core-concepts/model-classes/frame-classes)
+- [Defining Entities](/en/core-concepts/entity/defining-entities)
+- [Property Types](/en/core-concepts/entity/field-types)
+- [Entity Relations](/en/core-concepts/entity/relations)
+- [Model Classes](/en/core-concepts/model/basemodel-methods)
+- [Frame Classes](/en/api-development/frames/what-are-frames)

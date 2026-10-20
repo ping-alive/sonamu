@@ -247,12 +247,12 @@ export default defineConfig({
 export class ArticleModel {
   @api({ compress: true }) // 큰 목록 응답
   static async list() {
-    return this.getPuri("r").table("articles").select("*");
+    return this.getPuri("r").table("articles").selectAll();
   }
 
   @api({ compress: true }) // 큰 상세 데이터
   static async detail(id: number) {
-    return this.findById(id, ["**"]);
+    return this.findById("A", id);
   }
 
   @api() // 작은 응답은 압축 안 함

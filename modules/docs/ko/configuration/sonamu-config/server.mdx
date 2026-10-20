@@ -27,10 +27,6 @@ export default defineConfig({
         root: path.join(import.meta.dirname, "/../", "public"),
         prefix: "/api/public",
       },
-      session: {
-        secret: process.env.SESSION_SECRET,
-        salt: process.env.SESSION_SALT,
-      },
     },
 
     apiConfig: {
@@ -290,54 +286,13 @@ export default defineConfig({
 
 **예시**: `/api/public/images/logo.png` → `public/images/logo.png` 파일
 
-### session
+### 세션과 인증
 
-세션 관리를 활성화합니다.
+`server.plugins`에는 세션 플러그인이 없습니다. 인증과 세션은 `server.auth`(Better Auth)로 설정합니다.
+Sonamu는 요청마다 Better Auth 세션을 조회해 `defaultContext`의 `user`와 `session`으로
+`contextProvider`에 전달하며, 인증되지 않은 요청이거나 `server.auth`를 설정하지 않았다면 둘 다 `null`입니다.
 
-**타입**: `boolean | SecureSessionPluginOptions` (선택적)
-
-```typescript
-export default defineConfig({
-  server: {
-    plugins: {
-      session: {
-        secret: process.env.SESSION_SECRET || "change-this-secret",
-        salt: process.env.SESSION_SALT || "change-this-salt",
-        cookie: {
-          domain: "localhost",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365 * 10, // 10년
-        },
-      },
-    },
-  },
-});
-```
-
-<Warning>프로덕션 환경에서는 반드시 환경 변수로 `secret`과 `salt`를 설정하세요!</Warning>
-
-**프로덕션 설정**:
-
-```typescript
-export default defineConfig({
-  server: {
-    plugins: {
-      session: {
-        secret: process.env.SESSION_SECRET, // 필수!
-        salt: process.env.SESSION_SALT, // 필수!
-        cookie: {
-          domain: process.env.COOKIE_DOMAIN,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30, // 30일
-          secure: true, // HTTPS에서만
-          httpOnly: true,
-          sameSite: "strict",
-        },
-      },
-    },
-  },
-});
-```
+→ [auth 설정](/ko/configuration/sonamu-config/auth)
 
 ### compress
 
@@ -449,7 +404,7 @@ API 동작 방식을 설정합니다.
 
 각 API 호출마다 Context를 생성하는 함수입니다.
 
-**타입**: `(defaultContext, request) => Context`
+**타입**: `(defaultContext, request, reply) => Context | Promise<Context>`
 
 ```typescript
 export default defineConfig({
@@ -459,7 +414,6 @@ export default defineConfig({
         return {
           ...defaultContext,
           ip: request.ip,
-          session: request.session,
           body: request.body,
         };
       },
@@ -474,16 +428,22 @@ export default defineConfig({
 
 Guard 데코레이터 실행 시 호출되는 함수입니다.
 
-**타입**: `(guard, request, api) => void | Promise<void>`
+**타입**: `(guard, request, api) => void`
+
+핸들러는 요청 Context 안에서 동기적으로 실행되므로 `Sonamu.getContext()`로 현재 `user`와 `session`을
+읽을 수 있습니다. 요청을 거부하려면 예외를 던지세요. 반환한 Promise는 기다리지 않습니다.
 
 ```typescript
+import { Sonamu, UnauthorizedException } from "sonamu";
+
 export default defineConfig({
   server: {
     apiConfig: {
       guardHandler: (guard, request, api) => {
         // 권한 검사 로직
-        if (guard === "admin" && !request.session.isAdmin) {
-          throw new UnauthorizedException("Admin only");
+        const { user } = Sonamu.getContext();
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("Login required");
         }
       },
     },
@@ -609,22 +569,12 @@ export default defineConfig({
         root: path.join(import.meta.dirname, "/../", "public"),
         prefix: "/api/public",
       },
-      session: {
-        secret: "dev-secret-change-in-production",
-        salt: "dev-salt-change-in-production",
-        cookie: {
-          domain: "localhost",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 365,
-        },
-      },
     },
 
     apiConfig: {
       contextProvider: (defaultContext, request) => ({
         ...defaultContext,
         ip: request.ip,
-        session: request.session,
       }),
     },
 
@@ -640,7 +590,7 @@ export default defineConfig({
 
 ```typescript
 import path from "path";
-import { defineConfig } from "sonamu";
+import { defineConfig, Sonamu, UnauthorizedException } from "sonamu";
 
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
@@ -685,32 +635,19 @@ export default defineConfig({
         prefix: "/api/public",
         maxAge: 86400000, // 1일
       },
-
-      session: {
-        secret: process.env.SESSION_SECRET!,
-        salt: process.env.SESSION_SALT!,
-        cookie: {
-          domain: process.env.COOKIE_DOMAIN,
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30, // 30일
-          secure: true,
-          httpOnly: true,
-          sameSite: "strict",
-        },
-      },
     },
 
     apiConfig: {
       contextProvider: (defaultContext, request) => ({
         ...defaultContext,
         ip: request.ip,
-        session: request.session,
         userAgent: request.headers["user-agent"],
       }),
 
-      guardHandler: (guard, request) => {
-        if (guard === "admin" && !request.session.isAdmin) {
-          throw new UnauthorizedException("Admin access required");
+      guardHandler: (guard) => {
+        const { user } = Sonamu.getContext();
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("Login required");
         }
       },
     },

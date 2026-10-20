@@ -128,7 +128,8 @@ Sonamu projects are written in TypeScript, with API and Web each having independ
       @transactional()
       async save(data: UserSaveParams) {
         const wdb = this.getPuri("w");
-        return this.upsert(wdb, data);
+        wdb.ubRegister("users", data);
+        return wdb.ubUpsert("users");
       }
     }
 
@@ -206,9 +207,13 @@ Sonamu API uses additional tsconfig files for code generation.
 
 **When Used:**
 
+The Sonamu CLI does not read this file directly. `pnpm sonamu sync` regenerates
+`src/application/sonamu.generated.ts` from the Entity and types files that changed since the last
+sync. The local dev server (`pnpm sonamu dev`) runs the same sync on startup and when watched files change.
+
 ```bash
-# Automatically used by Sonamu
-pnpm sonamu entity:load
+# Regenerate outputs for changed files
+pnpm sonamu sync
 ```
 
 </Accordion>
@@ -230,9 +235,12 @@ pnpm sonamu entity:load
 
 **When Used:**
 
+The Sonamu CLI does not read this file directly. `pnpm sonamu sync` also copies changed `*.types.ts`
+files and the generated outputs to the configured sync targets such as Web.
+
 ```bash
 # Sync types to Web
-pnpm sonamu sync:types
+pnpm sonamu sync
 ```
 
 </Accordion>

@@ -391,7 +391,7 @@ class ApiModel extends BaseModelClass {
     context.reply.header("X-RateLimit-Reset", Date.now() + 3600000);
 
     const rdb = this.getPuri("r");
-    return rdb.table("items").select("*");
+    return rdb.table("items").selectAll();
   }
 }
 ```
@@ -497,7 +497,7 @@ class PostModel extends BaseModelClass {
   <Card title="@api 데코레이터" icon="at" href="/ko/api-development/creating-apis/api-decorator">
     API 기본 사용법
   </Card>
-  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/error-handling">
+  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/validation/error-handling">
     API 에러 핸들링
   </Card>
 </CardGroup>

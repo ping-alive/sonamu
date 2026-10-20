@@ -160,23 +160,20 @@ Error: Timeout acquiring a connection. The pool is probably full.
 `sonamu.config.ts`:
 
 ```typescript
-export default {
+export default defineConfig({
   database: {
-    miomock: {
-      host: "localhost",
-      port: 5432,
-      user: "postgres",
-      password: "password",
-      database: "miomock",
+    database: "pg",
+    defaultOptions: {
       pool: {
         min: 2,
         max: 10, // Increase from default
-        acquireTimeoutMillis: 30000, // Increase timeout
+        acquireTimeoutMillis: 30000,
         idleTimeoutMillis: 30000,
       },
     },
   },
-} satisfies SonamuConfig;
+  // ...
+});
 ```
 
 #### 2. Check Long-Running Queries

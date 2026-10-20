@@ -3,7 +3,7 @@ title: "stub"
 description: "빠른 개발을 위한 코드 스텁 생성하기"
 ---
 
-`pnpm stub` 명령어는 반복 작업을 줄이기 위한 **코드 템플릿**을 자동 생성합니다. Practice 스크립트나 새 Entity를 빠르게 만들 수 있어 개발 속도를 높입니다.
+`pnpm sonamu stub` 명령어는 반복 작업을 줄이기 위한 **코드 템플릿**을 자동 생성합니다. Practice 스크립트나 새 Entity를 빠르게 만들 수 있어 개발 속도를 높입니다.
 
 ## 명령어
 
@@ -12,13 +12,13 @@ description: "빠른 개발을 위한 코드 스텁 생성하기"
 임시 실험이나 데이터 처리를 위한 스크립트를 생성합니다.
 
 ```bash
-pnpm stub practice <name>
+pnpm sonamu stub practice <name>
 ```
 
 **예시**:
 
 ```bash
-pnpm stub practice test-api
+pnpm sonamu stub practice test-api
 
 # 생성됨:
 # src/practices/p1-test-api.ts
@@ -56,34 +56,28 @@ pnpm node -r dotenv/config --enable-source-maps dist/practices/p1-test-api.js
 새로운 Entity를 생성합니다. 기본적으로 Entity 생성 후 **템플릿 cone**이 자동으로 함께 생성됩니다.
 
 ```bash
-pnpm stub entity <entityId> [옵션]
+pnpm sonamu stub entity <entityId> [옵션]
 ```
 
 **옵션**:
 
 | 옵션         | 설명                                                        | 예시                                  |
 | ------------ | ----------------------------------------------------------- | ------------------------------------- |
-| (없음)       | Entity 생성 후 템플릿 cone 자동 생성 (기본 동작)            | `pnpm stub entity Product`            |
-| `--ai`       | Entity 생성 후 LLM으로 cone 생성 (`ANTHROPIC_API_KEY` 필요) | `pnpm stub entity Product --ai`       |
-| `--no-cones` | Entity만 생성하고 cone 생성을 스킵                          | `pnpm stub entity Product --no-cones` |
+| (없음)       | Entity 생성 후 템플릿 cone 자동 생성 (기본 동작)            | `pnpm sonamu stub entity Product`            |
+| `--ai`       | Entity 생성 후 LLM으로 cone 생성 (`ANTHROPIC_API_KEY` 필요) | `pnpm sonamu stub entity Product --ai`       |
+| `--no-cones` | Entity만 생성하고 cone 생성을 스킵                          | `pnpm sonamu stub entity Product --no-cones` |
 
 **예시**:
 
 ```bash
 # 기본: 템플릿 cone과 함께 Entity 생성
-pnpm stub entity Product
-# ✓ Entity 'Product' created with template cones
-# 💡 Tip: Run 'pnpm sonamu cone gen Product' to improve with AI
+pnpm sonamu stub entity Product
 
 # AI를 활용한 cone 생성
-pnpm stub entity Product --ai
-# ✓ Entity 'Product' created
-# 🌟 Generating AI-powered cones...
-# ✅ Done (1234 tokens)
+pnpm sonamu stub entity Product --ai
 
 # cone 없이 Entity만 생성
-pnpm stub entity Product --no-cones
-# ✓ Entity 'Product' created without cones
+pnpm sonamu stub entity Product --no-cones
 ```
 
 <Note>
@@ -180,11 +174,11 @@ console.log("p2-migrate-user-data.ts");
 
 Sonamu.runScript(async () => {
   // 모든 사용자 조회
-  const users = await UserModel.findAll();
+  const { rows: users } = await UserModel.findMany("A", { num: 0 }); // num: 0이면 개수 제한 없음
 
   for (const user of users) {
     // legacy 필드를 새 필드로 마이그레이션
-    await UserModel.update(user.id, {
+    await UserModel.getPuri("w").table("users").where("id", user.id).update({
       new_field: transformData(user.legacy_field),
     });
 
@@ -206,8 +200,8 @@ console.log("p3-send-welcome-emails.ts");
 
 Sonamu.runScript(async () => {
   // 신규 가입 사용자
-  const newUsers = await UserModel.findMany({
-    where: { welcome_email_sent: false },
+  const { rows: newUsers } = await UserModel.findMany("A", {
+    sonamuFilter: { welcome_email_sent: false },
   });
 
   console.log(`Sending welcome emails to ${newUsers.length} users...`);
@@ -215,7 +209,7 @@ Sonamu.runScript(async () => {
   for (const user of newUsers) {
     try {
       await sendWelcomeEmail(user.email);
-      await UserModel.update(user.id, {
+      await UserModel.getPuri("w").table("users").where("id", user.id).update({
         welcome_email_sent: true,
       });
       console.log(`✓ Sent to ${user.email}`);
@@ -309,7 +303,7 @@ Sonamu.runScript(async () => {
 
 ```bash
 # 빠르게 practice 생성
-pnpm stub practice test-idea
+pnpm sonamu stub practice test-idea
 
 # 코드 작성 및 실행
 pnpm node -r dotenv/config --enable-source-maps dist/practices/p1-test-idea.js
@@ -321,23 +315,24 @@ pnpm node -r dotenv/config --enable-source-maps dist/practices/p1-test-idea.js
 
 ```bash
 # Entity 생성
-pnpm stub entity Order
+pnpm sonamu stub entity Order
 
 # Entity 정의 작성
 # src/application/order/order.entity.json
 
 # 마이그레이션 생성 및 적용
-pnpm migrate run
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 
 # Model 스캐폴딩
-pnpm scaffold model Order
+pnpm sonamu scaffold model Order
 ```
 
 ### 3. 데이터 작업
 
 ```bash
 # Practice 스크립트 생성
-pnpm stub practice import-orders
+pnpm sonamu stub practice import-orders
 
 # 데이터 처리 로직 작성
 # src/practices/p1-import-orders.ts
@@ -352,8 +347,8 @@ pnpm node -r dotenv/config --enable-source-maps dist/practices/p1-import-orders.
 
 ```typescript
 // ✅ 재사용 가능하도록 함수화
-async function processUsers(filter: any) {
-  const users = await UserModel.findMany({ where: filter });
+async function processUsers(filter: UserListParams["sonamuFilter"]) {
+  const { rows: users } = await UserModel.findMany("A", { sonamuFilter: filter });
   // 처리 로직...
 }
 
@@ -381,7 +376,7 @@ Sonamu.runScript(async () => {
 
 ```typescript
 Sonamu.runScript(async () => {
-  const users = await UserModel.findAll();
+  const { rows: users } = await UserModel.findMany("A", { num: 0 }); // num: 0이면 개수 제한 없음
 
   for (let i = 0; i < users.length; i++) {
     await processUser(users[i]);
@@ -413,7 +408,7 @@ mv src/practices/p1-*.ts src/practices/archived/
 2. **백업**: 중요한 데이터 작업 전에는 반드시 백업하세요.
 3. **트랜잭션**: 데이터 변경 시 트랜잭션을 사용하세요.
 4. **테스트**: 프로덕션 실행 전 개발 환경에서 먼저 테스트하세요.
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

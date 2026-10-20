@@ -516,7 +516,7 @@ const result = await this.executeSubsetQuery({ subset: "A", qb, params });
 ```typescript title="HasMany Filter"
 // HasMany included in Subset cannot be filtered
 // Use separate query instead
-const user = await UserModel.findById(userId);
+const user = await UserModel.findById("A", userId);
 const activePosts = await PostModel.getPuri("r").from("posts")
   .where("user_id", userId)
   .where("status", "active");
@@ -587,13 +587,13 @@ Sonamu automatically manages Join Tables, so you don't need to create a separate
   <Card title="Enums" icon="hashtag" href="/en/core-concepts/entity/enums">
     Define and use Enum types
   </Card>
-  <Card title="Subset" icon="layer-group" href="/en/core-concepts/model/using-subsets">
+  <Card title="Subset" icon="layer-group" href="/en/database/subsets/using-subsets">
     Type-safe queries with Subsets
   </Card>
   <Card title="Puri Query Builder" icon="database" href="/en/database/puri/basic-queries">
     Write queries using Relations
   </Card>
-  <Card title="Performance" icon="gauge-high" href="/en/database/performance/query-optimization">
+  <Card title="Performance" icon="gauge-high" href="/en/troubleshooting/performance/query-optimization">
     Optimize Relation queries
   </Card>
 </CardGroup>

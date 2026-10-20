@@ -457,14 +457,14 @@ export class ProductModel {
   static async list() {
     // 첫 호출: DB 조회 후 캐시 저장
     // 이후 10분간: 캐시에서 반환
-    return this.getPuri("r").table("products").select("*");
+    return this.getPuri("r").table("products").selectAll();
   }
 
   @cache({ key: (id) => `product:${id}`, ttl: "1h" })
   @api()
   static async detail(id: number) {
     // 상품별로 1시간 캐시
-    return this.findById(id);
+    return this.findById("A", id);
   }
 }
 ```

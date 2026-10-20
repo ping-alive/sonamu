@@ -96,7 +96,7 @@ catalog:
 - `tsconfig.schemas.json`: Dedicated for Zod schema generation
 - `tsconfig.types.json`: Dedicated for type definition generation
 
-**.env / .env.<environment>**
+**`.env` / `.env.<environment>`**
 
 - Database connection info (`SONAMU_DB_HOST`, `SONAMU_DB_PORT`, `SONAMU_DB_USER`, `SONAMU_DB_PASSWORD`)
 - Project and database naming variables (`PROJECT_NAME`, `CONTAINER_NAME`, `SONAMU_DB_NAME`)
@@ -153,9 +153,9 @@ catalog:
 Files in the `application/{entity}/` folder are created when you create an entity through Sonamu UI and scaffold:
 
 - **{entity}.entity.json**: Auto-generated when defining entity in Sonamu UI
-- **{entity}.model.ts**: Generated via `pnpm scaffold model` or Sonamu UI's Scaffolding tab
+- **{entity}.model.ts**: Generated via `pnpm sonamu scaffold model` or Sonamu UI's Scaffolding tab
 - **{entity}.types.ts**: Auto-generated when saving entity
-- **{entity}.model.test.ts**: Generated via `pnpm scaffold model_test` or Sonamu UI's Scaffolding tab (optional)
+- **{entity}.model.test.ts**: Generated via `pnpm sonamu scaffold model_test` or Sonamu UI's Scaffolding tab (optional)
 
 When you first create a project, the `application/` folder is empty. The folder is created when you create your first entity.
 
@@ -461,7 +461,7 @@ import { api, BaseModelClass } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET", clients: ["axios", "tanstack-query"] })
-  async findById(id: number): Promise<UserSubsetA | null> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // Business logic
   }
 }
@@ -498,23 +498,34 @@ export const UserOrderBy = z.enum(["id-desc", "name-asc"]);
 export type UserOrderBy = z.infer<typeof UserOrderBy>;
 ```
 
-```typescript title="user.service.ts (web)"
+```typescript title="services.generated.ts (web)"
 // Auto-generated
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import qs from "qs";
 
-export class UserService {
-  static async findById(id: number): Promise<UserSubsetA | null> {
-    const res = await axios.get(`/api/user/findById`, { params: { id } });
-    return res.data;
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
   }
 
   // TanStack Query hooks are also auto-generated
-  static useFindById(id: number) {
-    return useQuery({
-      queryKey: ["User", "findById", id],
-      queryFn: () => UserService.findById(id),
+  export const getUserQueryOptions = <T extends UserSubsetKey>(subset: T, id: number) =>
+    queryOptions({
+      queryKey: ["User", "getUser", subset, id],
+      queryFn: () => getUser(subset, id),
     });
-  }
+
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) => useRefreshable(useQuery({ ...getUserQueryOptions(subset, id), ...options }));
 }
 ```
 

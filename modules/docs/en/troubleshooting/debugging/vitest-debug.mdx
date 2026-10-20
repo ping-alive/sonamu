@@ -71,7 +71,8 @@ test("create user", async () => {
 
   console.log("Test started:", email);
 
-  const user = await UserModel.create({ email });
+  const [userId] = await UserModel.save([{ email }]);
+  const user = await UserModel.findById("A", userId);
   console.log("Created user:", user);
 
   expect(user.email).toBe(email);
@@ -197,11 +198,11 @@ test("improve error message", async () => {
   const userId = 999;
 
   // Basic error
-  expect(await UserModel.findById(userId)).toBeDefined();
+  expect(await UserModel.findOne("A", { id: userId })).toBeTruthy();
 
   // Detailed error message
-  const user = await UserModel.findById(userId);
-  expect(user, `User ID ${userId} not found`).toBeDefined();
+  const user = await UserModel.findOne("A", { id: userId });
+  expect(user, `User ID ${userId} not found`).toBeTruthy();
 });
 ```
 
@@ -307,10 +308,10 @@ test("check DB query", async () => {
   // Enable query logging (during development)
   const result = await UserModel.getPuri("r")
     .table("users")
-    .select("*")
+    .selectAll()
     .where({ email: "test@example.com" })
     .debug() // Output query
-    .getOne();
+    .first();
 
   console.log("Result:", result);
 });
@@ -322,10 +323,10 @@ test("check DB query", async () => {
 test("verify data creation", async () => {
   const email = "test@example.com";
 
-  await UserModel.create({ email });
+  await UserModel.save([{ email }]);
 
   // Check directly from DB
-  const users = await UserModel.getPuri("r").table("users").select("*").getMany();
+  const users = await UserModel.getPuri("r").table("users").selectAll();
 
   console.log("All users:", users);
 
@@ -498,16 +499,17 @@ describe("User Tests", () => {
 
   beforeEach(async () => {
     console.log("Setup started");
-    testUser = await UserModel.create({
+    const [testUserId] = await UserModel.save([{
       email: "test@example.com",
-    });
+    }]);
+    testUser = await UserModel.findById("A", testUserId);
     console.log("Setup completed:", testUser.id);
   });
 
   afterEach(async () => {
     console.log("Cleanup started");
     if (testUser) {
-      await UserModel.del(testUser.id);
+      await UserModel.del([testUser.id]);
     }
     console.log("Cleanup completed");
   });
@@ -570,8 +572,8 @@ test("delete user", async () => {});
 test("test1", async () => {});
 
 // Clear name
-test("BadRequestException when creating user without email", async () => {
-  await expect(UserModel.create({ email: "" })).rejects.toThrow(BadRequestException);
+test("findById throws NotFoundException for a missing user", async () => {
+  await expect(UserModel.findById("A", 999999)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -584,7 +586,8 @@ test("create user", async () => {
   const name = "Test User";
 
   // Act
-  const user = await UserModel.create({ email, name });
+  const [userId] = await UserModel.save([{ email, name }]);
+  const user = await UserModel.findById("A", userId);
 
   // Assert
   expect(user.email).toBe(email);

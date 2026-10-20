@@ -27,10 +27,10 @@ Subset은 Entity의 **일부 필드만 선택적으로 가져오는 사전 정�
 
 ```typescript
 // ❌ 모든 필드 조회 (비효율적)
-const users = await UserModel.findMany();
+const users = await UserModel.getPuri("r").table("users").selectAll();
 
 // ✅ Subset으로 필요한 필드만 조회
-const users = await UserModel.findMany({ subset: "A" });
+const { rows: users } = await UserModel.findMany("A");
 // → id, email, name만 반환
 ```
 
@@ -130,7 +130,7 @@ Sonamu UI에서 **Entity 탭**을 클릭합니다.
 
 ```typescript
 // 사용자 목록
-const users = await UserModel.findMany({ subset: "A" });
+const { rows: users } = await UserModel.findMany("A");
 ```
 
 ### Subset B (상세 조회)
@@ -155,7 +155,7 @@ const users = await UserModel.findMany({ subset: "A" });
 
 ```typescript
 // 사용자 상세
-const user = await UserModel.findById(1, { subset: "B" });
+const user = await UserModel.findById("B", 1);
 ```
 
 ### Subset C (관계 포함)
@@ -179,7 +179,7 @@ const user = await UserModel.findById(1, { subset: "B" });
 
 ```typescript
 // 게시글 + 작성자 + 댓글
-const post = await PostModel.findById(1, { subset: "C" });
+const post = await PostModel.findById("C", 1);
 ```
 
 ## 관계 필드 설정
@@ -346,11 +346,12 @@ Subset을 정의하면 Model API에서 자동으로 사용할 수 있습니다.
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findMany(params: ListParams<User>) {
-    const { qb } = this.getSubsetQueries("A");
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(subset: T, rawParams?: LP) {
+    const params = { num: 24, page: 1, ...rawParams };
+    const { qb } = this.getSubsetQueries(subset);
 
     return this.executeSubsetQuery({
-      subset: "A",
+      subset,
       qb,
       params,
     });
@@ -363,12 +364,12 @@ class UserModelClass extends BaseModelClass {
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number) {
-    const { qb } = this.getSubsetQueries("B");
-    qb.where("id", id);
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { qb } = this.getSubsetQueries(subset);
+    qb.where("users.id", id);
 
     return this.executeSubsetQuery({
-      subset: "B",
+      subset,
       qb,
       params: { num: 1, page: 1 },
     }).then((result) => result.rows[0]);
@@ -408,7 +409,7 @@ SELECT id, email, name FROM users
   <Card title="Model" icon="database" href="/ko/core-concepts/model">
     Model에서 Subset 사용하기
   </Card>
-  <Card title="API 개발" icon="code" href="/ko/core-concepts/api">
+  <Card title="API 개발" icon="code" href="/ko/api-development/creating-apis/api-decorator">
     API에서 Subset 활용하기
   </Card>
 </CardGroup>

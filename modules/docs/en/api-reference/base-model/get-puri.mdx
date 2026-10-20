@@ -42,7 +42,7 @@ Returns a Puri query builder wrapper object.
 const wdb = this.getPuri("w");
 
 // Use Puri query builder methods
-const users = await wdb.table("users").where("status", "active").select();
+const users = await wdb.table("users").where("status", "active").selectAll();
 ```
 
 ## PuriWrapper Methods
@@ -55,10 +55,10 @@ Starts a Puri query builder by specifying a table.
 const wdb = this.getPuri("w");
 
 // Using table()
-const users = await wdb.table("users").where("status", "active").select();
+const users = await wdb.table("users").where("status", "active").selectAll();
 
 // Using from() (equivalent)
-const posts = await wdb.from("posts").where("published", true).select();
+const posts = await wdb.from("posts").where("published", true).selectAll();
 ```
 
 ### transaction
@@ -159,7 +159,7 @@ class UserModelClass extends BaseModelClass {
       .where("status", "active")
       .orderBy("created_at", "desc")
       .limit(10)
-      .select();
+      .selectAll();
 
     return users;
   }
@@ -308,7 +308,8 @@ class UserModelClass extends BaseModelClass {
         const rdb = this.getPuri("r");
 
         const sales = await rdb.table("orders")
-          .whereBetween("created_at", [startDate, endDate])
+          .where("created_at", ">=", startDate)
+          .where("created_at", "<=", endDate)
           .groupBy(rdb.raw("DATE(created_at)"))
           .select({
             date: rdb.raw("DATE(created_at)"),
@@ -470,7 +471,7 @@ class UserModelClass extends BaseModelClass {
           const [order] = await trx.table("orders")
             .where("id", orderId)
             .forUpdate()  // Lock row
-            .select();
+            .selectAll();
 
           if (!order) {
             throw new Error("Order not found");
@@ -479,14 +480,14 @@ class UserModelClass extends BaseModelClass {
           // 2. Fetch order items
           const items = await trx.table("order_items")
             .where("order_id", orderId)
-            .select();
+            .selectAll();
 
           // 3. Check stock and deduct
           for (const item of items) {
             const [product] = await trx.table("products")
               .where("id", item.product_id)
               .forUpdate()
-              .select();
+              .selectAll();
 
             if (product.stock < item.quantity) {
               throw new Error(`Insufficient stock for ${product.name}`);
@@ -531,7 +532,7 @@ Provides Puri query builder + UpsertBuilder.
 const wdb = this.getPuri("w");
 
 // Puri query builder
-await wdb.table("users").where("id", 1).select();
+await wdb.table("users").where("id", 1).selectAll();
 
 // UpsertBuilder
 wdb.ubRegister("users", { ... });
@@ -588,7 +589,7 @@ const wdb = this.getPuri("w");
 const users = await wdb
   .table("users")
   .where("status", "active") // status field auto-completion
-  .select();
+  .selectAll();
 
 users[0].email; // ✅ Type inferred
 
@@ -605,7 +606,7 @@ Use `"r"` for read operations and `"w"` for write operations.
 ```typescript
 // ✅ Correct: "r" for reads
 const rdb = this.getPuri("r");
-const users = await rdb.table("users").select();
+const users = await rdb.table("users").selectAll();
 
 // ✅ Correct: "w" for writes
 const wdb = this.getPuri("w");
@@ -649,14 +650,14 @@ const users = await rdb
   .table("users")
   .where("status", "active") // Index needed on status
   .where("created_at", ">", startDate) // Index needed on created_at
-  .select();
+  .selectAll();
 ```
 
 ### 2. Limit SELECT Fields
 
 ```typescript
 // ❌ Select all fields
-const users = await rdb.table("users").select();
+const users = await rdb.table("users").selectAll();
 
 // ✅ Select only needed fields
 const users = await rdb.table("users").select("id", "email", "name");

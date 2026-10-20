@@ -33,8 +33,8 @@ export default defineConfig({
 
 **옵션**:
 
-- `enableWorker`: Worker 활성화 여부 (기본: daemon 모드에서만 true)
-- `workerOptions.concurrency`: 동시 실행 작업 수 (기본: 1)
+- `enableWorker`: Worker 활성화 여부 (기본: `NODE_TYPE=daemon`일 때만 `true`)
+- `workerOptions.concurrency`: 동시 실행 작업 수 (기본: CPU 코어 수 - 1)
 - `workerOptions.usePubSub`: PostgreSQL LISTEN/NOTIFY 사용 (기본: true)
 - `workerOptions.listenDelay`: Pub/Sub 메시지 수신 후 대기 시간 (기본: 500ms)
 - `contextProvider`: Workflow 내에서 사용할 Context 생성 함수
@@ -64,12 +64,16 @@ const result = await handle.result();
 
 ### 1. Daemon 모드 (자동 활성화)
 
+별도의 daemon 명령은 없습니다. `tasks.enableWorker`를 지정하지 않으면 Sonamu는 `NODE_TYPE=daemon`으로
+시작한 프로세스에서만 Worker를 활성화합니다. Worker는 `Sonamu.init()`에서 생성되고 서버가 listen을 시작한
+뒤 시작됩니다.
+
 ```bash
-# Worker가 자동으로 시작됨
-pnpm sonamu daemon
+# 빌드된 서버를 daemon 노드로 시작하면 Worker도 함께 시작됨
+NODE_TYPE=daemon pnpm sonamu start
 ```
 
-Daemon 모드에서는 `enableWorker: true`가 기본값입니다.
+어느 노드에서든 `enableWorker`를 명시하면 이 감지 대신 그 값을 사용합니다.
 
 ### 2. 별도 Worker 프로세스
 
@@ -113,6 +117,9 @@ startWorker();
 pnpm worker
 ```
 
+`startWorker()`는 `Sonamu.init()`이 만든 Worker만 시작합니다. `tasks.enableWorker: true`를 설정하거나
+이 프로세스를 `NODE_TYPE=daemon`으로 실행하세요. 그렇지 않으면 Worker 없이 task 백엔드만 초기화됩니다.
+
 ### 3. API 서버 + Worker
 
 ```typescript
@@ -153,20 +160,23 @@ Workflow에서 사용할 Context를 커스터마이징합니다.
 // sonamu.config.ts
 tasks: {
   enableWorker: true,
-  contextProvider: async (baseContext) => {
+  contextProvider: async (defaultContext) => {
     // 시스템 사용자 조회
-    const systemUser = await UserModel.findOne({
-      wq: [['email', '=', 'system@example.com']],
-    });
+    const systemUser = await BaseModel.getPuri("r")
+      .table("users")
+      .select({ id: "users.id" })
+      .where("users.email", "system@example.com")
+      .first();
 
     return {
-      ...baseContext,
-      user: systemUser,
-      customData: "...",
+      ...defaultContext,
+      systemUserId: systemUser?.id ?? null,
     };
   },
 }
 ```
+
+`systemUserId` 같은 커스텀 필드는 `ContextExtend`에 선언해야 타입이 맞습니다.
 
 Workflow 함수 내에서 `Sonamu.getContext()`로 접근:
 
@@ -176,55 +186,34 @@ import { Sonamu } from "sonamu";
 
 export const myWorkflow = workflow({ name: "my_workflow" }, async ({ input, step }) => {
   const context = Sonamu.getContext();
-  console.log(context.user); // systemUser
+  console.log(context.systemUserId);
 });
 ```
 
 ## 테이블 구조
 
-Sonamu는 다음 테이블을 자동 생성합니다:
+task 백엔드는 자체 마이그레이션을 실행해 메인 데이터베이스에 `sonamu_tasks` 스키마와 두 테이블을
+만듭니다:
 
-```sql
--- Workflow 정의
-CREATE TABLE workflows (
-  id UUID PRIMARY KEY,
-  name TEXT NOT NULL,
-  version TEXT,
-  ...
-);
-
--- Workflow 실행 기록
-CREATE TABLE workflow_runs (
-  id UUID PRIMARY KEY,
-  workflow_id UUID REFERENCES workflows(id),
-  status TEXT,
-  input JSONB,
-  output JSONB,
-  started_at TIMESTAMP,
-  completed_at TIMESTAMP,
-  ...
-);
-
--- Step 실행 기록
-CREATE TABLE workflow_steps (
-  id UUID PRIMARY KEY,
-  workflow_run_id UUID REFERENCES workflow_runs(id),
-  name TEXT,
-  status TEXT,
-  ...
-);
-```
+| 테이블                        | 내용                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| `sonamu_tasks.workflow_runs`  | 실행마다 한 행: `workflow_name`, `version`, `status`, `input`, `output`, `error`, `attempts`, 시각 |
+| `sonamu_tasks.step_attempts`  | step 시도마다 한 행: `workflow_run_id`, `step_name`, `status`, `output`, `error`, 시각 |
 
 ## 모니터링
 
 ### 실행 중인 Workflow 확인
 
 ```typescript
-// Puri를 통해 조회 (workflow_runs는 entity가 아닌 프레임워크 내부 테이블이므로 .knex 이스케이프 해치 사용)
+// workflow_runs는 엔티티가 아닌 프레임워크 내부 테이블이므로 Knex를 직접 사용
 import { BaseModel } from "sonamu";
 
-const puri = BaseModel.getPuri("r");
-const runs = await puri.knex.table("workflow_runs").where("status", "running").select("*");
+const knex = BaseModel.getDB("r");
+const runs = await knex
+  .withSchema("sonamu_tasks")
+  .table("workflow_runs")
+  .where("status", "running")
+  .select();
 ```
 
 ### 로그

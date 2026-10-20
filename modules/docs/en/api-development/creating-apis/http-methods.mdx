@@ -101,7 +101,7 @@ class UserModel extends BaseModelClass {
     const users = await query
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     // Total count
     const [{ count }] = await rdb.table("users").count({ count: "*" });
@@ -145,7 +145,7 @@ class UserModel extends BaseModelClass {
       .table("posts")
       .where("user_id", id)
       .orderBy("created_at", "desc")
-      .select("*");
+      .selectAll();
 
     return {
       user,
@@ -660,7 +660,7 @@ class UserModel extends BaseModelClass {
   <Card
     title="Error Handling"
     icon="triangle-exclamation"
-    href="/en/api-development/error-handling"
+    href="/en/api-development/validation/error-handling"
   >
     API error handling
   </Card>

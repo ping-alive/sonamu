@@ -18,7 +18,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived, // 1 minute cache
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -72,7 +72,7 @@ Content-Type: application/json
       }
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -155,7 +155,7 @@ async getData() { ... }
       cacheControl: CachePresets.shortLived,  // 1 minute
     })
     async getPosts(page: number) {
-      return this.findMany({ page, num: 20 });
+      return this.findMany("A", { page, num: 20 });
     }
     ```
   </Tab>
@@ -168,7 +168,7 @@ async getData() { ... }
       cacheControl: CachePresets.mediumLived,  // 5 minutes
     })
     async getProduct(id: number) {
-      return this.findOne(['id', id]);
+      return this.findOne("A", { id });
     }
     ```
   </Tab>
@@ -198,15 +198,15 @@ async getData() { ... }
   cacheControl: CachePresets.noStore,  // No caching
 })
 async create(data: ProductSave) {
-  return this.saveOne(data);
+  return this.save([data]);
 }
 
 @api({
   httpMethod: 'PUT',
   cacheControl: CachePresets.noStore,
 })
-async update(id: number, data: Partial<ProductSave>) {
-  return this.updateOne(['id', id], data);
+async update(id: number, data: Partial<ProductSaveParams>) {
+  return this.getPuri("w").table("products").where("id", id).update(data);
 }
 
 @api({
@@ -214,7 +214,7 @@ async update(id: number, data: Partial<ProductSave>) {
   cacheControl: CachePresets.noStore,
 })
 async delete(id: number) {
-  return this.deleteOne(['id', id]);
+  return this.del([id]);
 }
 ```
 
@@ -252,7 +252,7 @@ class ProductModelClass extends BaseModelClass {
     },
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -275,8 +275,8 @@ class OrderModelClass extends BaseModelClass {
     cacheControl: CachePresets.private, // Browser only caching
   })
   async getMyOrders(ctx: Context) {
-    return this.findMany({
-      where: [["user_id", ctx.user.id]],
+    return this.findMany("A", {
+      sonamuFilter: { user_id: ctx.user.id },
     });
   }
 }
@@ -299,7 +299,7 @@ class PaymentModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore, // No caching
   })
   async getPaymentInfo(id: number) {
-    return this.findOne(["id", id]);
+    return this.findOne("A", { id });
   }
 }
 ```
@@ -316,7 +316,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived, // 1 minute
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 20 });
+    return this.findMany("A", { page, num: 20 });
   }
 
   // Product detail (occasionally changed, public)
@@ -324,8 +324,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     cacheControl: CachePresets.mediumLived, // 5 minutes
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Categories (rarely changed, public)
@@ -361,7 +362,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore, // No caching
   })
   async createOrder(data: OrderSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -376,7 +377,7 @@ class PostModelClass extends BaseModelClass {
     cacheControl: CachePresets.mediumLived,
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 10 });
+    return this.findMany("A", { page, num: 10 });
   }
 
   // Post detail (occasionally modified, 10 minutes)
@@ -388,8 +389,9 @@ class PostModelClass extends BaseModelClass {
       staleWhileRevalidate: 1800, // Use stale for 30 minutes
     },
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends PostSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Popular posts (1 hour)
@@ -413,7 +415,7 @@ class UserModelClass extends BaseModelClass {
     cacheControl: CachePresets.mediumLived,
   })
   async getPublicProfile(username: string) {
-    return this.findOne(["username", username]);
+    return this.findOne("A", { sonamuFilter: { username: username } });
   }
 
   // My profile (private, revalidate)
@@ -422,7 +424,7 @@ class UserModelClass extends BaseModelClass {
     cacheControl: CachePresets.private,
   })
   async getMyProfile(ctx: Context) {
-    return this.findOne(["id", ctx.user.id]);
+    return this.findOne("A", { id: ctx.user.id });
   }
 
   // Profile update (no-store)
@@ -430,8 +432,8 @@ class UserModelClass extends BaseModelClass {
     httpMethod: "PUT",
     cacheControl: CachePresets.noStore,
   })
-  async updateProfile(ctx: Context, data: Partial<UserSave>) {
-    return this.updateOne(["id", ctx.user.id], data);
+  async updateProfile(ctx: Context, data: Partial<UserSaveParams>) {
+    return this.getPuri("w").table("users").where("id", ctx.user.id).update(data);
   }
 }
 ```
@@ -452,7 +454,7 @@ You can apply different TTLs for browser and CDN.
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -476,7 +478,7 @@ CDN returns stale response immediately while updating in background:
   }
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -583,7 +585,7 @@ Combining server cache with HTTP cache provides maximum performance.
   cacheControl: { maxAge: 60 }  // HTTP cache: 1 minute
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -651,7 +653,7 @@ graph LR
    })
    async getMyData(ctx: Context) { ... }
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

@@ -66,8 +66,12 @@ pnpm sonamu test --status
 | `--status`         | `-s`        | Check DevRunner status and exit               |
 
 <Tip>
-  You can specify multiple file paths: ```bash pnpm sonamu test src/application/user/user.test.ts
-  src/application/post/post.test.ts ```
+  You can specify multiple file paths:
+
+  ```bash
+  pnpm sonamu test src/application/user/user.test.ts src/application/post/post.test.ts
+  ```
+
 </Tip>
 
 ## Trace Output
@@ -141,7 +145,7 @@ sequenceDiagram
 
 - **During development**: Use `pnpm sonamu test` for quick feedback. You can modify code and immediately run tests.
 - **CI/CD**: Use `pnpm test`. It runs the full test suite in an isolated environment.
-  </Info>
+</Info>
 
 ## Status Check
 

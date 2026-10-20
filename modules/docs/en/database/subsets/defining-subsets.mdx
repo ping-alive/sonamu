@@ -26,13 +26,6 @@ Subsets are defined in the `subsets` object within Entity JSON files.
 }
 ```
 
-<Frame>
-  <img
-    src="/images/subsets/subset-definition-example.png"
-    alt="Subset definition example in Entity"
-  />
-</Frame>
-
 ### Subset Definition Rules
 
 <CodeGroup>
@@ -184,10 +177,6 @@ flowchart LR
 }
 ```
 
-<Frame>
-  <img src="/images/subsets/subset-naming-convention.png" alt="Subset naming conventions" />
-</Frame>
-
 ### Domain-Specific Subsets
 
 ```json
@@ -276,13 +265,6 @@ flowchart LR
   (exclude relations) - Use P Subset only for detail views (include relations)
 </Info>
 
-<Frame>
-  <img
-    src="/images/subsets/subset-performance-comparison.png"
-    alt="Subset performance comparison"
-  />
-</Frame>
-
 ## Practical Example
 
 ### User Entity
@@ -321,11 +303,12 @@ When you define Subsets, types are automatically generated:
 
 ```bash
 # Regenerate code after Subset changes
-pnpm sonamu generate
+pnpm sonamu sync
 ```
 
 <Warning>
-  After changing Subsets, you **must run Code Generation**. This updates the TypeScript types.
+  After changing Subsets, you **must run `pnpm sonamu sync`** (the dev server runs it automatically
+  when the Entity file changes). This updates the TypeScript types.
 </Warning>
 
 **Generated Types**:
@@ -369,10 +352,6 @@ export type UserSubsetMapping = {
 };
 ```
 
-<Frame>
-  <img src="/images/subsets/generated-types.png" alt="Generated TypeScript types" />
-</Frame>
-
 ## Next Steps
 
 <CardGroup cols={2}>
@@ -392,7 +371,7 @@ export type UserSubsetMapping = {
   <Card
     title="Code Generation"
     icon="wand-magic-sparkles"
-    href="/en/auto-generation/code-generation"
+    href="/en/core-concepts/auto-generation/what-gets-generated"
   >
     Automatic code generation
   </Card>

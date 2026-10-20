@@ -342,15 +342,15 @@ async addProduct(
   );
 
   // 저장 (search_vector는 트리거가 자동 생성)
-  const product = await this.saveOne({
+  const [productId] = await this.save([{
     name,
     description,
     sku,
     price,
     embedding: embedding.embedding,
-  });
+  }]);
 
-  return product;
+  return productId;
 }
 ```
 
@@ -514,7 +514,7 @@ await ProductModel.searchProducts("노트북", {
    ```sql
    EXPLAIN ANALYZE [하이브리드 쿼리]
    ```
-   </Warning>
+</Warning>
 
 ## 언제 하이브리드를 쓰나요?
 

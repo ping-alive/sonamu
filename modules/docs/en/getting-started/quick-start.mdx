@@ -193,8 +193,10 @@ pnpm docker:down
 ```
 
 <Warning>
-  The `docker:down` command only stops the container; data is preserved. To completely reset the
-  database, refer to the [Database Management](/en/database/management) documentation.
+  `docker:down` runs `docker compose down`, which removes the container. The compose file does not
+  mount a named volume for the PostgreSQL data, so the next `pnpm docker:up` creates a new container
+  and runs the init script again on empty databases. To stop the database and keep its data, run
+  `docker compose --env-file .env -f database/docker-compose.yml stop` instead.
 </Warning>
 
 ## Next Steps

@@ -92,7 +92,7 @@ class PostModel extends BaseModelClass {
       .table("posts")
       .where("user_id", userId)
       .orderBy("created_at", "desc")
-      .select("*");
+      .selectAll();
 
     return { posts };
   }
@@ -149,7 +149,7 @@ class UserModel extends BaseModelClass {
       .table("users")
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     const [{ count }] = await rdb.table("users").count("* as count");
 

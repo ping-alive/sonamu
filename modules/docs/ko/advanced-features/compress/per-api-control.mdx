@@ -18,7 +18,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.aggressive, // 이 API만 적극적 압축
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 }
 ```
@@ -35,7 +35,7 @@ class ProductModelClass extends BaseModelClass {
       compress: CompressPresets.aggressive,
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
   </Tab>
@@ -59,7 +59,7 @@ class ProductModelClass extends BaseModelClass {
       compress: true,
     })
     async getLargeData() {
-      return this.findMany({ num: 10000 });
+      return this.findMany("A", { num: 10000 });
     }
     ```
   </Tab>
@@ -76,7 +76,7 @@ class ProductModelClass extends BaseModelClass {
       }
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
   </Tab>
@@ -162,7 +162,7 @@ class DataModelClass extends BaseModelClass {
     compress: true,
   })
   async getLargeData() {
-    return this.findMany({ num: 10000 });
+    return this.findMany("A", { num: 10000 });
   }
 
   // 압축 안 함 (기본값)
@@ -205,7 +205,7 @@ async getStatus() {
   compress: CompressPresets.default,  // 기본 압축
 })
 async getList() {
-  return this.findMany({ num: 100 });
+  return this.findMany("A", { num: 100 });
 }
 ```
 
@@ -219,7 +219,7 @@ async getList() {
   compress: CompressPresets.aggressive,  // 적극적 압축
 })
 async exportData() {
-  return this.findMany({ num: 10000 });
+  return this.findMany("A", { num: 10000 });
 }
 ```
 
@@ -235,7 +235,7 @@ async exportData() {
   compress: CompressPresets.default,
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -281,7 +281,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.default,
   })
   async findAll(page: number) {
-    return this.findMany({ page, num: 20 });
+    return this.findMany("A", { page, num: 20 });
   }
 
   // 상품 상세: 기본 압축
@@ -289,8 +289,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     compress: CompressPresets.default,
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // 대량 데이터 내보내기: 적극적 압축
@@ -299,7 +300,7 @@ class ProductModelClass extends BaseModelClass {
     compress: CompressPresets.aggressive,
   })
   async exportAll() {
-    return this.findMany({ num: 100000 });
+    return this.findMany("A", { num: 100000 });
   }
 
   // 상품 이미지: 압축 안 함
@@ -317,7 +318,7 @@ class ProductModelClass extends BaseModelClass {
     compress: false,
   })
   async create(data: ProductSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -451,7 +452,7 @@ registerSSR({
   compress: CompressPresets.aggressive,
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 
 // 비압축 버전 (특수 클라이언트용)
@@ -461,7 +462,7 @@ async getProducts() {
   compress: false,
 })
 async getProductsRaw() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -484,7 +485,7 @@ plugins: {
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -498,7 +499,7 @@ async getData() {
   compress: CompressPresets.default,
 })
 async getData() {
-  const data = this.findMany({});
+  const data = await this.findMany("A", {});
 
   // 개발 환경에서 크기 로깅
   if (process.env.NODE_ENV === 'development') {
@@ -567,7 +568,7 @@ Size:
    ```typescript
    // aggressive 사용 시 서버 CPU 사용률 모니터링 필요
    ```
-   </Warning>
+</Warning>
 
 ## 디버깅 팁
 

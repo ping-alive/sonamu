@@ -28,10 +28,10 @@ A Subset is a **predefined field group that selectively retrieves only some fiel
 
 ```typescript
 // ❌ Query all fields (inefficient)
-const users = await UserModel.findMany();
+const users = await UserModel.getPuri("r").table("users").selectAll();
 
 // ✅ Query only needed fields with Subset
-const users = await UserModel.findMany({ subset: "A" });
+const { rows: users } = await UserModel.findMany("A");
 // → Returns only id, email, name
 ```
 
@@ -131,7 +131,7 @@ Select the fields to include in the created Subset:
 
 ```typescript
 // User list
-const users = await UserModel.findMany({ subset: "A" });
+const { rows: users } = await UserModel.findMany("A");
 ```
 
 ### Subset B (Detail View)
@@ -156,7 +156,7 @@ const users = await UserModel.findMany({ subset: "A" });
 
 ```typescript
 // User detail
-const user = await UserModel.findById(1, { subset: "B" });
+const user = await UserModel.findById("B", 1);
 ```
 
 ### Subset C (With Relations)
@@ -180,7 +180,7 @@ const user = await UserModel.findById(1, { subset: "B" });
 
 ```typescript
 // Post + author + comments
-const post = await PostModel.findById(1, { subset: "C" });
+const post = await PostModel.findById("C", 1);
 ```
 
 ## Relation Field Settings
@@ -347,11 +347,12 @@ Once Subsets are defined, they can be automatically used in Model APIs.
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findMany(params: ListParams<User>) {
-    const { qb } = this.getSubsetQueries("A");
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(subset: T, rawParams?: LP) {
+    const params = { num: 24, page: 1, ...rawParams };
+    const { qb } = this.getSubsetQueries(subset);
 
     return this.executeSubsetQuery({
-      subset: "A",
+      subset,
       qb,
       params,
     });
@@ -364,12 +365,12 @@ class UserModelClass extends BaseModelClass {
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number) {
-    const { qb } = this.getSubsetQueries("B");
-    qb.where("id", id);
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { qb } = this.getSubsetQueries(subset);
+    qb.where("users.id", id);
 
     return this.executeSubsetQuery({
-      subset: "B",
+      subset,
       qb,
       params: { num: 1, page: 1 },
     }).then((result) => result.rows[0]);
@@ -409,7 +410,7 @@ SELECT id, email, name FROM users
   <Card title="Model" icon="database" href="/en/core-concepts/model">
     Using Subsets in Models
   </Card>
-  <Card title="API Development" icon="code" href="/en/core-concepts/api">
+  <Card title="API Development" icon="code" href="/en/api-development/creating-apis/api-decorator">
     Using Subsets in APIs
   </Card>
 </CardGroup>

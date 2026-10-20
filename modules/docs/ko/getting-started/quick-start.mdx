@@ -192,8 +192,10 @@ pnpm docker:down
 ```
 
 <Warning>
-  `docker:down` 명령어는 컨테이너를 중지만 하며, 데이터는 보존됩니다. 데이터베이스를 완전히
-  초기화하려면 [데이터베이스 관리](/ko/database/management) 문서를 참고하세요.
+  `docker:down`은 `docker compose down`을 실행해 컨테이너를 삭제합니다. compose 파일은 PostgreSQL
+  데이터에 named volume을 마운트하지 않으므로, 다음 `pnpm docker:up`은 새 컨테이너를 만들고 빈
+  데이터베이스에 초기화 스크립트를 다시 실행합니다. 데이터를 유지한 채 데이터베이스를 멈추려면 대신
+  `docker compose --env-file .env -f database/docker-compose.yml stop`을 실행하세요.
 </Warning>
 
 ## 다음 단계

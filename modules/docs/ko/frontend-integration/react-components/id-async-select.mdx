@@ -508,23 +508,26 @@ function EmployeeAssignForm() {
 
 ### 폼과 함께 사용
 
-Sonamu의 `useForm`과 함께 사용하는 예제입니다.
+Sonamu의 `useTypeForm`과 함께 사용하는 예제입니다. `register()`가 반환하는 `value`, `onValueChange`, `error`를 `IdAsyncSelect`에 그대로 전달할 수 있습니다.
 
 ```typescript
-import { useForm } from "@sonamu-kit/react-components";
+import { IdAsyncSelect, useTypeForm } from "@sonamu-kit/react-components";
+import { z } from "zod";
 import { CompanyAsyncIdConfig } from "@/services/services.generated";
 
+const CompanySelectParams = z.object({
+  company_id: z.number().nullable(),
+});
+
 function CompanySelectForm() {
-  const form = useForm({
-    defaultValues: { company_id: null as number | null },
-  });
+  const { register } = useTypeForm(CompanySelectParams, { company_id: null });
 
   return (
     <IdAsyncSelect
       config={CompanyAsyncIdConfig}
       subset="A"
       displayField="name"
-      {...form.register("company_id")}
+      {...register("company_id")}
       placeholder="회사를 검색하세요"
     />
   );

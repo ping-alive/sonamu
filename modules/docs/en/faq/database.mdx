@@ -124,7 +124,7 @@ const result = await UserModel.getPuri("r")
 ```typescript
 const activeUserIds = UserModel.getPuri("r").table("users").select("id").where({ status: "active" });
 
-const orders = await OrderModel.getPuri("r").table("orders").select("*").whereIn("user_id", activeUserIds);
+const orders = await OrderModel.getPuri("r").table("orders").selectAll().whereIn("user_id", activeUserIds);
 ```
 
 **FROM subquery:**
@@ -172,52 +172,36 @@ pnpm sonamu migrate status
 **3. Run migration**
 
 ```bash
-# Development environment
-pnpm sonamu migrate run
+# Development environment (without --execute, run is a dry-run)
+pnpm sonamu migrate run --execute
 
-# Production
-NODE_ENV=production pnpm sonamu migrate run
+# Production (a reason is required)
+NODE_ENV=production pnpm sonamu migrate run --execute --force-reason CHANGE_REQUEST
 
-# Rollback
-pnpm sonamu migrate rollback
+# Roll back the latest applied batch on an explicit target
+pnpm sonamu migrate rollback development --execute
 ```
+
+Mutating commands ask for confirmation in a TTY; add `--confirm` for non-interactive runs.
 
 </Accordion>
 
 <Accordion title="How do I safely test migrations?">
 
-Use Shadow DB for testing:
+Use a Shadow DB for testing:
 
 ```bash
-# Shadow DB test
-pnpm sonamu migrate shadow-test
-# → Creates temporary Shadow DB
-# → Applies Migration
+# Shadow DB test against a copy of the test database (or use `fixture`)
+pnpm sonamu migrate shadow test --execute
+# → Creates a temporary Shadow DB from the target database
+# → Applies pending migrations
 # → Confirms success
-# → Deletes Shadow DB
+# → Deletes the Shadow DB
 ```
 
-Shadow DB configuration:
-
-```typescript
-// sonamu.config.ts
-export default {
-  database: {
-    connections: {
-      main: {
-        // ...
-      },
-      shadow: {
-        host: "localhost",
-        port: 5432,
-        database: "myapp_shadow",
-        user: "postgres",
-        password: "password",
-      },
-    },
-  },
-} satisfies SonamuConfig;
-```
+No separate connection is needed. The Shadow DB is created from the configured `test` or `fixture`
+database as a template and named `<database>__migration_shadow`. Shadow targets are limited to `test`
+and `fixture`.
 
 </Accordion>
 
@@ -412,7 +396,7 @@ OR condition inside parentheses, use `orWhereJsonSupersetOf()` on a `whereGroup(
 // metadata ? 'discount'
 const productsWithDiscount = await ProductModel.getPuri("r")
   .table("products")
-  .select("*")
+  .selectAll()
   .whereJsonKeyExists("products.metadata", "discount");
 ```
 
@@ -459,7 +443,7 @@ const laptops = await query.select({
 ```typescript
 const posts = await PostModel.getPuri("r")
   .table("posts")
-  .select("*")
+  .selectAll()
   .whereTsSearch("search_vector", "typescript database", {
     parser: "websearch_to_tsquery",
     config: "simple",
@@ -539,7 +523,7 @@ class UserModel extends BaseModelClass {
 ## Related Documentation
 
 - [Puri Query Builder](/en/database/puri/basic-queries)
-- [Puri Advanced Queries](/en/database/puri/advanced-queries)
-- [Migration Basics](/en/database/migrations/migration-basics)
+- [Puri Advanced Queries](/en/database/puri/advanced-patterns)
+- [Migration Basics](/en/database/migrations/how-migrations-work)
 - [Migration Strategies](/en/database/migrations/migration-strategies)
 - [Transactions](/en/database/transactions)

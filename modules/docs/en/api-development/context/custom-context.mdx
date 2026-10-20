@@ -298,7 +298,7 @@ class ProductModel extends BaseModelClass {
     const rdb = this.getPuri("r");
 
     // Query only tenant-specific data
-    const products = await rdb.table("products").where("tenant_id", context.tenant.id).select("*");
+    const products = await rdb.table("products").where("tenant_id", context.tenant.id).selectAll();
 
     return products;
   }
@@ -494,7 +494,7 @@ class DocumentModel extends BaseModelClass {
       });
     }
 
-    return query.select("*");
+    return query.selectAll();
   }
 }
 ```
@@ -538,7 +538,7 @@ class ProductModel extends BaseModelClass {
     const context = Sonamu.getContext();
     const rdb = this.getPuri("r");
 
-    const products = await rdb.table("products").where("tenant_id", context.tenant?.id).select("*");
+    const products = await rdb.table("products").where("tenant_id", context.tenant?.id).selectAll();
 
     this.cacheService.set("products:list", products);
 
@@ -567,7 +567,7 @@ class ProductModel extends BaseModelClass {
   <Card title="@api Decorator" icon="at" href="/en/api-development/creating-apis/api-decorator">
     API basic usage
   </Card>
-  <Card title="Middleware" icon="layer-group" href="/en/api-development/middleware">
+  <Card title="Middleware" icon="layer-group" href="/en/configuration/sonamu-config/server#custom">
     Request preprocessing
   </Card>
 </CardGroup>

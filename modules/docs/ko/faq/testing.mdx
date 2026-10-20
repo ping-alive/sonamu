@@ -63,7 +63,7 @@ beforeAll(async () => {
 
 describe("UserModel", () => {
   test("findById", async () => {
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user).toBeDefined();
     expect(user.id).toBe(1);
   });
@@ -94,10 +94,11 @@ describe("UserModel", () => {
 ```typescript
 // user.model.ts
 class UserModelClass extends BaseModelClass {
-  static async setTestData() {
-    await this.truncate();
+  async setTestData() {
+    const wdb = this.getPuri("w");
+    await wdb.table("users").delete();
 
-    await this.bulkInsert([
+    await wdb.table("users").insert([
       { id: 1, name: "John", email: "john@example.com" },
       { id: 2, name: "Jane", email: "jane@example.com" },
       { id: 3, name: "Bob", email: "bob@example.com" },
@@ -119,7 +120,7 @@ beforeAll(async () => {
 
 describe("UserModel", () => {
   test("findById", async () => {
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user.name).toBe("John");
   });
 });
@@ -146,7 +147,7 @@ describe("UserModel", () => {
 
   test("delete user", async () => {
     await UserModel.del(1);
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user).toBeNull();
   });
 });
@@ -165,7 +166,7 @@ describe("UserModel", () => {
 ```typescript
 describe("UserModel CRUD", () => {
   test("findById", async () => {
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user).toBeDefined();
     expect(user.id).toBe(1);
   });
@@ -196,7 +197,7 @@ describe("UserModel CRUD", () => {
 
   test("del", async () => {
     await UserModel.del(1);
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user).toBeNull();
   });
 });
@@ -221,7 +222,7 @@ describe("UserModel Subsets", () => {
   });
 
   test("Subset 필드 존재 확인", async () => {
-    const user = await UserModel.findById(1, "WithProfile");
+    const user = await UserModel.findById("WithProfile", 1);
     expect(user).toHaveProperty("profile");
     expect(user.profile).toBeDefined();
   });
@@ -235,20 +236,20 @@ describe("UserModel Subsets", () => {
 ```typescript
 describe("User Relations", () => {
   test("User -> Posts (HasMany)", async () => {
-    const user = await UserModel.findById(1, "WithPosts");
+    const user = await UserModel.findById("WithPosts", 1);
     expect(user.posts).toBeDefined();
     expect(Array.isArray(user.posts)).toBe(true);
     expect(user.posts.length).toBeGreaterThan(0);
   });
 
   test("Post -> User (BelongsToOne)", async () => {
-    const post = await PostModel.findById(1, "WithAuthor");
+    const post = await PostModel.findById("WithAuthor", 1);
     expect(post.author).toBeDefined();
     expect(post.author.id).toBe(post.user_id);
   });
 
   test("User -> Profile (OneToOne)", async () => {
-    const user = await UserModel.findById(1, "WithProfile");
+    const user = await UserModel.findById("WithProfile", 1);
     expect(user.profile).toBeDefined();
     expect(user.profile.user_id).toBe(user.id);
   });
@@ -292,7 +293,7 @@ describe("User API", () => {
 
   test("deleteUser", async () => {
     await UserModel.deleteUser(1);
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     expect(user).toBeNull();
   });
 });
@@ -316,7 +317,7 @@ describe("User API Errors", () => {
   });
 
   test("findById - 존재하지 않는 ID", async () => {
-    await expect(UserModel.findById(99999)).rejects.toThrow(NotFoundException);
+    await expect(UserModel.findById("A", 99999)).rejects.toThrow(NotFoundException);
   });
 
   test("deleteUser - 권한 없음", async () => {
@@ -467,7 +468,7 @@ describe("UserRole", () => {
     ["user", false],
     ["guest", false],
   ])("관리자 권한: %s -> %s", async (role, expected) => {
-    const user = await UserModel.findById(1);
+    const user = await UserModel.findById("A", 1);
     user.role = role;
     const isAdmin = await UserModel.isAdmin(user);
     expect(isAdmin).toBe(expected);
@@ -533,7 +534,6 @@ describe("UserModel", () => {
 
 ## 관련 문서
 
-- [Naite 테스팅](/ko/testing/using-naite)
+- [Naite 테스팅](/ko/testing/naite/what-is-naite)
 - [테스트 작성 가이드](/ko/testing/writing-tests)
-- [테스트 모범 사례](/ko/testing/best-practices)
-- [모델 테스트](/ko/testing/model-testing)
+- [모델 테스트](/ko/testing/writing-tests/scaffolding-tests)

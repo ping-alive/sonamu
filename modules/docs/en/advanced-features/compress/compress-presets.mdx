@@ -137,7 +137,7 @@ CompressPresets.default
       compress: CompressPresets.default,
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -254,7 +254,7 @@ CompressPresets.conservative
       compress: CompressPresets.conservative,
     })
     async getLargeDataset() {
-      return this.findMany({ num: 10000 });
+      return this.findMany("A", { num: 10000 });
     }
     ```
 
@@ -449,7 +449,7 @@ class DataModelClass extends BaseModelClass {
     compress: CompressPresets.default,
   })
   async getList() {
-    return this.findMany({ num: 100 });
+    return this.findMany("A", { num: 100 });
   }
 
   // Large response: conservative (save CPU)
@@ -458,7 +458,7 @@ class DataModelClass extends BaseModelClass {
     compress: CompressPresets.conservative,
   })
   async exportData() {
-    return this.findMany({ num: 100000 });
+    return this.findMany("A", { num: 100000 });
   }
 
   // Already compressed file: disabled
@@ -525,7 +525,7 @@ export const config: SonamuConfig = {
    // Avoid disabling in production
    compress: CompressPresets.disabled;
    ```
-   </Warning>
+</Warning>
 
 ## Performance Measurement
 

@@ -358,12 +358,12 @@ const user = await UserModel.findById("A", 1);
 - **조건**으로 단일 레코드 조회
 - 레코드가 없으면 **null 반환**
 - 복잡한 조건 가능
-- **직접 구현 필요** (선택적)
+- 모델 스캐폴드 템플릿이 생성
 
 ```typescript
 // 조건으로 조회 (없으면 null)
 const user = await UserModel.findOne("A", {
-  email: "user@example.com",
+  sonamuFilter: { email: "user@example.com" },
 });
 ```
 
@@ -377,7 +377,7 @@ const user = await UserModel.findOne("A", {
 ```typescript
 // 리스트 조회 (페이지네이션)
 const { rows, total } = await UserModel.findMany("A", {
-  status: "active",
+  sonamuFilter: { status: "active" },
   num: 20,
   page: 1,
 });
@@ -483,14 +483,14 @@ try {
 
 ### 3. null 가능성
 
-레코드 존재 여부가 불확실하면 `findOne`을 사용하세요 (직접 구현 필요).
+레코드 존재 여부가 불확실하면 레코드가 없을 때 `null`을 반환하는 `findOne`을 사용하세요.
 
 ```typescript
 // findById: 레코드가 반드시 존재해야 함
 const user = await UserModel.findById("A", 1);
 
-// findOne: 레코드가 없을 수 있음 (직접 구현 필요)
-const user = await UserModel.findOne("A", { email: "unknown@example.com" });
+// findOne: 레코드가 없을 수 있음 (null 반환)
+const user = await UserModel.findOne("A", { sonamuFilter: { email: "unknown@example.com" } });
 if (user === null) {
   // 레코드 없음 처리
 }
@@ -514,7 +514,7 @@ if (user === null) {
   <Card
     title="예외 처리"
     icon="triangle-exclamation"
-    href="/ko/api-reference/exceptions/not-found-error"
+    href="/ko/api-reference/exceptions/sonamu-error#notfoundexception-404"
   >
     NotFoundException 처리
   </Card>

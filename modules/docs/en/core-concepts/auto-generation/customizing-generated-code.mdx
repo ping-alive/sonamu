@@ -58,12 +58,17 @@ Don't modify `services.generated.ts` directly—wrap it instead.
 
 ```typescript title="services.generated.ts"
 // ❌ Don't modify directly!
-export async function findUserById(id: number): Promise<User> {
+export async function getUser<T extends UserSubsetKey>(
+  subset: T,
+  id: number,
+): Promise<UserSubsetMapping[T]> {
   // Adding custom logic
   console.log("Finding user:", id);
 
-  const { data } = await axios.get("/user/findById", { params: { id } });
-  return data;
+  return fetch({
+    method: "GET",
+    url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+  });
 }
 // Will be overwritten on next Model change 💥
 ```
@@ -72,14 +77,14 @@ export async function findUserById(id: number): Promise<User> {
 
 <CodeGroup>
 ```typescript title="services/user/user.service.ts (create new)"
-import { findUserById as _findUserById } from "../services.generated";
+import { UserService } from "../services.generated";
 
 // Extend with wrapper function
-export async function findUserById(id: number) {
+export async function getVerifiedUser<T extends UserSubsetKey>(subset: T, id: number) {
 console.log("Finding user:", id);
 
 // Call original
-const user = await \_findUserById(id);
+const user = await UserService.getUser(subset, id);
 
 // Additional processing
 if (!user.email_verified) {
@@ -90,22 +95,18 @@ return user;
 }
 
 // Re-export other functions as-is
-export {
-findManyUsers,
-saveUser,
-deleteUser,
-} from "../services.generated";
+export { UserService } from "../services.generated";
 
 ````
 
 ```tsx title="Usage"
 // Use custom service
-import { findUserById, findManyUsers } from "@/services/user/user.service";
+import { getVerifiedUser } from "@/services/user/user.service";
 
 function UserProfile({ userId }) {
   const { data } = useQuery({
     queryKey: ["user", userId],
-    queryFn: () => findUserById(userId),  // Includes custom logic
+    queryFn: () => getVerifiedUser("A", userId),  // Includes custom logic
   });
 }
 ````
@@ -162,13 +163,13 @@ axios.interceptors.response.use(
 
 ```typescript title="hooks/useUserQuery.ts (create new)"
 import { useQuery } from "@tanstack/react-query";
-import { findUserById } from "@/services/services.generated";
+import { UserService } from "@/services/services.generated";
 
 // Custom Hook
-export function useUserById(id: number, options?: UseQueryOptions) {
+export function useUserWithDefaults(id: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["user", id],
-    queryFn: () => findUserById(id),
+    queryFn: () => UserService.getUser("A", id),
     // Additional options
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
@@ -180,7 +181,7 @@ export function useUserById(id: number, options?: UseQueryOptions) {
 
 // Usage
 function UserProfile({ userId }) {
-  const { data, isLoading } = useUserById(userId, {
+  const { data, isLoading } = useUserWithDefaults(userId, {
     // Per-component options
     enabled: userId > 0,
   });
@@ -288,7 +289,7 @@ Model files can be freely modified after scaffolding.
 class UserModelClass extends BaseModelClass {
   // Scaffold-generated method (modifiable)
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // ...
   }
 
@@ -387,12 +388,12 @@ Components generated via scaffold can be freely modified.
 
 ```tsx title="web/src/pages/user/UserForm.tsx"
 // Customize after scaffold generation
-import { useSaveUser } from "@/services/services.generated";
+import { UserService } from "@/services/services.generated";
 import { UserSaveParams } from "@/services/user/user.types";
 
 export function UserForm({ userId }: { userId?: number }) {
-  const { data: user } = useUserById(userId);
-  const { mutate: save, isPending } = useSaveUser();
+  const { data: user } = UserService.useUser("A", userId ?? 0, { enabled: !!userId });
+  const { mutate: save, isPending } = UserService.useSaveMutation();
 
   // ✅ Custom validation
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -631,10 +632,7 @@ export const userSubsetQueries = {
   <Card title="Syncer" icon="rotate" href="/en/core-concepts/auto-generation/syncer">
     Deep dive into the Syncer system
   </Card>
-  <Card title="Templates" icon="file-code" href="/en/advanced/templates/creating-templates">
-    Create custom templates
-  </Card>
-  <Card title="Testing" icon="flask" href="/en/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/en/testing/writing-tests/test-structure">
     Test your customized code
   </Card>
 </CardGroup>

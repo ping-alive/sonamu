@@ -182,7 +182,7 @@ CachePresets.shortLived;
       cacheControl: CachePresets.shortLived,
     })
     async getPosts(page: number) {
-      return this.findMany({ page, num: 20 });
+      return this.findMany("A", { page, num: 20 });
     }
     
     // CSR fallback
@@ -294,7 +294,7 @@ CachePresets.mediumLived;
       cacheControl: CachePresets.mediumLived,
     })
     async getTerms() {
-      return this.findOne(['type', 'terms']);
+      return this.findOne("A", { sonamuFilter: { type: "terms" } });
     }
     ```
   </Tab>
@@ -333,7 +333,7 @@ CachePresets.longLived;
       cacheControl: CachePresets.longLived,
     })
     async getCountries() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     
     // 정적 설정
@@ -432,7 +432,7 @@ CachePresets.private;
       cacheControl: CachePresets.private,
     })
     async getMyProfile(ctx: Context) {
-      return this.findOne(['id', ctx.user.id]);
+      return this.findOne("A", { id: ctx.user.id });
     }
     
     // 내 주문 목록
@@ -441,8 +441,8 @@ CachePresets.private;
       cacheControl: CachePresets.private,
     })
     async getMyOrders(ctx: Context) {
-      return this.findMany({ 
-        where: [['user_id', ctx.user.id]] 
+      return this.findMany("A", {
+        sonamuFilter: { user_id: ctx.user.id },
       });
     }
     ```
@@ -482,7 +482,7 @@ CachePresets.private;
   }
 })
 async getData() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 
 // Stale-If-Error 추가
@@ -550,7 +550,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.shortLived,
   })
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   // 상세: 덜 변경 → 중간 캐시
@@ -558,8 +558,9 @@ class ProductModelClass extends BaseModelClass {
     httpMethod: "GET",
     cacheControl: CachePresets.mediumLived,
   })
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // 카테고리: 거의 변경 안됨 → 긴 캐시
@@ -577,7 +578,7 @@ class ProductModelClass extends BaseModelClass {
     cacheControl: CachePresets.noStore,
   })
   async create(data: ProductSave) {
-    return this.saveOne(data);
+    return this.save([data]);
   }
 }
 ```
@@ -666,7 +667,7 @@ registerSSR({
    cacheControl: CachePresets.immutable;
    ```
 
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

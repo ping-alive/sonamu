@@ -55,7 +55,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A[Define Entity] --> B[pnpm sync]
+    A[Define Entity] --> B[pnpm sonamu sync]
     B --> C[Generate sd.generated.ts]
     C --> D[Write ko.ts/en.ts]
     D --> E[Use SD function]
@@ -65,7 +65,7 @@ flowchart LR
 ```
 
 1. Define title, prop.desc, and enumLabels in Entity
-2. Run `pnpm sync` to auto-generate `sd.generated.ts`
+2. Run `pnpm sonamu sync` to auto-generate `sd.generated.ts`
 3. Write project dictionaries in `ko.ts`, `en.ts`
 4. Use `SD("key")` function to get text matching the current locale
 

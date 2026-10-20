@@ -188,29 +188,28 @@ import { expect } from "vitest";
 import { UserModel } from "@/models/user.model";
 
 test("사용자 생성", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   expect(user.id).toBeGreaterThan(0);
   expect(user.username).toBe("john");
 });
 
 test("사용자 조회", async () => {
-  const userModel = new UserModel();
-  
   // 테스트 데이터 생성
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "jane",
     email: "jane@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   // 조회
-  const { user: found } = await userModel.getUser("C", user.id);
+  const found = await UserModel.findById("A", user.id);
   
   expect(found.id).toBe(user.id);
   expect(found.username).toBe("jane");
@@ -373,22 +372,21 @@ test("locale 강제 지정", async () => {
 ### 기본 사용법
 
 ```typescript
+import { NotFoundException } from "sonamu";
 import { testAs } from "sonamu/test";
 import { expect } from "vitest";
-import { PostModel } from "@/models/post.model";
+import { PostModel } from "../application/post/post.model";
 
 testAs(
   { id: 1, username: "admin", role: "admin" },  // 인증된 사용자
   "관리자는 모든 게시글을 삭제할 수 있다",
   async () => {
-    const postModel = new PostModel();
-    
     // Context.user가 위의 사용자로 설정됨
-    await postModel.deletePost(123);
+    await PostModel.deletePost(123);
     
     // 삭제 확인
-    const deleted = await postModel.findById("C", 123);
-    expect(deleted).toBeNull();
+    // 생성된 findById는 행이 없으면 NotFoundException을 던집니다
+    await expect(PostModel.findById("A", 123)).rejects.toThrow(NotFoundException);
   }
 );
 
@@ -396,11 +394,9 @@ testAs(
   { id: 2, username: "user", role: "user" },  // 일반 사용자
   "일반 사용자는 자신의 게시글만 삭제할 수 있다",
   async () => {
-    const postModel = new PostModel();
-    
     // Context.user.id === 2인 상태
     await expect(
-      postModel.deletePost(999)  // 다른 사용자의 게시글
+      PostModel.deletePost(999)  // 다른 사용자의 게시글
     ).rejects.toThrow("권한이 없습니다");
   }
 );
@@ -408,31 +404,19 @@ testAs(
 
 ### 권한 테스트
 
+Guard는 HTTP 요청에서만 실행됩니다. 테스트에서 모델 메서드를 직접 호출하면 guard를 거치지 않으므로, 위의
+`deletePost`처럼 메서드 안에서 직접 구현한 권한 검사를 테스트하세요.
+
 ```typescript
 import { testAs } from "sonamu/test";
 
-// 관리자 테스트
 testAs(
   { id: 1, role: "admin" },
-  "관리자는 사용자 목록을 볼 수 있다",
+  "관리자는 사용자 목록을 조회할 수 있음",
   async () => {
-    const userModel = new UserModel();
-    const { users } = await userModel.getUsers({ page: 1, pageSize: 10 });
-    
-    expect(users.length).toBeGreaterThan(0);
-  }
-);
+    const { rows: users } = await UserModel.findMany("A", { num: 10, page: 1 });
 
-// 일반 사용자 테스트
-testAs(
-  { id: 2, role: "user" },
-  "일반 사용자는 사용자 목록을 볼 수 없다",
-  async () => {
-    const userModel = new UserModel();
-    
-    await expect(
-      userModel.getUsers({ page: 1, pageSize: 10 })
-    ).rejects.toThrow();
+    expect(users.length).toBeGreaterThan(0);
   }
 );
 ```
@@ -485,24 +469,20 @@ test.each([
 import { test } from "sonamu/test";
 
 test("사용자 생성 테스트", async () => {
-  const userModel = new UserModel();
-  
   // 데이터베이스에 데이터 삽입
-  await userModel.create({
+  await UserModel.save([{
     username: "test-user",
     email: "test@example.com",
     password: "password",
-  });
+  }]);
   
   // 테스트 종료 후 자동으로 롤백됨
   // → 데이터베이스는 깨끗한 상태 유지
 });
 
 test("다음 테스트는 깨끗한 DB에서 시작", async () => {
-  const userModel = new UserModel();
-  
   // 이전 테스트의 "test-user"는 없음
-  const { users } = await userModel.getUsers({ page: 1, pageSize: 10 });
+  const { rows: users } = await UserModel.findMany("A", { num: 10, page: 1 });
   expect(users.find(u => u.username === "test-user")).toBeUndefined();
 });
 ```
@@ -516,6 +496,7 @@ test("다음 테스트는 깨끗한 DB에서 시작", async () => {
 
 ```typescript
 // api/src/models/user.model.test.ts
+import { NotFoundException } from "sonamu";
 import { bootstrap, test, testAs } from "sonamu/test";
 import { expect, vi } from "vitest";
 import { UserModel } from "./user.model";
@@ -525,34 +506,32 @@ bootstrap(vi);
 
 // 2. 테스트 그룹 (describe는 선택사항)
 test("사용자 생성", async () => {
-  const userModel = new UserModel();
-  const { user } = await userModel.create({
+  const [userId] = await UserModel.save([{
     username: "john",
     email: "john@example.com",
     password: "password123",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
   
   expect(user.id).toBeGreaterThan(0);
   expect(user.username).toBe("john");
 });
 
 test("중복 이메일 검증", async () => {
-  const userModel = new UserModel();
-  
   // 첫 번째 사용자 생성
-  await userModel.create({
+  await UserModel.save([{
     username: "user1",
     email: "duplicate@example.com",
     password: "password",
-  });
+  }]);
   
   // 같은 이메일로 다시 생성 시도
   await expect(
-    userModel.create({
+    UserModel.save([{
       username: "user2",
       email: "duplicate@example.com",
       password: "password",
-    })
+    }])
   ).rejects.toThrow("이미 존재하는 이메일입니다");
 });
 
@@ -560,21 +539,20 @@ testAs(
   { id: 1, role: "admin" },
   "관리자는 사용자를 삭제할 수 있다",
   async () => {
-    const userModel = new UserModel();
-    
     // 사용자 생성
-    const { user } = await userModel.create({
+    const [userId] = await UserModel.save([{
       username: "temp",
       email: "temp@example.com",
       password: "password",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
     
     // 삭제
-    await userModel.deleteUser(user.id);
+    await UserModel.del([user.id]);
     
     // 확인
-    const deleted = await userModel.findById("C", user.id);
-    expect(deleted).toBeNull();
+    // 생성된 findById는 행이 없으면 NotFoundException을 던집니다
+    await expect(UserModel.findById("A", user.id)).rejects.toThrow(NotFoundException);
   }
 );
 ```
@@ -656,7 +634,7 @@ test("동기 테스트", () => {  // async 없음!
   <Card title="Vitest 공식 문서" icon="external-link" href="https://vitest.dev">
     Vitest 가이드
   </Card>
-  <Card title="Model System" icon="cube" href="/ko/core-concepts/model-system/overview">
+  <Card title="Model System" icon="cube" href="/ko/core-concepts/model/what-is-model">
     Model 이해하기
   </Card>
 </CardGroup>

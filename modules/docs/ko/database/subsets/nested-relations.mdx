@@ -159,7 +159,7 @@ export const DepartmentSubsetLoaders: PuriLoaderQueries<DepartmentSubsetKey> = {
 **사용 예시**:
 
 ```typescript
-const dept = await DepartmentModel.findById(1, ["P"]);
+const dept = await DepartmentModel.findById("P", 1);
 
 // 타입:
 // {
@@ -210,7 +210,7 @@ export const ProjectSubsetLoaders: PuriLoaderQueries<ProjectSubsetKey> = {
 **사용 예시**:
 
 ```typescript
-const project = await ProjectModel.findById(1, ["P"]);
+const project = await ProjectModel.findById("P", 1);
 
 // 타입:
 // {
@@ -232,10 +232,6 @@ project.members.forEach((member) => {
 ```
 
 ## 중첩 LoaderQuery
-
-<Frame>
-  <img src="/images/subsets/nested-loader.png" alt="중첩 LoaderQuery 구조" />
-</Frame>
 
 LoaderQuery는 **재귀적으로 중첩**할 수 있습니다:
 
@@ -307,20 +303,15 @@ export const DepartmentSubsetLoaders: PuriLoaderQueries<DepartmentSubsetKey> = {
 
 ## Batch Loading 동작 원리
 
-<Frame>
-  <img src="/images/subsets/batch-loading-solution.png" alt="N+1 문제와 Batch Loading 해결" />
-</Frame>
-
 ### N+1 문제
 
 ```typescript
 // ❌ N+1 문제 발생
-const users = await UserModel.findMany({ subsetKey: "L" }); // 1 query
+const { rows: users } = await UserModel.findMany("L"); // 쿼리 1번
 
 for (const user of users) {
-  const posts = await PostModel.findMany({
-    where: [["user_id", user.id]],
-    subsetKey: "L",
+  const { rows: posts } = await PostModel.findMany("L", {
+    sonamuFilter: { user_id: user.id },
   }); // N queries (users 수만큼)
 
   console.log(`${user.username}: ${posts.length} posts`);
@@ -333,9 +324,7 @@ for (const user of users) {
 
 ```typescript
 // ✅ Batch Loading으로 해결
-const users = await UserModel.findMany({
-  subsetKey: "A", // A Subset에 posts Loader 포함
-});
+const { rows: users } = await UserModel.findMany("A"); // A Subset에 posts Loader 포함
 
 // 쿼리 1: SELECT * FROM users
 // 쿼리 2: SELECT * FROM posts WHERE user_id IN (1, 2, 3, ...)
@@ -353,7 +342,7 @@ users.forEach((user) => {
 
 ```typescript
 async getDepartmentWithEmployees(deptId: number) {
-  const dept = await DepartmentModel.findById(deptId, ["P"]);
+  const dept = await DepartmentModel.findOne("P", { id: deptId });
 
   if (!dept) {
     throw new NotFoundException("Department not found");
@@ -377,7 +366,7 @@ async getDepartmentWithEmployees(deptId: number) {
 
 ```typescript
 async getProjectDashboard(projectId: number) {
-  const project = await ProjectModel.findById(projectId, ["Dashboard"]);
+  const project = await ProjectModel.findOne("Dashboard", { id: projectId });
 
   if (!project) {
     throw new NotFoundException("Project not found");
@@ -416,7 +405,7 @@ async getProjectDashboard(projectId: number) {
 
 ```typescript
 // User Subset with posts and comments
-const user = await UserModel.findById(userId, ["Activity"]);
+const user = await UserModel.findById("Activity", userId);
 
 const summary = {
   user: {
@@ -984,7 +973,7 @@ class ProductModelClass extends BaseModelClass {
   <Card title="Subset 사용" icon="code" href="/ko/database/subsets/using-subsets">
     Model에서 Subset 활용
   </Card>
-  <Card title="Model 메서드" icon="cube" href="/ko/core-concepts/model/model-methods">
+  <Card title="Model 메서드" icon="cube" href="/ko/core-concepts/model/basemodel-methods">
     Model CRUD 메서드
   </Card>
   <Card title="Puri 조인" icon="link" href="/ko/database/puri/joins">

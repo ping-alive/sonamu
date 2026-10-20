@@ -350,7 +350,7 @@ class UserModelClass extends BaseModelClass {
     const url = await file.saveToDisk("fs", key);
 
     // DB 업데이트
-    await this.updateOne(["id", ctx.user.id], { avatar_url: url });
+    await this.getPuri("w").table("users").where("id", ctx.user.id).update({ avatar_url: url });
 
     return { url };
   }
@@ -513,7 +513,7 @@ const signedUrl = await disk.getSignedUrl("path/to/file.txt", {
      // 잘못된 S3 설정 등
    }
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

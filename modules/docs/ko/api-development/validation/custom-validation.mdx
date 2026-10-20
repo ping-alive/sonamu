@@ -187,7 +187,7 @@ class UserModel extends BaseModelClass {
     let query = rdb.table("users").where(field, value);
 
     if (excludeId) {
-      query = query.whereNot("id", excludeId);
+      query = query.where("id", "!=", excludeId);
     }
 
     const existing = await query.first();
@@ -609,7 +609,7 @@ export abstract class BaseValidator {
     let query = this.rdb.table(table).where(field, value);
 
     if (excludeId) {
-      query = query.whereNot("id", excludeId);
+      query = query.where("id", "!=", excludeId);
     }
 
     const existing = await query.first();

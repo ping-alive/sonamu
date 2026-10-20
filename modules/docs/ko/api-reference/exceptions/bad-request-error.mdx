@@ -26,7 +26,7 @@ async createPost(title: string, content: string) {
     throw new BadRequestException("본문은 10,000자를 초과할 수 없습니다");
   }
 
-  return this.create({ title, content });
+  return this.save([{ title, content }]);
 }
 ```
 
@@ -74,7 +74,7 @@ async updateUser(
     });
   }
 
-  return this.update(userId, { email, age, phoneNumber });
+  return this.getPuri("w").table("users").where("id", userId).update({ email, age, phoneNumber });
 }
 ```
 
@@ -108,7 +108,7 @@ async transferMoney(
     throw new BadRequestException("동일한 계좌로는 이체할 수 없습니다");
   }
 
-  const fromAccount = await AccountModel.findById(fromAccountId);
+  const fromAccount = await AccountModel.findById("A", fromAccountId);
 
   if (fromAccount.userId !== ctx.user!.id) {
     throw new BadRequestException("본인 계좌에서만 이체할 수 있습니다");
@@ -223,7 +223,7 @@ async createReservation(
     );
   }
 
-  return this.create({ userId, startDate, endDate, guestCount });
+  return this.save([{ userId, startDate, endDate, guestCount }]);
 }
 ```
 
@@ -300,7 +300,7 @@ async createProduct(
     throw new BadRequestException("가격은 0 이상이어야 합니다");
   }
 
-  const category = await CategoryModel.findById(categoryId);
+  const category = await CategoryModel.findOne("A", { id: categoryId });
   if (!category) {
     throw new BadRequestException(
       "존재하지 않는 카테고리입니다",
@@ -315,7 +315,7 @@ async createProduct(
     );
   }
 
-  return this.create({ name, price, categoryId });
+  return this.save([{ name, price, categoryId }]);
 }
 ```
 

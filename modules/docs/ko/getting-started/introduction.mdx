@@ -337,14 +337,15 @@ test("관리자는 모든 사용자를 볼 수 있다", async () => {
 test("사용자 생성 플로우", async () => {
   Naite.t("초기 상태", { userCount: 0 });
 
-  const user = await UserModel.create({
+  const [userId] = await UserModel.save([{
     email: "test@test.com",
     username: "testuser",
-  });
+  }]);
+  const user = await UserModel.findById("A", userId);
 
   Naite.t("사용자 생성 후", { userCount: 1, userId: user.id });
 
-  await UserModel.delete(user.id);
+  await UserModel.del([user.id]);
 
   Naite.t("삭제 후", { userCount: 0 });
 });
@@ -356,12 +357,12 @@ test("사용자 생성 플로우", async () => {
 
 ```typescript
 test("사용자 생성", async () => {
-  await UserModel.create({ email: "test@test.com", ... });
+  await UserModel.save([{ email: "test@test.com", ... }]);
   // 테스트 종료 후 자동 롤백 → DB는 깨끗한 상태 유지
 });
 
 test("다음 테스트는 깨끗한 DB에서 시작", async () => {
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   expect(users).toHaveLength(0); // ✅ 이전 테스트 데이터 없음
 });
 ```
@@ -441,22 +442,25 @@ async chat(message: string): Promise<StreamingResponse> {
 `@stream` 데코레이터로 실시간 스트리밍을 간편하게 사용할 수 있습니다.
 
 ```typescript
-import { stream } from "sonamu";
+import { Sonamu, stream } from "sonamu";
 import { z } from "zod";
 
-const ChatEventSchema = z.object({
-  type: z.enum(["message", "done"]),
-  content: z.string().optional(),
+const ChatEvents = z.object({
+  message: z.object({ content: z.string() }),
+  done: z.object({}),
 });
 
-@stream({ eventSchema: ChatEventSchema })
+@stream({ type: "sse", events: ChatEvents })
 async chat(message: string) {
-  return async (emit) => {
-    for (const chunk of await generateResponse(message)) {
-      await emit({ type: "message", content: chunk });
-    }
-    await emit({ type: "done" });
-  };
+  const sse = Sonamu.getContext().createSSE(ChatEvents);
+
+  for (const chunk of await generateResponse(message)) {
+    sse.publish("message", { content: chunk });
+  }
+  sse.publish("done", {});
+  await sse.end();
+
+  return sse;
 }
 ```
 
@@ -582,7 +586,7 @@ import { Sonamu } from "sonamu";
 const user = await Sonamu.cache.getOrSet(
   `user:${userId}`,
   async () => {
-    return await UserModel.findById("C", userId);
+    return await UserModel.findById("A", userId);
   },
   { ttl: "5m" }, // 5분 캐싱
 );
@@ -659,10 +663,8 @@ await Sonamu.workflows.run(processOrder, orderData);
 N+1 문제 자동 해결과 쿼리 최적화가 기본으로 제공됩니다.
 
 ```typescript
-// Relation 쿼리에서 N+1 자동 해결
-const posts = await PostModel.findMany("A", {
-  relations: ["author", "tags"], // DataLoader 패턴으로 최적화
-});
+// N+1 자동 해결: Subset "A"에 포함된 관계(예: author, tags)를 loader가 일괄 로딩
+const { rows: posts } = await PostModel.findMany("A", { num: 20, page: 1 });
 ```
 
 **핵심 기능**:
@@ -674,7 +676,7 @@ const posts = await PostModel.findMany("A", {
 - ✅ N+1 문제 자동 해결
 
 <CardGroup cols={2}>
-  <Card title="BentoCache" icon="layer-group" href="/ko/advanced-features/caching/bentocache">
+  <Card title="BentoCache" icon="layer-group" href="/ko/advanced-features/caching/cache-configuration">
     다층 캐싱 전략
   </Card>
   <Card title="i18n" icon="language" href="/ko/advanced-features/i18n/overview">
@@ -724,7 +726,7 @@ Entity를 정의하고 사용하기까지의 전체 플로우입니다.
 
 ### 2. Migration 실행 및 동기화
 
-Entity 저장 → Migration 실행 → `pnpm sync`:
+Entity 저장 → Migration 실행 → `pnpm sonamu sync`:
 
 ✅ TypeScript 타입 (`sonamu.generated.ts`)  
 ✅ Zod 스키마 (BaseSchema, BaseListParams)  

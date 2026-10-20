@@ -218,16 +218,16 @@ class NotificationModelClass extends BaseModelClass {
       // Real-time notification detection (e.g., polling or event listener)
       while (true) {
         // Query new notifications from DB
-        const notifications = await this.findMany({
-          wq: [
-            ["user_id", userId],
-            ["created_at", ">", new Date(Date.now() - 5000)], // Last 5 seconds
-          ],
+        const notifications = await this.findMany("A", {
+          sonamuFilter: {
+            user_id: userId,
+            created_at: { after: new Date(Date.now() - 5000) }, // Last 5 seconds
+          },
           num: 10,
         });
 
         // Send notifications
-        for (const notification of notifications.data) {
+        for (const notification of notifications.rows) {
           sse.publish("notification", {
             id: notification.id,
             type: notification.type,
@@ -346,14 +346,14 @@ class PostModelClass extends BaseModelClass {
 
       while (true) {
         // Query new posts
-        const posts = await this.findMany({
-          wq: [["created_at", ">", lastCheckTime]],
+        const posts = await this.findMany("A", {
+          sonamuFilter: { created_at: { after: lastCheckTime } },
           num: 20,
-          order: [["created_at", "DESC"]],
+          orderBy: "id-desc",
         });
 
         // Send new posts
-        for (const post of posts.data) {
+        for (const post of posts.rows) {
           sse.publish("newPost", {
             id: post.id,
             title: post.title,
@@ -694,7 +694,7 @@ async streamWithErrorHandling(ctx: Context): Promise<void> {
      await sse.end();
    }
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

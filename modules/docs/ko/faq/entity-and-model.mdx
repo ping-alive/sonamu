@@ -221,7 +221,7 @@ export type CompanyStatsType = z.infer<typeof CompanyStatsType>;
 const enhancers = this.createEnhancers({
   WithStats: async (row) => {
     const departments = await DepartmentModel.findMany("P", {
-      company_id: row.id,
+      sonamuFilter: { company_id: row.id },
     });
 
     return {
@@ -390,8 +390,8 @@ Model 클래스가 커지면 **Frame 클래스로 독립 로직 분리**할 수 
 
 ```typescript
 class UserModelClass extends BaseModelClass {
-  async findById() { ... }
-  async save() { ... }
+  async findById(subset, id) { ... }
+  async save(spa) { ... }
   // Entity와 무관한 로직들
   async sendEmail() { ... }
   async uploadAvatar() { ... }
@@ -477,8 +477,8 @@ const errors = EntityManager.schemaValidate(entity);
 
 ## 관련 문서
 
-- [Entity 정의하기](/ko/core-concepts/entities/defining-entities)
-- [프로퍼티 타입](/ko/core-concepts/entities/property-types)
-- [Entity 관계](/ko/core-concepts/entities/entity-relationships)
-- [Model 클래스](/ko/core-concepts/model-classes/basemodel)
-- [Frame 클래스](/ko/core-concepts/model-classes/frame-classes)
+- [Entity 정의하기](/ko/core-concepts/entity/defining-entities)
+- [프로퍼티 타입](/ko/core-concepts/entity/field-types)
+- [Entity 관계](/ko/core-concepts/entity/relations)
+- [Model 클래스](/ko/core-concepts/model/basemodel-methods)
+- [Frame 클래스](/ko/api-development/frames/what-are-frames)

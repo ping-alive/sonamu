@@ -15,23 +15,18 @@ description: "API 개발과 데코레이터 관련 질문"
 ```typescript
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number): Promise<User> {
-    return this.findById(id);
+  async getProfile(id: number): Promise<UserSubsetMapping["A"]> {
+    return this.findById("A", id);
   }
 
   @api({ httpMethod: "POST" })
-  async createUser(params: UserSaveParams): Promise<User> {
-    return this.save(params);
-  }
-
-  @api({ httpMethod: "PUT" })
-  async updateUser(id: number, params: UserSaveParams): Promise<User> {
-    return this.save({ id, ...params });
+  async saveUsers(spa: UserSaveParams[]): Promise<number[]> {
+    return this.save(spa);
   }
 
   @api({ httpMethod: "DELETE" })
-  async deleteUser(id: number): Promise<void> {
-    await this.del(id);
+  async deleteUsers(ids: number[]): Promise<number> {
+    return this.del(ids);
   }
 }
 ```
@@ -39,17 +34,18 @@ class UserModelClass extends BaseModelClass {
 **자동 생성되는 엔드포인트:**
 
 ```
-GET    /user/findById?id=1
-POST   /user/createUser
-PUT    /user/updateUser
-DELETE /user/deleteUser?id=1
+GET    /api/user/getProfile?id=1
+POST   /api/user/saveUsers
+DELETE /api/user/deleteUsers
 ```
+
+기본 `api.route.prefix`가 `/api`이면 경로는 `/api/{model}/{method}`입니다. GET은 query string에서, 그 밖의 메서드는 JSON body에서 파라미터를 읽습니다.
 
 </Accordion>
 
 <Accordion title="@api 데코레이터의 옵션들은 무엇인가요?">
 
-**httpMethod (필수):**
+**httpMethod (기본값: `"GET"`):**
 
 ```typescript
 @api({ httpMethod: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" })
@@ -228,7 +224,7 @@ async getMyProfile(): Promise<User> {
   if (!userId) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
-  return this.findById(userId);
+  return this.findById("A", userId);
 }
 ```
 
@@ -249,12 +245,14 @@ async deleteUser(id: number): Promise<void> {
 
 **NotFoundException (404):**
 
+생성된 `findById`는 레코드가 없으면 이미 `NotFoundException`을 던집니다. 직접 처리하려면 `null`을 반환하는 `findOne`을 쓰세요:
+
 ```typescript
 import { NotFoundException } from "sonamu";
 
 @api({ httpMethod: "GET" })
-async getUserById(id: number): Promise<User> {
-  const user = await this.findById(id);
+async getUserOrFail(id: number): Promise<UserSubsetMapping["A"]> {
+  const user = await this.findOne("A", { id });
   if (!user) {
     throw new NotFoundException("사용자를 찾을 수 없습니다");
   }
@@ -284,7 +282,7 @@ async getMyProfile(): Promise<User> {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  return this.findById(userId);
+  return this.findById("A", userId);
 }
 ```
 
@@ -323,68 +321,45 @@ context.naiteStore;
 
 <Accordion title="세션을 사용하려면?">
 
-**세션 설정:**
+세션은 better-auth가 관리합니다. `server.auth`로 켜며, 별도의 세션 설정은 없습니다.
 
 ```typescript
 // sonamu.config.ts
-export default {
+export default defineConfig({
   server: {
-    session: {
-      secret: process.env.SESSION_SECRET || "my-secret",
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24시간
-        secure: process.env.NODE_ENV === "production",
+    auth: {
+      emailAndPassword: { enabled: true },
+      session: {
+        expiresIn: 60 * 60 * 24, // 24시간 (초 단위)
       },
     },
   },
-} satisfies SonamuConfig;
+});
 ```
 
-**세션 저장:**
+**로그인 / 로그아웃**: 클라이언트가 better-auth 엔드포인트(`POST /api/auth/sign-in/email`,
+`POST /api/auth/sign-out`)를 호출하며, 보통 `better-auth/react`의 `authClient`를 사용합니다. 세션에 값을
+저장하는 로그인 API를 직접 만들지 않습니다.
 
-```typescript
-@api({ httpMethod: "POST" })  // guards 생략 = 공개 API
-async login(email: string, password: string): Promise<User> {
-  const user = await this.findOne("A", { email });
-
-  if (!user || !await bcrypt.compare(password, user.password)) {
-    throw new UnauthorizedException("이메일 또는 비밀번호가 잘못되었습니다");
-  }
-
-  const context = Sonamu.getContext();
-  context.session.userId = user.id;
-  context.session.role = user.role;
-
-  return user;
-}
-```
-
-**세션 조회:**
+**세션 읽기**는 어느 API에서나 할 수 있습니다:
 
 ```typescript
 @api({ httpMethod: "GET" })
-async getMyInfo(): Promise<User> {
-  const context = Sonamu.getContext();
-  const userId = context.session.userId;
+async getMyInfo() {
+  const { user, session } = Sonamu.getContext();
 
-  if (!userId) {
+  if (!user || !session) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  return this.findById(userId);
+  return this.findById("A", user.id);
 }
 ```
 
-**세션 삭제:**
+`session`은 읽기 전용 세션 메타데이터(`expiresAt`, `ipAddress`, `userAgent` 등)입니다. 사용자별 데이터는
+세션이 아니라 직접 만든 엔티티에 저장하세요.
 
-```typescript
-@api({ httpMethod: "POST" })
-async logout(): Promise<{ success: boolean }> {
-  const context = Sonamu.getContext();
-  context.session.destroy();
-  return { success: true };
-}
-```
+→ [세션 관리](/ko/api-development/authentication/session-management)
 
 </Accordion>
 </AccordionGroup>
@@ -396,52 +371,60 @@ async logout(): Promise<{ success: boolean }> {
 <AccordionGroup>
 <Accordion title="Guards를 사용하여 권한을 제어하려면?">
 
-**Guard 설정:**
+**Guard 구현:** guard 키(`user`, `admin`, `query`)는 `server.apiConfig.guardHandler`에서 검사합니다.
+요청 Context 안에서 실행되므로 `Sonamu.getContext()`로 현재 `user`를 읽을 수 있습니다. 요청을
+거부하려면 예외를 던지세요.
 
 ```typescript
 // sonamu.config.ts
-export default {
+import { defineConfig, Sonamu, UnauthorizedException } from "sonamu";
+
+export default defineConfig({
   server: {
     auth: {
-      guards: {
-        user: async (request) => {
-          const userId = request.session.userId;
-          if (!userId) return null;
-          return UserModel.findById(userId);
-        },
-        admin: async (request) => {
-          const user = request.session.user;
-          if (!user || user.role !== "admin") return null;
-          return user;
-        },
+      emailAndPassword: { enabled: true },
+    },
+    apiConfig: {
+      // ... contextProvider
+      guardHandler: (guard) => {
+        const { user } = Sonamu.getContext();
+
+        if (guard === "user" && !user) {
+          throw new UnauthorizedException("로그인이 필요합니다");
+        }
+        // User 엔티티에 role 필드를 추가해야 합니다
+        if (guard === "admin" && (user as { role?: string } | null)?.role !== "admin") {
+          throw new UnauthorizedException("관리자 권한이 필요합니다");
+        }
       },
     },
   },
-} satisfies SonamuConfig;
+});
 ```
 
-**Guard 사용:**
+**Guards 사용:**
 
 ```typescript
 // user 로그인 필요
 @api({ httpMethod: "GET", guards: ["user"] })
-async getMyProfile(): Promise<User> {
-  const userId = Sonamu.getContext().user?.id;
-  return this.findById(userId!);
+async getMyProfile() {
+  const { user } = Sonamu.getContext();
+  return this.findById("A", user!.id);
 }
 
 // admin 권한 필요
 @api({ httpMethod: "DELETE", guards: ["admin"] })
-async deleteUser(id: number): Promise<void> {
-  await this.del(id);
-}
-
-// user 또는 admin
-@api({ httpMethod: "GET", guards: ["user", "admin"] })
-async viewStats(): Promise<Stats> {
-  // ...
+async deleteUsers(ids: number[]): Promise<number> {
+  return this.del(ids);
 }
 ```
+
+<Info>
+  guard를 여러 개 지정하면 `guardHandler`가 각 guard에 대해 순서대로 실행되므로 모두 통과해야 합니다.
+  `guards: ["user", "admin"]`은 "user 또는 admin"이 아니라 "로그인했고 admin"이라는 뜻입니다.
+</Info>
+
+→ [보호된 라우트](/ko/api-development/authentication/protected-routes)
 
 </Accordion>
 </AccordionGroup>
@@ -457,8 +440,8 @@ async viewStats(): Promise<Stats> {
 
 ```typescript
 @api({ httpMethod: "GET" })
-async getUser(id: number): Promise<User> {
-  return this.findById(id);
+async getUser(id: number): Promise<UserSubsetMapping["A"]> {
+  return this.findById("A", id);
 }
 
 // 응답:
@@ -474,16 +457,19 @@ async getUser(id: number): Promise<User> {
 ```typescript
 @api({ httpMethod: "GET" })
 async getUserWithStats(id: number): Promise<{
-  user: User;
-  stats: { postCount: number; commentCount: number };
+  user: UserSubsetMapping["A"];
+  stats: { postCount: number };
 }> {
-  const user = await this.findById(id);
-  const postCount = await PostModel.count({ user_id: id });
-  const commentCount = await CommentModel.count({ user_id: id });
+  const user = await this.findById("A", id);
+  const { postCount } = await this.getPuri("r")
+    .table("posts")
+    .select({ postCount: Puri.count() })
+    .where("posts.user_id", id)
+    .first();
 
   return {
     user,
-    stats: { postCount, commentCount }
+    stats: { postCount },
   };
 }
 ```
@@ -491,15 +477,12 @@ async getUserWithStats(id: number): Promise<{
 **헤더 설정:**
 
 ```typescript
-@api({ httpMethod: "GET" })
-async downloadFile(id: number): Promise<Buffer> {
-  const file = await FileModel.findById(id);
+@api({ httpMethod: "GET", contentType: "application/octet-stream" })
+async downloadReport(id: number): Promise<Buffer> {
+  const { reply } = Sonamu.getContext();
+  reply.header("Content-Disposition", `attachment; filename="report-${id}.pdf"`);
 
-  const context = Sonamu.getContext();
-  context.reply.header("Content-Type", "application/pdf");
-  context.reply.header("Content-Disposition", `attachment; filename="${file.name}"`);
-
-  return file.buffer;
+  return buildReportPdf(id); // Buffer를 반환하는 직접 만든 함수
 }
 ```
 
@@ -511,9 +494,11 @@ async downloadFile(id: number): Promise<Buffer> {
 
 ```typescript
 @api({ httpMethod: "GET" })
-async listUsers(listParams: UserListParams): Promise<ListResult<UserListParams, UserA>> {
+async listUsers(
+  listParams: UserListParams,
+): Promise<ListResult<UserListParams, UserSubsetMapping["A"]>> {
   // ListResult = { rows: T[], total: number }
-  return this.list("A", listParams);
+  return this.findMany("A", listParams);
 }
 
 // 응답:
@@ -538,33 +523,43 @@ async listUsers(listParams: UserListParams): Promise<ListResult<UserListParams, 
 
 **서비스 파일 자동 생성:**
 
-Model 파일이 변경되면 `{entity}.service.ts`가 자동으로 생성됩니다.
+Model 파일이 변경되면 Sonamu가 각 sync 대상의 `services.generated.ts`를 다시 생성합니다. Model마다 fetch 함수와, `tanstack-query` 클라이언트의 경우 hook을 담은 `{Entity}Service` namespace가 생깁니다.
 
 ```typescript
-// web/src/services/user/user.service.ts (자동 생성)
-export const UserService = {
-  async findById(id: number): Promise<User> {
-    const response = await axios.get("/user/findById", { params: { id } });
-    return response.data;
-  },
+// web/src/services/services.generated.ts (자동 생성)
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
+  }
 
-  async createUser(params: UserSaveParams): Promise<User> {
-    const response = await axios.post("/user/createUser", params);
-    return response.data;
-  },
-};
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) => useRefreshable(useQuery({ ...getUserQueryOptions(subset, id), ...options }));
+
+  // ...
+}
 ```
 
 **React에서 사용:**
 
 ```typescript
-import { UserService } from "@/services/user/user.service";
+import { useEffect, useState } from "react";
+import { UserService } from "@/services/services.generated";
+import type { UserSubsetMapping } from "@/services/sonamu.generated";
 
 function UserProfile({ userId }: { userId: number }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserSubsetMapping["A"] | null>(null);
 
   useEffect(() => {
-    UserService.findById(userId).then(setUser);
+    UserService.getUser("A", userId).then(setUser);
   }, [userId]);
 
   return <div>{user?.name}</div>;
@@ -574,13 +569,13 @@ function UserProfile({ userId }: { userId: number }) {
 **TanStack Query hook 사용:**
 
 ```typescript
-import { useUserFindById } from "@/services/user/user.service";
+import { UserService } from "@/services/services.generated";
 
 function UserProfile({ userId }: { userId: number }) {
-  const { data: user, error, isLoading } = useUserFindById({ id: userId });
+  const { data: user, error, isLoading } = UserService.useUser("A", userId);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (isLoading) return <div>로딩 중...</div>;
+  if (error) return <div>에러: {error.message}</div>;
 
   return <div>{user?.name}</div>;
 }
@@ -593,8 +588,8 @@ function UserProfile({ userId }: { userId: number }) {
 
 ## 관련 문서
 
-- [API 데코레이터](/ko/api-development/api-decorator)
-- [Context와 세션](/ko/api-development/context-session)
+- [API 데코레이터](/ko/api-development/creating-apis/api-decorator)
+- [Context와 세션](/ko/api-development/context/sonamu-context)
 - [인증과 권한](/ko/api-development/authentication)
-- [에러 처리](/ko/api-development/error-handling)
-- [프론트엔드 통합](/ko/frontend-integration/using-services)
+- [에러 처리](/ko/api-development/validation/error-handling)
+- [프론트엔드 통합](/ko/frontend-integration/generated-services/using-services)

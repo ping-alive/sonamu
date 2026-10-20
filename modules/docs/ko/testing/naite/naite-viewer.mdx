@@ -87,13 +87,17 @@ flowchart LR
 
 <Tabs>
   <Tab title="macOS / Linux">
-    ```bash ~/.sonamu/naite-{hash}.sock ``` `{hash}`는 `sonamu.config.ts` 경로의 MD5 해시 앞
-    8자리입니다.
+    ```bash
+    ~/.sonamu/naite-{hash}.sock
+    ```
+    `{hash}`는 `sonamu.config.ts` 경로의 MD5 해시 앞 8자리입니다.
   </Tab>
 
   <Tab title="Windows">
-    ```powershell \\.\pipe\naite-{hash}
-    ``` Windows Named Pipe를 사용합니다.
+    ```powershell
+    \\.\pipe\naite-{hash}
+    ```
+    Windows Named Pipe를 사용합니다.
   </Tab>
 </Tabs>
 
@@ -270,7 +274,8 @@ beforeAll(async () => {
 test("사용자 생성", async () => {
   Naite.t("user:create:input", { username: "john" });
 
-  const { user } = await userModel.create({ username: "john" });
+  const [userId] = await UserModel.save([{ username: "john" }]);
+  const user = await UserModel.findById("A", userId);
 
   Naite.t("user:create:output", { userId: user.id });
 
@@ -347,15 +352,25 @@ Extension이 실행되면 자동으로 소켓 서버를 시작합니다:
 ### 3. 테스트 실행
 
 <Tabs>
-  <Tab title="일반 실행">```bash pnpm test ``` 모든 테스트를 한 번 실행하고 종료합니다.</Tab>
+  <Tab title="일반 실행">
+    ```bash
+    pnpm test
+    ```
+    모든 테스트를 한 번 실행하고 종료합니다.
+  </Tab>
 
-<Tab title="Watch 모드">
-  ```bash pnpm test --watch ``` 파일 변경 시 자동으로 관련 테스트를 재실행합니다. 개발 중 가장 많이
-  사용하는 모드입니다.
-</Tab>
+  <Tab title="Watch 모드">
+    ```bash
+    pnpm test --watch
+    ```
+    파일 변경 시 자동으로 관련 테스트를 재실행합니다. 개발 중 가장 많이 사용하는 모드입니다.
+  </Tab>
 
   <Tab title="특정 파일">
-    ```bash pnpm test user.model.test.ts ``` 특정 테스트 파일만 실행합니다.
+    ```bash
+    pnpm test user.model.test.ts
+    ```
+    특정 테스트 파일만 실행합니다.
   </Tab>
 </Tabs>
 
@@ -592,20 +607,39 @@ user:create:input
 
 <Tabs>
   <Tab title="키 패턴 필터" icon="filter">
-    wildcard 패턴으로 특정 모듈의 로그만 표시: ```text user:* → user:create, user:update,
-    user:delete syncer:* → syncer:renderTemplate, syncer:writeFile *:create → user:create,
-    post:create syncer:*:user → syncer:renderTemplate:user, syncer:writeFile:user ``` 입력창에
-    패턴을 입력하면 실시간으로 필터링됩니다.
+    wildcard 패턴으로 특정 모듈의 로그만 표시:
+
+    ```text
+    user:*           → user:create, user:update, user:delete
+    syncer:*         → syncer:renderTemplate, syncer:writeFile
+    *:create         → user:create, post:create
+    syncer:*:user    → syncer:renderTemplate:user, syncer:writeFile:user
+    ```
+
+    입력창에 패턴을 입력하면 실시간으로 필터링됩니다.
+
   </Tab>
 
-<Tab title="텍스트 검색" icon="magnifying-glass">
-  로그 내용, 파일 경로, 함수명으로 검색: - 키 검색: `user:create` - 값 검색: `"john"` - 파일 검색:
-  `user.model.test.ts` - 함수 검색: `createUser` 검색 결과는 하이라이트로 표시됩니다.
-</Tab>
+  <Tab title="텍스트 검색" icon="magnifying-glass">
+    로그 내용, 파일 경로, 함수명으로 검색:
+
+    - 키 검색: `user:create`
+    - 값 검색: `"john"`
+    - 파일 검색: `user.model.test.ts`
+    - 함수 검색: `createUser`
+
+    검색 결과는 하이라이트로 표시됩니다.
+
+  </Tab>
 
   <Tab title="상태 필터" icon="check">
-    테스트 상태로 필터링: - ✓ Passed only: 성공한 테스트만 - ✗ Failed only: 실패한 테스트만 - ⊘
-    Skipped: 건너뛴 테스트 - ⌛ Pending: 대기 중인 테스트
+    테스트 상태로 필터링:
+
+    - ✓ Passed only: 성공한 테스트만
+    - ✗ Failed only: 실패한 테스트만
+    - ⊘ Skipped: 건너뛴 테스트
+    - ⌛ Pending: 대기 중인 테스트
+
   </Tab>
 </Tabs>
 
@@ -715,15 +749,17 @@ Viewer에는 Syncer가 수행한 모든 작업이 표시됩니다:
 test("게시글 생성 → 댓글 추가 → 알림 발송", async () => {
   // 1. 게시글 생성
   Naite.t("api:post:create:request", { title: "Hello" });
-  const { post } = await postModel.create({ title: "Hello" });
+  const [postId] = await PostModel.save([{ title: "Hello" }]);
+  const post = await PostModel.findById("A", postId);
   Naite.t("api:post:create:response", { postId: post.id });
 
   // 2. 댓글 추가
   Naite.t("api:comment:create:request", { postId: post.id, content: "Nice!" });
-  const { comment } = await commentModel.create({
+  const [commentId] = await CommentModel.save([{
     post_id: post.id,
     content: "Nice!",
-  });
+  }]);
+  const comment = await CommentModel.findById("A", commentId);
   Naite.t("api:comment:create:response", { commentId: comment.id });
 
   // 3. 작성자에게 알림
@@ -811,7 +847,7 @@ test("잘못된 입력값 처리", async () => {
   try {
     Naite.t("user:create:input", { username: "" }); // 빈 값
 
-    await userModel.create({ username: "", email: "test@test.com" });
+    await UserModel.save([{ username: "", email: "test@test.com" }]);
   } catch (error) {
     Naite.t("user:create:error", {
       errorType: error.constructor.name,
@@ -1090,22 +1126,56 @@ afterEach(async ({ task }) => {
 
 <AccordionGroup>
   <Accordion title="Extension이 실행되지 않음">
-    **증상**: - VSCode 하단 상태바에 Sonamu 아이콘이 없음 - Naite Viewer 패널을 열 수 없음 **해결**:
-    1. Extensions 탭에서 Sonamu Extension 확인 2. "Enable" 또는 "Reload" 버튼 클릭 3. VSCode 재시작:
-    `Cmd+Shift+P` → "Reload Window"
+    **증상**:
+    - VSCode 하단 상태바에 Sonamu 아이콘이 없음
+    - Naite Viewer 패널을 열 수 없음
+
+    **해결**:
+    1. Extensions 탭에서 Sonamu Extension 확인
+    2. "Enable" 또는 "Reload" 버튼 클릭
+    3. VSCode 재시작: `Cmd+Shift+P` → "Reload Window"
+
   </Accordion>
 
-<Accordion title="소켓 경로 불일치">
-  **증상**: - Extension은 실행 중 - 테스트는 성공하지만 로그가 안 보임 - 콘솔에 "ENOENT" 또는
-  "ECONNREFUSED" 에러 **원인**: 프로젝트 폴더가 아닌 상위 폴더를 열어 소켓 경로가 달라짐 **해결**:
-  1. VSCode에서 프로젝트 폴더 직접 열기 2. Extension 재시작 ```bash # ❌ 잘못된 방법 code ~/projects
-  # 상위 폴더 열기 # ✅ 올바른 방법 code ~/projects/my-sonamu-app # 프로젝트 폴더 직접 열기 ```
-</Accordion>
+  <Accordion title="소켓 경로 불일치">
+    **증상**:
+    - Extension은 실행 중
+    - 테스트는 성공하지만 로그가 안 보임
+    - 콘솔에 "ENOENT" 또는 "ECONNREFUSED" 에러
+
+    **원인**:
+    프로젝트 폴더가 아닌 상위 폴더를 열어 소켓 경로가 달라짐
+
+    **해결**:
+    1. VSCode에서 프로젝트 폴더 직접 열기
+    2. Extension 재시작
+
+    ```bash
+    # ❌ 잘못된 방법
+    code ~/projects  # 상위 폴더 열기
+
+    # ✅ 올바른 방법
+    code ~/projects/my-sonamu-app  # 프로젝트 폴더 직접 열기
+    ```
+
+  </Accordion>
 
   <Accordion title="소켓 파일 권한 문제">
-    **증상**: - "Permission denied" 에러 - 소켓 파일이 존재하지만 접근 불가 **해결**: ```bash # 소켓
-    파일 확인 ls -la ~/.sonamu/ # 문제가 있으면 삭제 rm ~/.sonamu/naite-*.sock # Extension과 테스트
-    재시작 ```
+    **증상**:
+    - "Permission denied" 에러
+    - 소켓 파일이 존재하지만 접근 불가
+
+    **해결**:
+    ```bash
+    # 소켓 파일 확인
+    ls -la ~/.sonamu/
+
+    # 문제가 있으면 삭제
+    rm ~/.sonamu/naite-*.sock
+
+    # Extension과 테스트 재시작
+    ```
+
   </Accordion>
 </AccordionGroup>
 
@@ -1233,7 +1303,7 @@ Watch 모드에서 파일을 여러 번 수정하면 이전 테스트 로그가 
 5. **직렬화 필요**: Extension으로 전송되는 값은 JSON으로 직렬화됩니다. `Naite.t()`에 함수나 순환 참조 객체를 전달하면 경고가 표시됩니다.
 
 6. **과도한 로깅 지양**: 루프 안에서 `Naite.t()`를 호출하면 수천 개의 로그가 생성되어 성능이 저하될 수 있습니다.
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

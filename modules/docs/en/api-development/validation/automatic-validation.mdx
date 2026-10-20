@@ -348,7 +348,7 @@ class UserModelClass extends BaseModelClass<
       .orderBy(validated.sortBy || "created_at", validated.sortOrder)
       .limit(validated.pageSize)
       .offset((validated.page - 1) * validated.pageSize)
-      .select("*");
+      .selectAll();
 
     const [{ count }] = await rdb.table("users").count({ count: "*" });
 

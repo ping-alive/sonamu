@@ -366,13 +366,12 @@ const outOfRange = Naite.get("user:create").at(10);
 
 ```typescript
 test("post creation flow", async () => {
-  const postModel = new PostModel();
-
-  const { post } = await postModel.create({
+  const [postId] = await PostModel.save([{
     title: "Test Post",
     content: "Content",
     author_id: 1,
-  });
+  }]);
+  const post = await PostModel.findById("A", postId);
 
   // Verify entire flow
   const allLogs = Naite.get("post:create:*").result();

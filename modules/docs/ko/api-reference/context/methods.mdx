@@ -56,11 +56,11 @@ class PostModelClass extends BaseModelClass {
     // Context를 직접 받지 않아도 헬퍼 함수를 통해 사용자 정보 접근
     const user = requireAuth();
 
-    return this.create({
+    return this.save([{
       title,
       content,
       authorId: user.id,
-    });
+    }]);
   }
 }
 ```
@@ -214,7 +214,7 @@ class FileModelClass extends BaseModelClass {
     );
 
     // 파일 메타데이터 DB 저장
-    await this.createMany(
+    await this.save(
       savedFiles.map((file) => ({
         folderId,
         filename: file.filename,
@@ -374,7 +374,7 @@ class PostModelClass extends BaseModelClass {
   @api()
   async createPost(title: string) {
     const user = this.getCurrentUser(); // 같은 스택 내
-    return this.create({ title, authorId: user.id });
+    return this.save([{ title, authorId: user.id }]);
   }
 
   private getCurrentUser() {

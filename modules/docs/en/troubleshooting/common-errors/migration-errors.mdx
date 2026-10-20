@@ -81,13 +81,20 @@ mv 20240115_add_email_column.ts 20240115_001_add_email_column.ts
 mv 20240115_create_users.ts 20240115_002_create_users.ts
 ```
 
-#### 2. Use Timestamp Format
+#### 2. Generate Migrations with Sonamu
 
-Sonamu supports `YYYYMMDD_HHMMSS` format:
+`migrate generate` takes no name argument. It derives the migration code from the difference between
+your Entity definitions and the database schema, and names each file with a `YYYYMMDDHHMMSS`
+timestamp that is one second apart within a batch. Apply pending migrations before generating.
 
 ```bash
-pnpm sonamu migrate create add_email_column
-# Creates: 20240115_143022_add_email_column.ts
+pnpm sonamu migrate generate
+# Creates, for example: 20240115143022_alter_users_add1.ts
+
+# Apply to the database for the current NODE_ENV
+pnpm sonamu migrate run --execute
+# Or apply to explicit targets
+pnpm sonamu migrate apply development test --execute
 ```
 
 ## Generated Column Error
@@ -262,7 +269,7 @@ export async function up(knex: Knex): Promise<void> {
 ### Symptoms
 
 ```bash
-pnpm sonamu migrate rollback
+pnpm sonamu migrate rollback development --execute
 
 Error: Migration 20240115_create_users.ts has no down() function
 ```
@@ -376,7 +383,7 @@ TRUNCATE knex_migrations;
 
 ```bash
 # After truncating table
-pnpm sonamu migrate latest
+pnpm sonamu migrate apply development --execute
 ```
 
 ## Migrating from MySQL to PostgreSQL

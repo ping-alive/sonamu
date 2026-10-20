@@ -348,7 +348,7 @@ async findMany<T extends UserSubsetKey>(
   if (params.keyword) {
     qb.where((builder) => {
       builder
-        .whereLike("users.email", `%${params.keyword}%`)
+        .where("users.email", "like", `%${params.keyword}%`)
         .orWhereLike("users.username", `%${params.keyword}%`);
     });
   }
@@ -554,8 +554,8 @@ async getUserDashboard(userId: number): Promise<Dashboard> {
   // 병렬로 실행
   const [user, posts, comments, followers] = await Promise.all([
     this.findById("A", userId),
-    PostModel.findMany("SS", { user_id: userId, num: 10 }),
-    CommentModel.findMany("SS", { user_id: userId, num: 10 }),
+    PostModel.findMany("SS", { sonamuFilter: { user_id: userId }, num: 10 }),
+    CommentModel.findMany("SS", { sonamuFilter: { user_id: userId }, num: 10 }),
     FollowerModel.countFollowers(userId),
   ]);
 
@@ -601,11 +601,11 @@ async processOrder(orderId: number): Promise<void> {
   <Card
     title="Transactions"
     icon="arrows-rotate"
-    href="/ko/database/transactions/using-transactions"
+    href="/ko/database/transactions/transactional-decorator"
   >
     트랜잭션 상세 가이드
   </Card>
-  <Card title="Testing" icon="flask" href="/ko/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/ko/testing/writing-tests/test-structure">
     비즈니스 로직 테스트하기
   </Card>
 </CardGroup>

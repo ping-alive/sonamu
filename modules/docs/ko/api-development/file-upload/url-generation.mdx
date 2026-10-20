@@ -22,7 +22,7 @@ description: "Public URL과 Signed URL"
   </Card>
 </CardGroup>
 
-## UploadedFile URL 속성
+## BufferedFile URL 속성
 
 ### url 속성 (Public URL)
 
@@ -302,7 +302,7 @@ class FileModel extends BaseModelClass {
 
     const rdb = this.getPuri("r");
 
-    const files = await rdb.table("files").whereIn("id", fileIds).select("*");
+    const files = await rdb.table("files").whereIn("id", fileIds).selectAll();
 
     const urls: Record<
       number,
@@ -555,7 +555,7 @@ class FileModel extends BaseModelClass {
     @upload 데코레이터
   </Card>
   <Card
-    title="UploadedFile 클래스"
+    title="BufferedFile 클래스"
     icon="file"
     href="/ko/api-development/file-upload/uploaded-file-class"
   >

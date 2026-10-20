@@ -122,7 +122,7 @@ import { BaseModelClass, workflow } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   async sendWelcomeEmail(userId: number) {
-    const user = await this.findById(userId);
+    const user = await this.findById("A", userId);
     await emailService.send({
       to: user.email,
       subject: "Welcome!",
@@ -162,7 +162,7 @@ await step
 Model 메서드의 반환값도 동일하게 사용할 수 있습니다.
 
 ```typescript
-const user = await step.get(UserModel, "findById").run(userId);
+const user = await step.get(UserModel, "findById").run("A", userId);
 
 console.log(user.email);
 ```
@@ -350,7 +350,7 @@ export const sendNotifications = workflow(
       // 각 사용자에게 알림
       await step
         .define({ name: `notify_user_${userId}` }, async () => {
-          const user = await UserModel.findById(userId);
+          const user = await UserModel.findById("A", userId);
           await sendPushNotification(user.deviceToken, input.message);
         })
         .run();
@@ -456,7 +456,7 @@ for (let i = 0; i < items.length; i++) {
    await step.sleep("delay", "1h"); // OK
    await step.sleep("delay", "30d"); // 비추천
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

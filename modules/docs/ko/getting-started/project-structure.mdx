@@ -96,7 +96,7 @@ catalog:
 - `tsconfig.schemas.json`: Zod 스키마 생성 전용
 - `tsconfig.types.json`: 타입 정의 생성 전용
 
-**.env / .env.<environment>**
+**`.env` / `.env.<environment>`**
 
 - 데이터베이스 연결 정보 (`SONAMU_DB_HOST`, `SONAMU_DB_PORT`, `SONAMU_DB_USER`, `SONAMU_DB_PASSWORD`)
 - 프로젝트와 DB 이름 변수 (`PROJECT_NAME`, `CONTAINER_NAME`, `SONAMU_DB_NAME`)
@@ -153,9 +153,9 @@ catalog:
 `application/{entity}/` 폴더 내의 파일들은 Sonamu UI를 통해 엔티티를 생성하고 스캐폴딩해야 생성됩니다:
 
 - **{entity}.entity.json**: Sonamu UI에서 엔티티 정의 시 자동 생성
-- **{entity}.model.ts**: `pnpm scaffold model` 또는 Sonamu UI의 Scaffolding 탭에서 생성
+- **{entity}.model.ts**: `pnpm sonamu scaffold model` 또는 Sonamu UI의 Scaffolding 탭에서 생성
 - **{entity}.types.ts**: 엔티티 저장 시 자동 생성
-- **{entity}.model.test.ts**: `pnpm scaffold model_test` 또는 Sonamu UI의 Scaffolding 탭에서 생성 (선택사항)
+- **{entity}.model.test.ts**: `pnpm sonamu scaffold model_test` 또는 Sonamu UI의 Scaffolding 탭에서 생성 (선택사항)
 
 처음 프로젝트를 생성했을 때는 `application/` 폴더가 비어 있습니다. 첫 번째 엔티티를 생성하면 해당 폴더가 만들어집니다.
 
@@ -460,7 +460,7 @@ import { api, BaseModelClass } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET", clients: ["axios", "tanstack-query"] })
-  async findById(id: number): Promise<UserSubsetA | null> {
+  async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
     // 비즈니스 로직
   }
 }
@@ -497,23 +497,34 @@ export const UserOrderBy = z.enum(["id-desc", "name-asc"]);
 export type UserOrderBy = z.infer<typeof UserOrderBy>;
 ```
 
-```typescript title="user.service.ts (web)"
+```typescript title="services.generated.ts (web)"
 // 자동 생성
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import qs from "qs";
 
-export class UserService {
-  static async findById(id: number): Promise<UserSubsetA | null> {
-    const res = await axios.get(`/api/user/findById`, { params: { id } });
-    return res.data;
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
   }
 
   // TanStack Query 훅도 자동 생성
-  static useFindById(id: number) {
-    return useQuery({
-      queryKey: ["User", "findById", id],
-      queryFn: () => UserService.findById(id),
+  export const getUserQueryOptions = <T extends UserSubsetKey>(subset: T, id: number) =>
+    queryOptions({
+      queryKey: ["User", "getUser", subset, id],
+      queryFn: () => getUser(subset, id),
     });
-  }
+
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) => useRefreshable(useQuery({ ...getUserQueryOptions(subset, id), ...options }));
 }
 ```
 

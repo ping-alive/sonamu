@@ -247,12 +247,12 @@ export default defineConfig({
 export class ArticleModel {
   @api({ compress: true }) // Large list response
   static async list() {
-    return this.getPuri("r").table("articles").select("*");
+    return this.getPuri("r").table("articles").selectAll();
   }
 
   @api({ compress: true }) // Large detail data
   static async detail(id: number) {
-    return this.findById(id, ["**"]);
+    return this.findById("A", id);
   }
 
   @api() // Don't compress small responses

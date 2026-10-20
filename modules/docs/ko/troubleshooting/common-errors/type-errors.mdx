@@ -137,7 +137,7 @@ const RESERVED_KEYWORDS = [
 ### 증상
 
 ```typescript
-const users = await UserModel.findMany();
+const { rows: users } = await UserModel.findMany("A");
 // Type: any[]  ❌ 타입이 제대로 추론되지 않음
 ```
 
@@ -185,7 +185,7 @@ export type UserSave = {
 ```typescript
 class UserModelClass extends BaseModelClass {
   async findByEmail(email: string) {
-    return this.findOne({ email });
+    return this.findOne("A", { sonamuFilter: { email } });
     // Error: Property 'findOne' does not exist on type 'UserModelClass'
   }
 }
@@ -253,7 +253,7 @@ type OrderStatus = "pending" | "processing" | "completed";
 class OrderModelClass extends BaseModelClass {
   async updateStatus(id: number, status: OrderStatus) {
     // ✅
-    return this.updateOne({ id }, { status });
+    return this.getPuri("w").table("orders").where("id", id).update({ status });
   }
 }
 ```
@@ -286,20 +286,6 @@ API 메서드 파라미터 타입과 Zod 스키마가 일치하지 않습니다.
 @api()
 async createUser(email: string, age: number) {  // ✅
   // Sonamu가 자동으로 Zod 검증
-}
-```
-
-#### 2. 명시적 Zod 스키마 사용
-
-```typescript
-const CreateUserSchema = z.object({
-  email: z.string().email(),
-  age: z.number().int().positive()
-});
-
-@api({ schema: CreateUserSchema })
-async createUser(data: z.infer<typeof CreateUserSchema>) {
-  // 타입 안전성 보장
 }
 ```
 

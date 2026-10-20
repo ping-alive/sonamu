@@ -243,25 +243,27 @@ Sonamu's built-in error handler responds in the following format.
 
 ## Customizing the Error Handler
 
-Sonamu includes a built-in error handler, but you can set a custom error handler via the `lifecycle.onError` option in `startServer` if needed.
+Sonamu includes a built-in error handler, but you can set a custom error handler with `server.lifecycle.onError` in `sonamu.config.ts` if needed.
 
 ```typescript
-import { Sonamu, isSoException } from "sonamu";
+import { defineConfig, isSoException } from "sonamu";
 
-Sonamu.startServer({
-  lifecycle: {
-    onError: (error, request, reply) => {
-      // Custom error handling logic
-      if (isSoException(error)) {
-        reply.status(error.statusCode).send({
-          error: error.message,
-          payload: error.payload,
-        });
-      } else {
-        reply.status(500).send({
-          error: "Internal server error",
-        });
-      }
+export default defineConfig({
+  server: {
+    lifecycle: {
+      onError: (error, request, reply) => {
+        // Custom error handling logic
+        if (isSoException(error)) {
+          reply.status(error.statusCode).send({
+            error: error.message,
+            payload: error.payload,
+          });
+        } else {
+          reply.status(500).send({
+            error: "Internal server error",
+          });
+        }
+      },
     },
   },
 });

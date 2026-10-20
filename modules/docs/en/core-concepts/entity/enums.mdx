@@ -86,14 +86,14 @@ Add a new Enum.
 - Enter in PascalCase
 - Use `{Entity}` pattern to associate with Entity
   - Example: `$ModelRole` → `UserRole` (auto-converted)
-    </Step>
+</Step>
 
 <Step title="Add Enum values">
 Each Enum is displayed as a separate tab, add key-label pairs with the **"Add Row"** button.
 
 - **Key**: lowercase letters, numbers, underscores only
 - **Label**: Display name
-  </Step>
+</Step>
 
 <Step title="Save">
 When you save the Entity, the Enum is saved together.
@@ -211,7 +211,7 @@ export type UserUpdateParams = z.infer<typeof UserUpdateParams>;
 ```typescript title="Backend"
 import { getUserRoleLabel } from "./sonamu.generated";
 
-const user = await UserModel.findById(1);
+const user = await UserModel.findById("A", 1);
 const roleLabel = getUserRoleLabel(user.role);
 // "Administrator"
 
@@ -279,7 +279,7 @@ Define searchable fields.
 ```typescript
 async search(field: UserSearchField, keyword: string) {
   return this.getPuri("r").from("users")
-    .whereLike(field, `%${keyword}%`);
+    .where(field, "like", `%${keyword}%`);
 }
 ```
 
@@ -376,7 +376,7 @@ function hasPermission(user: User, permission: Permission): boolean {
 
 // Grant permission
 async grantPermission(userId: number, permission: Permission) {
-  const user = await this.findById(userId);
+  const user = await this.findById("A", userId);
   if (!user.permissions.includes(permission)) {
     await this.getPuri("w").from("users")
       .where("id", userId)
@@ -530,7 +530,7 @@ Changing an Enum key that's already stored in the database will cause mismatch w
 1. Add new key
 2. Data migration (old key → new key)
 3. Remove old key
-   </Warning>
+</Warning>
 
 <Warning>
 **Key Naming Restrictions**
@@ -580,7 +580,7 @@ Labels are for display purposes, so they can be changed anytime. Only Keys are s
   <Card title="Field Types" icon="list" href="/en/core-concepts/entity/field-types">
     Learn about other field types
   </Card>
-  <Card title="Validation" icon="shield-check" href="/en/api-development/validation/zod-schemas">
+  <Card title="Validation" icon="shield-check" href="/en/api-development/validation/automatic-validation">
     Validate data with Zod
   </Card>
   <Card
@@ -590,7 +590,7 @@ Labels are for display purposes, so they can be changed anytime. Only Keys are s
   >
     Use generated components
   </Card>
-  <Card title="API Development" icon="code" href="/en/api-development/creating-apis/basic-crud">
+  <Card title="API Development" icon="code" href="/en/api-development/creating-apis/api-decorator">
     API development using Enums
   </Card>
 </CardGroup>

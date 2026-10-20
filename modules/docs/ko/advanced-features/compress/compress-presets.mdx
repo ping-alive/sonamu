@@ -138,7 +138,7 @@ CompressPresets.default
       compress: CompressPresets.default,
     })
     async getData() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
   </Tab>
@@ -257,7 +257,7 @@ CompressPresets.conservative
       compress: CompressPresets.conservative,
     })
     async getLargeDataset() {
-      return this.findMany({ num: 10000 });
+      return this.findMany("A", { num: 10000 });
     }
     ```
   </Tab>
@@ -452,7 +452,7 @@ class DataModelClass extends BaseModelClass {
     compress: CompressPresets.default,
   })
   async getList() {
-    return this.findMany({ num: 100 });
+    return this.findMany("A", { num: 100 });
   }
 
   // 대용량 응답: conservative (CPU 절약)
@@ -461,7 +461,7 @@ class DataModelClass extends BaseModelClass {
     compress: CompressPresets.conservative,
   })
   async exportData() {
-    return this.findMany({ num: 100000 });
+    return this.findMany("A", { num: 100000 });
   }
 
   // 이미 압축된 파일: disabled
@@ -528,7 +528,7 @@ export const config: SonamuConfig = {
    // ❌ 프로덕션에서 비활성화 지양
    compress: CompressPresets.disabled;
    ```
-   </Warning>
+</Warning>
 
 ## 성능 측정
 

@@ -81,7 +81,7 @@ class UserModelClass extends BaseModelClass<
   @api({ httpMethod: "GET" })
   async list(): Promise<User[]> {
     const rdb = this.getPuri("r");
-    return rdb.table("users").select("*");
+    return rdb.table("users").selectAll();
   }
 
   // POST 요청
@@ -247,7 +247,7 @@ class UserModelClass extends BaseModelClass<
     const users = await query
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     const [{ count }] = await rdb.table("users").count({ count: "*" });
 
@@ -382,7 +382,7 @@ class UserModelClass extends BaseModelClass<
       .table("users")
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     const [{ count }] = await rdb.table("users").count({ count: "*" });
 
@@ -482,7 +482,7 @@ class PostModelClass extends BaseModelClass<
   })
   async getPublicPosts(): Promise<Post[]> {
     const rdb = this.getPuri("r");
-    return rdb.table("posts").where("public", true).select("*");
+    return rdb.table("posts").where("public", true).selectAll();
   }
 
   // 캐시 프리셋 사용
@@ -528,7 +528,7 @@ class DataModelClass extends BaseModelClass<
   })
   async getLargeDataset(): Promise<DataPoint[]> {
     const rdb = this.getPuri("r");
-    return rdb.table("data_points").limit(10000).select("*");
+    return rdb.table("data_points").limit(10000).selectAll();
   }
 
   // 이미 압축된 데이터 - 압축 비활성화
@@ -771,7 +771,7 @@ class UserModelClass extends BaseModelClass<
     const users = await query
       .limit(pageSize)
       .offset((page - 1) * pageSize)
-      .select("*");
+      .selectAll();
 
     const [{ count }] = await rdb.table("users").count({ count: "*" });
 
@@ -1058,7 +1058,7 @@ export const UserModel = new UserModelClass();
   >
     응답 타입 정의하기
   </Card>
-  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/error-handling">
+  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/validation/error-handling">
     API 에러 핸들링
   </Card>
 </CardGroup>

@@ -15,9 +15,10 @@ import { BaseModelClass, cache, api } from "sonamu";
 class UserModelClass extends BaseModelClass {
   @cache({ ttl: "10m" })
   @api()
-  async findById(id: number) {
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
     // This method is cached for 10 minutes
-    return this.findOne(["id", id]);
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -52,13 +53,14 @@ If no key is specified, it is **automatically generated**.
     ```typescript
     class UserModelClass extends BaseModelClass {
       @cache({ ttl: "10m" })
-      async findById(id: number) {
-        return this.findOne(['id', id]);
+      async findById<T extends UserSubsetKey>(subset: T, id: number) {
+        const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+        return rows[0];
       }
     }
 
-    // Call: userModel.findById(123)
-    // Auto-generated key: "User.findById:123"
+    // Call: UserModel.findById("A", 123)
+    // Auto-generated key: "User.findById:["A",123]"
     ```
 
     **Pattern**: `ModelName.methodName:serializedArgs`
@@ -74,19 +76,20 @@ If no key is specified, it is **automatically generated**.
     ```typescript
     @cache({ key: "user-list", ttl: "5m" })
     async findAll() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
 
-    // Call: userModel.findAll()
+    // Call: UserModel.findAll()
     // Key: "user-list"
 
     @cache({ key: "user", ttl: "10m" })
-    async findById(id: number) {
-      return this.findOne(['id', id]);
+    async findById<T extends UserSubsetKey>(subset: T, id: number) {
+      const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+      return rows[0];
     }
 
-    // Call: userModel.findById(123)
-    // Key: "user:123" (arguments auto-appended as suffix)
+    // Call: UserModel.findById("A", 123)
+    // Key: "user:["A",123]" (arguments auto-appended as suffix)
     ```
 
     **When arguments exist**: Auto-generated in `key:args` format
@@ -100,7 +103,7 @@ If no key is specified, it is **automatically generated**.
       ttl: "10m"
     })
     async findByStatus(userId: number, status: string) {
-      return this.findMany({ user_id: userId, status });
+      return this.findMany("A", { sonamuFilter: { user_id: userId, status } });
     }
 
     // Call: model.findByStatus(123, "active")
@@ -166,18 +169,19 @@ class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["product", "list"] })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   @cache({ ttl: "1h", tags: ["product"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @api()
-  async update(id: number, data: Partial<Product>) {
-    const result = await this.updateOne(["id", id], data);
+  async update(id: number, data: Partial<ProductSaveParams>) {
+    const result = await this.getPuri("w").table("products").where("id", id).update(data);
 
     // Invalidate all caches with product tag
     await Sonamu.cache.deleteByTag({ tags: ["product"] });
@@ -224,14 +228,15 @@ class UserModelClass extends BaseModelClass {
   @cache({ ttl: "5m" })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   // Use database store (Redis shared)
   @cache({ store: "database", ttl: "1h" })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -262,18 +267,19 @@ class PostModelClass extends BaseModelClass {
   @cache({ ttl: "5m", tags: ["post", "list"] })
   @api()
   async findAll(page: number = 1) {
-    return this.findMany({
+    return this.findMany("A", {
       num: 20,
       page,
-      order: [["created_at", "desc"]],
+      orderBy: "id-desc",
     });
   }
 
   // Post detail (10 minute cache)
   @cache({ ttl: "10m", tags: ["post"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends PostSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // Popular posts (1 hour cache)
@@ -284,10 +290,10 @@ class PostModelClass extends BaseModelClass {
   })
   @api()
   async findPopular() {
-    return this.findMany({
+    return this.findMany("A", {
       num: 10,
-      where: [["view_count", ">", 1000]],
-      order: [["view_count", "desc"]],
+      sonamuFilter: { view_count: { gt: 1000 } },
+      orderBy: "view_count-desc", // add "view_count-desc" to enums.PostOrderBy in post.entity.json and handle it in findMany's orderBy branch
     });
   }
 }
@@ -299,19 +305,20 @@ class PostModelClass extends BaseModelClass {
 class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["product"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @cache({ ttl: "30m", tags: ["product", "list"] })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   @api()
   async create(data: ProductSave) {
-    const result = await this.saveOne(data);
+    const result = await this.save([data]);
 
     // Invalidate only list tag (new item added to list)
     await Sonamu.cache.deleteByTag({ tags: ["list"] });
@@ -320,8 +327,8 @@ class ProductModelClass extends BaseModelClass {
   }
 
   @api()
-  async update(id: number, data: Partial<ProductSave>) {
-    const result = await this.updateOne(["id", id], data);
+  async update(id: number, data: Partial<ProductSaveParams>) {
+    const result = await this.getPuri("w").table("products").where("id", id).update(data);
 
     // Invalidate all product tags (detail + list)
     await Sonamu.cache.deleteByTag({ tags: ["product"] });
@@ -343,12 +350,13 @@ class OrderModelClass extends BaseModelClass {
   })
   @api()
   async findByUserAndStatus(userId: number, status: string, startDate: string) {
-    return this.findMany({
-      where: [
-        ["user_id", userId],
-        ["status", status],
-        ["created_at", ">=", startDate],
-      ],
+    return this.findMany("A", {
+      sonamuFilter: {
+        user_id: userId,
+        status,
+        // date filters support before/after (exclusive) and between (inclusive), but no gte
+        created_at: { after: new Date(startDate) },
+      },
     });
   }
 }
@@ -397,12 +405,12 @@ class ConfigModelClass extends BaseModelClass {
   })
   @api()
   async getAppConfig() {
-    return this.findOne(["key", "app_config"]);
+    return this.findOne("A", { sonamuFilter: { key: "app_config" } });
   }
 
   @api()
   async updateConfig(data: ConfigSave) {
-    const result = await this.saveOne(data);
+    const result = await this.save([data]);
 
     // Invalidate cache on config change
     await Sonamu.cache.deleteByTag({ tags: ["config"] });
@@ -420,17 +428,17 @@ Cache is also shared when calling other methods within a Model.
 class UserModelClass extends BaseModelClass {
   // Apply cache to findMany
   @cache({ ttl: "10m", tags: ["user"] })
-  @api()
-  async findMany(params: FindManyParams<User>) {
-    return super.findMany(params);
+  @api({ httpMethod: "GET" })
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+    subset: T,
+    rawParams?: LP,
+  ): Promise<ListResult<LP, UserSubsetMapping[T]>> {
+    // ... generated query logic
   }
 
   // findById internally calls findMany
-  async findById(id: number) {
-    const { rows } = await this.findMany({
-      where: [["id", id]],
-      num: 1,
-    });
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
     return rows[0];
   }
 }
@@ -440,17 +448,17 @@ class UserModelClass extends BaseModelClass {
 
 ```typescript
 // First call
-await userModel.findById(123);
-// → Calls findMany({ where: [['id', 123]], num: 1 })
+await UserModel.findById("A", 123);
+// → Calls findMany("A", { id: 123, num: 1, page: 1 })
 // → DB query and caching
 
 // Second call (same parameters)
-await userModel.findById(123);
-// → Calls findMany({ where: [['id', 123]], num: 1 })
+await UserModel.findById("A", 123);
+// → Calls findMany("A", { id: 123, num: 1, page: 1 })
 // → Return from cache (no DB query)
 
 // Direct findMany call also uses same cache
-await userModel.findMany({ where: [["id", 123]], num: 1 });
+await UserModel.findMany("A", { id: 123, num: 1, page: 1 });
 // → Return from cache
 ```
 
@@ -532,8 +540,8 @@ import { Sonamu } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   @api()
-  async findById(id: number) {
-    const cacheKey = `user:${id}`;
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const cacheKey = `user:${subset}:${id}`;
 
     // Check cache
     const cached = await Sonamu.cache.get({ key: cacheKey });
@@ -542,7 +550,7 @@ class UserModelClass extends BaseModelClass {
     }
 
     // DB query
-    const user = await this.findOne(["id", id]);
+    const user = await this.findOne(subset, { id });
 
     // Cache
     await Sonamu.cache.set({
@@ -572,7 +580,7 @@ class UserModelClass extends BaseModelClass {
    ```typescript
    // Error: CacheManager is not initialized
    @cache({ ttl: "10m" })
-   async findById(id: number) { ... }
+   async findById<T extends UserSubsetKey>(subset: T, id: number) { ... }
    ```
 
 2. **Async Methods Only**: Cannot be used with synchronous methods
@@ -580,11 +588,11 @@ class UserModelClass extends BaseModelClass {
    ```typescript
    // ❌ Error
    @cache({ ttl: "10m" })
-   findByIdSync(id: number) { ... }
+   findByIdSync<T extends UserSubsetKey>(subset: T, id: number) { ... }
 
    // ✅ OK
    @cache({ ttl: "10m" })
-   async findById(id: number) { ... }
+   async findById<T extends UserSubsetKey>(subset: T, id: number) { ... }
    ```
 
 3. **Store Name Matching**: The `store` option must match names defined in configuration
@@ -634,7 +642,7 @@ class UserModelClass extends BaseModelClass {
    find(30, "John")  // Key: "Model.find:[30,"John"]" (different key!)
    ```
 
-   </Warning>
+</Warning>
 
 ## Next Steps
 

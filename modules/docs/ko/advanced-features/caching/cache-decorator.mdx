@@ -15,9 +15,10 @@ import { BaseModelClass, cache, api } from "sonamu";
 class UserModelClass extends BaseModelClass {
   @cache({ ttl: "10m" })
   @api()
-  async findById(id: number) {
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
     // 이 메서드는 10분간 캐싱됨
-    return this.findOne(["id", id]);
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -52,13 +53,14 @@ class UserModelClass extends BaseModelClass {
     ```typescript
     class UserModelClass extends BaseModelClass {
       @cache({ ttl: "10m" })
-      async findById(id: number) {
-        return this.findOne(['id', id]);
+      async findById<T extends UserSubsetKey>(subset: T, id: number) {
+        const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+        return rows[0];
       }
     }
     
-    // 호출: userModel.findById(123)
-    // 자동 생성 키: "User.findById:123"
+    // 호출: UserModel.findById("A", 123)
+    // 자동 생성 키: "User.findById:["A",123]"
     ```
     
     **패턴**: `ModelName.methodName:serializedArgs`
@@ -73,19 +75,20 @@ class UserModelClass extends BaseModelClass {
     ```typescript
     @cache({ key: "user-list", ttl: "5m" })
     async findAll() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     
-    // 호출: userModel.findAll()
+    // 호출: UserModel.findAll()
     // 키: "user-list"
     
     @cache({ key: "user", ttl: "10m" })
-    async findById(id: number) {
-      return this.findOne(['id', id]);
+    async findById<T extends UserSubsetKey>(subset: T, id: number) {
+      const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+      return rows[0];
     }
     
-    // 호출: userModel.findById(123)
-    // 키: "user:123" (인자가 suffix로 자동 추가)
+    // 호출: UserModel.findById("A", 123)
+    // 키: "user:["A",123]" (인자가 suffix로 자동 추가)
     ```
     
     **인자가 있으면**: `key:args` 형태로 자동 생성
@@ -98,7 +101,7 @@ class UserModelClass extends BaseModelClass {
       ttl: "10m"
     })
     async findByStatus(userId: number, status: string) {
-      return this.findMany({ user_id: userId, status });
+      return this.findMany("A", { sonamuFilter: { user_id: userId, status } });
     }
     
     // 호출: model.findByStatus(123, "active")
@@ -163,18 +166,19 @@ class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["product", "list"] })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   @cache({ ttl: "1h", tags: ["product"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @api()
-  async update(id: number, data: Partial<Product>) {
-    const result = await this.updateOne(["id", id], data);
+  async update(id: number, data: Partial<ProductSaveParams>) {
+    const result = await this.getPuri("w").table("products").where("id", id).update(data);
 
     // product 태그가 있는 모든 캐시 무효화
     await Sonamu.cache.deleteByTag({ tags: ["product"] });
@@ -221,14 +225,15 @@ class UserModelClass extends BaseModelClass {
   @cache({ ttl: "5m" })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   // database 스토어 사용 (Redis 공유)
   @cache({ store: "database", ttl: "1h" })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 ```
@@ -259,18 +264,19 @@ class PostModelClass extends BaseModelClass {
   @cache({ ttl: "5m", tags: ["post", "list"] })
   @api()
   async findAll(page: number = 1) {
-    return this.findMany({
+    return this.findMany("A", {
       num: 20,
       page,
-      order: [["created_at", "desc"]],
+      orderBy: "id-desc",
     });
   }
 
   // 게시글 상세 (10분 캐시)
   @cache({ ttl: "10m", tags: ["post"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends PostSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   // 인기 게시글 (1시간 캐시)
@@ -281,10 +287,10 @@ class PostModelClass extends BaseModelClass {
   })
   @api()
   async findPopular() {
-    return this.findMany({
+    return this.findMany("A", {
       num: 10,
-      where: [["view_count", ">", 1000]],
-      order: [["view_count", "desc"]],
+      sonamuFilter: { view_count: { gt: 1000 } },
+      orderBy: "view_count-desc", // post.entity.json의 enums.PostOrderBy에 "view_count-desc"를 추가하고 findMany의 orderBy 분기에서 처리
     });
   }
 }
@@ -296,19 +302,20 @@ class PostModelClass extends BaseModelClass {
 class ProductModelClass extends BaseModelClass {
   @cache({ ttl: "1h", tags: ["product"] })
   @api()
-  async findById(id: number) {
-    return this.findOne(["id", id]);
+  async findById<T extends ProductSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 
   @cache({ ttl: "30m", tags: ["product", "list"] })
   @api()
   async findAll() {
-    return this.findMany({});
+    return this.findMany("A", {});
   }
 
   @api()
   async create(data: ProductSave) {
-    const result = await this.saveOne(data);
+    const result = await this.save([data]);
 
     // list 태그만 무효화 (목록에 새 항목 추가됨)
     await Sonamu.cache.deleteByTag({ tags: ["list"] });
@@ -317,8 +324,8 @@ class ProductModelClass extends BaseModelClass {
   }
 
   @api()
-  async update(id: number, data: Partial<ProductSave>) {
-    const result = await this.updateOne(["id", id], data);
+  async update(id: number, data: Partial<ProductSaveParams>) {
+    const result = await this.getPuri("w").table("products").where("id", id).update(data);
 
     // product 태그 전체 무효화 (상세 + 목록)
     await Sonamu.cache.deleteByTag({ tags: ["product"] });
@@ -340,12 +347,13 @@ class OrderModelClass extends BaseModelClass {
   })
   @api()
   async findByUserAndStatus(userId: number, status: string, startDate: string) {
-    return this.findMany({
-      where: [
-        ["user_id", userId],
-        ["status", status],
-        ["created_at", ">=", startDate],
-      ],
+    return this.findMany("A", {
+      sonamuFilter: {
+        user_id: userId,
+        status,
+        // 날짜 필터는 before/after(경계 미포함)와 between(경계 포함)만 지원하고 gte는 없음
+        created_at: { after: new Date(startDate) },
+      },
     });
   }
 }
@@ -394,12 +402,12 @@ class ConfigModelClass extends BaseModelClass {
   })
   @api()
   async getAppConfig() {
-    return this.findOne(["key", "app_config"]);
+    return this.findOne("A", { sonamuFilter: { key: "app_config" } });
   }
 
   @api()
   async updateConfig(data: ConfigSave) {
-    const result = await this.saveOne(data);
+    const result = await this.save([data]);
 
     // 설정 변경 시 캐시 무효화
     await Sonamu.cache.deleteByTag({ tags: ["config"] });
@@ -417,17 +425,17 @@ Model 내부에서 다른 메서드를 호출할 때도 캐시가 공유됩니�
 class UserModelClass extends BaseModelClass {
   // findMany에 캐시 적용
   @cache({ ttl: "10m", tags: ["user"] })
-  @api()
-  async findMany(params: FindManyParams<User>) {
-    return super.findMany(params);
+  @api({ httpMethod: "GET" })
+  async findMany<T extends UserSubsetKey, LP extends UserListParams>(
+    subset: T,
+    rawParams?: LP,
+  ): Promise<ListResult<LP, UserSubsetMapping[T]>> {
+    // ... 생성된 쿼리 로직
   }
 
   // findById는 내부적으로 findMany를 호출
-  async findById(id: number) {
-    const { rows } = await this.findMany({
-      where: [["id", id]],
-      num: 1,
-    });
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
     return rows[0];
   }
 }
@@ -437,17 +445,17 @@ class UserModelClass extends BaseModelClass {
 
 ```typescript
 // 첫 번째 호출
-await userModel.findById(123);
-// → findMany({ where: [['id', 123]], num: 1 }) 호출
+await UserModel.findById("A", 123);
+// → findMany("A", { id: 123, num: 1, page: 1 }) 호출
 // → DB 조회 및 캐싱
 
 // 두 번째 호출 (같은 파라미터)
-await userModel.findById(123);
-// → findMany({ where: [['id', 123]], num: 1 }) 호출
+await UserModel.findById("A", 123);
+// → findMany("A", { id: 123, num: 1, page: 1 }) 호출
 // → 캐시에서 반환 (DB 조회 없음)
 
 // findMany를 직접 호출해도 같은 캐시 사용
-await userModel.findMany({ where: [["id", 123]], num: 1 });
+await UserModel.findMany("A", { id: 123, num: 1, page: 1 });
 // → 캐시에서 반환
 ```
 
@@ -824,8 +832,8 @@ import { Sonamu } from "sonamu";
 
 class UserModelClass extends BaseModelClass {
   @api()
-  async findById(id: number) {
-    const cacheKey = `user:${id}`;
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const cacheKey = `user:${subset}:${id}`;
 
     // 캐시 확인
     const cached = await Sonamu.cache.get({ key: cacheKey });
@@ -834,7 +842,7 @@ class UserModelClass extends BaseModelClass {
     }
 
     // DB 조회
-    const user = await this.findOne(["id", id]);
+    const user = await this.findOne(subset, { id });
 
     // 캐싱
     await Sonamu.cache.set({
@@ -922,11 +930,11 @@ class UserModelClass extends BaseModelClass {
    ```typescript
    // ❌ 에러
    @cache({ ttl: "10m" })
-   findByIdSync(id: number) { ... }
+   findByIdSync<T extends UserSubsetKey>(subset: T, id: number) { ... }
 
    // ✅ 정상
    @cache({ ttl: "10m" })
-   async findById(id: number) { ... }
+   async findById<T extends UserSubsetKey>(subset: T, id: number) { ... }
    ```
 
 3. **스토어 이름 일치**: `store` 옵션은 설정에 정의된 이름과 일치해야 함
@@ -976,7 +984,7 @@ class UserModelClass extends BaseModelClass {
    find(30, "John")  // 키: "Model.find:[30,"John"]" (다른 키!)
    ```
 
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

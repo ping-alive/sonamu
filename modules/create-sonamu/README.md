@@ -158,10 +158,10 @@ Docker 초기화는 데이터베이스만 생성합니다. Sonamu UI에서 첫 �
 ```bash
 # 프로젝트 루트 기준
 cd packages/api
-mise exec -- pnpm add sonamu@^0.11.0 @sonamu-kit/cli@0.1.0
+mise exec -- pnpm add sonamu@^0.12.0 @sonamu-kit/cli@0.2.0
 ```
 
-`@sonamu-kit/cli` 0.1.0은 `sonamu` `^0.11.0`과 호환됩니다. `sonamu` 패키지는 이전 CLI를 대신
+`@sonamu-kit/cli` 0.2.0은 `sonamu` `^0.12.0`과 호환됩니다. `sonamu` 패키지는 이전 CLI를 대신
 실행하는 호환용 실행 파일을 제공하지 않습니다. 기존 `sonamu dev`, `sonamu build` 스크립트는 두
 의존성을 업데이트한 뒤 그대로 사용할 수 있습니다.
 
@@ -231,7 +231,7 @@ API·웹과 Sonamu UI의 포트는 `packages/api/src/sonamu.config.ts`의 `port`
 | `mise exec -- pnpm start`          | 프로덕션 서버 실행                        |
 | `mise exec -- pnpm test`           | 테스트 실행                               |
 | `mise exec -- pnpm docker:up`      | Docker 데이터베이스 시작                  |
-| `mise exec -- pnpm docker:down`    | Docker 데이터베이스 중지                  |
+| `mise exec -- pnpm docker:down`    | Docker DB 컨테이너 삭제 (데이터 미보존)   |
 | `mise exec -- pnpm dump`           | 테스트 DB → 덤프 파일 생성                          |
 | `mise exec -- pnpm seed`           | 덤프를 fixture DB에 적용하고 test DB 동기화         |
 | `mise exec -- pnpm sync:dump`      | seed, 승인된 Migration 실행, dump를 순서대로 실행   |

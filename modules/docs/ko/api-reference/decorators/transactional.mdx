@@ -34,7 +34,7 @@ class UserModelClass extends BaseModelClass<UserSubsetKey, UserSubsetMapping, Us
     await wdb.table("users").where("id", id).update(data);
     await this.updateRelatedData(id);
 
-    return this.findById(id);
+    return this.findById("A", id);
   }
 }
 ```
@@ -92,7 +92,7 @@ async updateStatus(id: number) {
 - 트랜잭션이 직렬로 실행되는 것처럼 동작
 - 모든 이상 현상 방지
 - 가장 안전하지만 느림
-  </Accordion>
+</Accordion>
 
 ### readOnly
 
@@ -107,10 +107,11 @@ async generateReport(startDate: Date, endDate: Date) {
 
   // 여러 테이블을 조회하지만 수정하지 않음
   // 일관된 스냅샷 보장
-  const users = await rdb.table("users").select();
+  const users = await rdb.table("users").selectAll();
   const orders = await rdb.table("orders")
-    .whereBetween("created_at", [startDate, endDate])
-    .select();
+    .where("created_at", ">=", startDate)
+    .where("created_at", "<=", endDate)
+    .selectAll();
 
   return this.calculateReport(users, orders);
 }
@@ -136,7 +137,7 @@ async saveData(data: SaveParams) {
 async complexQuery() {
   // 읽기용 DB에서 트랜잭션
   const rdb = this.getPuri("r");
-  return rdb.table("users").select();
+  return rdb.table("users").selectAll();
 }
 ```
 
@@ -267,7 +268,7 @@ async findWithRelations(id: number) {
   const rdb = this.getPuri("r");
 
   const user = await rdb.table("users").where("id", id).first();
-  const posts = await rdb.table("posts").where("user_id", id).select();
+  const posts = await rdb.table("posts").where("user_id", id).selectAll();
 
   return { user, posts };
 }
@@ -653,11 +654,11 @@ async save() {
   파일 업로드 API 만들기
 </Card>
 
-<Card title="Database 가이드" icon="database" href="/ko/core-concepts/database/puri">
+<Card title="Database 가이드" icon="database" href="/ko/database/puri/basic-queries">
   Puri 쿼리 빌더 사용하기
 </Card>
 
-  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/core-concepts/error-handling">
+  <Card title="에러 처리" icon="triangle-exclamation" href="/ko/api-development/validation/error-handling">
     에러 처리 방법 배우기
   </Card>
 </CardGroup>

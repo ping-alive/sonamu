@@ -176,7 +176,7 @@ export type UserListParams = z.infer<typeof UserListParams>;
 
 ```typescript
 // API call
-const result = await findManyUsers({
+const result = await UserService.getUsers("A", {
   num: 20,
   page: 1,
   search: "email",
@@ -223,7 +223,7 @@ export type UserSaveParams = z.infer<typeof UserSaveParams>;
 
 ```typescript title="Usage example"
 // Create new (no id)
-await saveUser([
+await UserService.save([
   {
     email: "new@test.com",
     username: "newuser",
@@ -232,7 +232,7 @@ await saveUser([
 ]);
 
 // Update (with id)
-await saveUser([
+await UserService.save([
   {
     id: 1,
     email: "updated@test.com",
@@ -439,15 +439,15 @@ export type ListResult<
 // Type is automatically determined based on queryMode
 
 // queryMode: "both" (default)
-const result = await findManyUsers({ num: 10, page: 1 });
+const result = await UserService.getUsers("A", { num: 10, page: 1 });
 // ListResult<UserListParams, User> = { rows: User[]; total: number }
 
 // queryMode: "list"
-const result = await findManyUsers({ num: 10, page: 1, queryMode: "list" });
+const result = await UserService.getUsers("A", { num: 10, page: 1, queryMode: "list" });
 // ListResult<UserListParams, User> = { rows: User[] }
 
 // queryMode: "count"
-const result = await findManyUsers({ queryMode: "count" });
+const result = await UserService.getUsers("A", { queryMode: "count" });
 // ListResult<UserListParams, User> = { total: number }
 ```
 

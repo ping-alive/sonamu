@@ -86,14 +86,14 @@ Sonamu UI에서 Entity를 선택합니다.
 - PascalCase로 입력
 - Entity와 연관시키려면 `{Entity}` 패턴 사용
   - 예: `$ModelRole` → `UserRole` (자동 변환)
-    </Step>
+</Step>
 
 <Step title="Enum 값 추가">
 각 Enum은 별도 탭으로 표시되며, **"Add Row"** 버튼으로 키-레이블 쌍을 추가합니다.
 
 - **Key**: 영문 소문자, 숫자, 언더스코어
 - **Label**: 한글 또는 표시명
-  </Step>
+</Step>
 
 <Step title="저장">
 Entity를 저장하면 Enum이 함께 저장됩니다.
@@ -211,7 +211,7 @@ export type UserUpdateParams = z.infer<typeof UserUpdateParams>;
 ```typescript title="백엔드"
 import { getUserRoleLabel } from "./sonamu.generated";
 
-const user = await UserModel.findById(1);
+const user = await UserModel.findById("A", 1);
 const roleLabel = getUserRoleLabel(user.role);
 // "관리자"
 
@@ -279,7 +279,7 @@ async findAll(orderBy: UserOrderBy = "id-desc") {
 ```typescript
 async search(field: UserSearchField, keyword: string) {
   return this.getPuri("r").from("users")
-    .whereLike(field, `%${keyword}%`);
+    .where(field, "like", `%${keyword}%`);
 }
 ```
 
@@ -376,7 +376,7 @@ function hasPermission(user: User, permission: Permission): boolean {
 
 // 권한 추가
 async grantPermission(userId: number, permission: Permission) {
-  const user = await this.findById(userId);
+  const user = await this.findById("A", userId);
   if (!user.permissions.includes(permission)) {
     await this.getPuri("w").from("users")
       .where("id", userId)
@@ -530,7 +530,7 @@ Entity 이름을 동적으로 포함하려면 `$Model`을 사용합니다:
 1. 새 키 추가
 2. 데이터 마이그레이션 (기존 키 → 새 키)
 3. 구 키 삭제
-   </Warning>
+</Warning>
 
 <Warning>
 **Key 네이밍 제한**
@@ -580,7 +580,7 @@ Label은 표시용이므로 언제든지 변경 가능합니다. 데이터베이
   <Card title="Field Types" icon="list" href="/ko/core-concepts/entity/field-types">
     다른 필드 타입 알아보기
   </Card>
-  <Card title="Validation" icon="shield-check" href="/ko/api-development/validation/zod-schemas">
+  <Card title="Validation" icon="shield-check" href="/ko/api-development/validation/automatic-validation">
     Zod로 데이터 검증하기
   </Card>
   <Card
@@ -590,7 +590,7 @@ Label은 표시용이므로 언제든지 변경 가능합니다. 데이터베이
   >
     생성된 컴포넌트 사용하기
   </Card>
-  <Card title="API Development" icon="code" href="/ko/api-development/creating-apis/basic-crud">
+  <Card title="API Development" icon="code" href="/ko/api-development/creating-apis/api-decorator">
     Enum을 사용한 API 개발
   </Card>
 </CardGroup>

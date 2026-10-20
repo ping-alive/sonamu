@@ -11,33 +11,30 @@ Subsets are used through Model methods.
 
 ```typescript
 // Single Subset
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 // Type: UserSubsetMapping["P"]
 
 // Multiple Subsets (Union)
-const user = await UserModel.findById(1, ["A", "P"]);
+const subset: "A" | "P" = isAdmin ? "A" : "P";
+const user = await UserModel.findById(subset, 1);
 // Type: UserSubsetMapping["A"] | UserSubsetMapping["P"]
 ```
 
 ### findOne - Single Record by Condition
 
 ```typescript
-const user = await UserModel.findOne({
-  where: [["email", "john@test.com"]],
-  subsetKey: "P",
+const user = await UserModel.findOne("P", {
+  sonamuFilter: { email: "john@test.com" },
 });
-// Type: UserSubsetMapping["P"] | undefined
+// Type: UserSubsetMapping["P"] | null
 ```
 
 ### findMany - Multiple Records Query
 
 ```typescript
-const users = await UserModel.findMany({
-  listParams: {
-    page: 1,
-    pageSize: 20,
-  },
-  subsetKey: "L",
+const { rows: users } = await UserModel.findMany("L", {
+  page: 1,
+  num: 20,
 });
 // Type: UserSubsetMapping["L"][]
 ```
@@ -133,7 +130,7 @@ onSubsetL("L").where("employee__department.name", "Engineering");
 ### Automatic Type Inference
 
 ```typescript
-const user = await UserModel.findById(1, ["P"]);
+const user = await UserModel.findById("P", 1);
 
 // TypeScript automatically infers types
 user.id; // number
@@ -242,11 +239,11 @@ async searchUsers(params: {
 // Use different Subsets based on situation
 async getUser(userId: number, detailed: boolean) {
   if (detailed) {
-    return await UserModel.findById(userId, ["P"]);
-    // Type: UserSubsetMapping["P"] | undefined
+    return await UserModel.findById("P", userId);
+    // Type: UserSubsetMapping["P"]
   } else {
-    return await UserModel.findById(userId, ["SS"]);
-    // Type: UserSubsetMapping["SS"] | undefined
+    return await UserModel.findById("SS", userId);
+    // Type: UserSubsetMapping["SS"]
   }
 }
 ```
@@ -255,10 +252,10 @@ async getUser(userId: number, detailed: boolean) {
 
 ```typescript
 async getUserData(userId: number, role: UserRole) {
-  const subsets = role === "admin" ? ["A"] : ["P"];
+  const subset = role === "admin" ? "A" : "P";
 
-  return await UserModel.findById(userId, subsets);
-  // Type: UserSubsetMapping["A"] | UserSubsetMapping["P"] | undefined
+  return await UserModel.findById(subset, userId);
+  // Type: UserSubsetMapping["A"] | UserSubsetMapping["P"]
 }
 ```
 
@@ -268,16 +265,10 @@ async getUserData(userId: number, role: UserRole) {
 
 ```typescript
 // ❌ Bad: Using Subset A for lists (excessive data)
-const users = await UserModel.findMany({
-  listParams: { page: 1, pageSize: 20 },
-  subsetKey: "A", // Loading all fields
-});
+const { rows: users } = await UserModel.findMany("A", { page: 1, num: 20 }); // Loading all fields
 
 // ✅ Good: Use Subset L for lists
-const users = await UserModel.findMany({
-  listParams: { page: 1, pageSize: 20 },
-  subsetKey: "L", // Only needed fields
-});
+const { rows: users } = await UserModel.findMany("L", { page: 1, num: 20 }); // Only needed fields
 ```
 
 ### Minimize JOINs
@@ -362,7 +353,7 @@ const users = await puri
   <Card title="Defining Subsets" icon="pen" href="/en/database/subsets/defining-subsets">
     Create Subsets in Entity
   </Card>
-  <Card title="Model Methods" icon="cube" href="/en/core-concepts/model/model-methods">
+  <Card title="Model Methods" icon="cube" href="/en/core-concepts/model/basemodel-methods">
     Model CRUD methods
   </Card>
   <Card title="Puri Queries" icon="database" href="/en/database/puri/basic-queries">

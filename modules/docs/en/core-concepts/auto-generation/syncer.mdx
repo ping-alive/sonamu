@@ -458,7 +458,7 @@ Define Entity in Sonamu UI or modify `.entity.json` file.
 - Update `sonamu.generated.ts`
 - Update `sonamu.generated.sso.ts`
 - Copy files to targets
-  </Step>
+</Step>
 
 <Step title="Write Model">
 Write business logic in Model and add `@api` decorator.
@@ -468,7 +468,7 @@ Write business logic in Model and add `@api` decorator.
 - Update `services.generated.ts`
 - Update `sonamu.generated.http`
 - Update SSR files
-  </Step>
+</Step>
 
 <Step title="Frontend Development">
 Develop UI using generated API clients and Types.
@@ -499,24 +499,52 @@ Check changes without browser refresh!
 
 <AccordionGroup>
   <Accordion title="Files Not Being Generated">
-    **Check**: 1. Confirm development server is running 2. Verify file matches watched patterns 3.
-    Try a force re-sync ```bash pnpm sonamu sync --force ```
+    **Check**:
+
+    1. Confirm development server is running
+    2. Verify file matches watched patterns
+    3. Try a force re-sync
+
+    ```bash
+    pnpm sonamu sync --force
+    ```
+
   </Accordion>
 
-<Accordion title="Files Not Being Copied to Targets">
-  **Check**: 1. Verify `sync.targets` in `sonamu.config.ts` 2. Confirm target directory exists 3.
-  Create `src/services/` directory in target ```bash mkdir -p web/src/services mkdir -p
-  app/src/services ```
-</Accordion>
+  <Accordion title="Files Not Being Copied to Targets">
+    **Check**:
 
-<Accordion title="Slow HMR">
-  **Optimization methods**: 1. Use latest Node.js version (v22+) 2. Use SSD (HDD is slow) 3. Exclude
-  unnecessary files 4. Separate TypeScript projects (monorepo)
-</Accordion>
+    1. Verify `sync.targets` in `sonamu.config.ts`
+    2. Confirm target directory exists
+    3. Create `src/services/` directory in target
+
+    ```bash
+    mkdir -p web/src/services
+    mkdir -p app/src/services
+    ```
+
+  </Accordion>
+
+  <Accordion title="Slow HMR">
+    **Optimization methods**:
+
+    1. Use latest Node.js version (v22+)
+    2. Use SSD (HDD is slow)
+    3. Exclude unnecessary files
+    4. Separate TypeScript projects (monorepo)
+
+  </Accordion>
 
   <Accordion title="Import Errors">
-    **Cause**: `sonamu` import not transformed to `./sonamu.shared` **Solution**: ```bash # Force
-    re-sync pnpm sonamu sync --force ```
+    **Cause**: `sonamu` import not transformed to `./sonamu.shared`
+
+    **Solution**:
+
+    ```bash
+    # Force re-sync
+    pnpm sonamu sync --force
+    ```
+
   </Accordion>
 </AccordionGroup>
 
@@ -537,10 +565,7 @@ Check changes without browser refresh!
   >
     How to customize generated code
   </Card>
-  <Card title="Templates" icon="file-code" href="/en/advanced/templates/creating-templates">
-    Create custom templates
-  </Card>
-  <Card title="HMR System" icon="bolt" href="/en/advanced/hmr/understanding-hmr">
+  <Card title="HMR System" icon="bolt" href="/en/tools-and-cli/hmr/how-hmr-works">
     Deep understanding of HMR system
   </Card>
 </CardGroup>

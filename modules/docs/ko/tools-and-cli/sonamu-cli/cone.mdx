@@ -3,12 +3,12 @@ title: "cone"
 description: "AI를 활용한 cone 메타데이터 생성 및 업그레이드"
 ---
 
-`pnpm cone gen` 명령어는 AI(LLM)를 사용하여 Entity의 **cone 메타데이터**를 생성하거나 업그레이드합니다. `stub entity`로 생성된 템플릿 cone을 AI 기반으로 개선하거나, 기존 cone을 재생성할 수 있습니다.
+`pnpm sonamu cone gen` 명령어는 AI(LLM)를 사용하여 Entity의 **cone 메타데이터**를 생성하거나 업그레이드합니다. `stub entity`로 생성된 템플릿 cone을 AI 기반으로 개선하거나, 기존 cone을 재생성할 수 있습니다.
 
 ## 기본 사용법
 
 ```bash
-pnpm cone gen <entityId> [옵션]
+pnpm sonamu cone gen <entityId> [옵션]
 ```
 
 <Note>
@@ -19,53 +19,35 @@ pnpm cone gen <entityId> [옵션]
 
 | 옵션                    | 설명                                                                         | 예시                                 |
 | ----------------------- | ---------------------------------------------------------------------------- | ------------------------------------ |
-| (없음)                  | 비어 있는 fixtureHint만 생성 (기존 값 보존)                                  | `pnpm cone gen Product`              |
-| `--regenerate`          | 기존 cone을 덮어쓰고 전체 재생성                                             | `pnpm cone gen Product --regenerate` |
-| `--locale <ko\|en\|ja>` | 생성 언어 지정 (기본값: `sonamu.config.ts`의 `i18n.defaultLocale` 또는 `ko`) | `pnpm cone gen Product --locale en`  |
-| `--all`                 | 모든 Entity의 cone을 일괄 생성                                               | `pnpm cone gen all`                  |
+| (없음)                  | 비어 있는 fixtureHint만 생성 (기존 값 보존)                                  | `pnpm sonamu cone gen Product`              |
+| `--regenerate`          | 기존 cone을 덮어쓰고 전체 재생성                                             | `pnpm sonamu cone gen Product --regenerate` |
+| `--locale <ko\|en\|ja>` | 생성 언어 지정 (기본값: `sonamu.config.ts`의 `i18n.defaultLocale` 또는 `ko`) | `pnpm sonamu cone gen Product --locale en`  |
+| Entity 자리에 `all`     | 모든 Entity의 cone을 일괄 생성                                               | `pnpm sonamu cone gen all`                  |
 
 ## 예시
 
 ### 단일 Entity cone 생성
 
 ```bash
-pnpm cone gen Product
-# 🌟 Generating AI-powered cones for Product...
-# ✅ Done! (1234 tokens used)
-# 💰 Estimated cost: ~$0.0111
+pnpm sonamu cone gen Product
 ```
 
 ### 기존 cone 재생성
 
 ```bash
-pnpm cone gen Product --regenerate
-# 🌟 Regenerating AI-powered cones for Product...
-# ✅ Done! (1567 tokens used)
-# 💰 Estimated cost: ~$0.0141
+pnpm sonamu cone gen Product --regenerate
 ```
 
 ### 영어로 cone 생성
 
 ```bash
-pnpm cone gen Product --locale en
+pnpm sonamu cone gen Product --locale en
 ```
 
 ### 모든 Entity 일괄 생성
 
 ```bash
-pnpm cone gen all
-# 🌟 Generating AI-powered cones for 5 entities...
-#
-# Processing User...
-#   ✓ User (1234 tokens)
-#
-# Processing Product...
-#   ✓ Product (1567 tokens)
-#
-# ...
-#
-# ✅ Done! Total: 5678 tokens used
-# 💰 Estimated cost: ~$0.0511
+pnpm sonamu cone gen all
 ```
 
 ## 동작 방식
@@ -84,13 +66,13 @@ pnpm cone gen all
 
 ```bash
 # 1. Entity 생성 (템플릿 cone 자동 포함)
-pnpm stub entity Product
+pnpm sonamu stub entity Product
 
 # 2. AI로 cone 업그레이드
-pnpm cone gen Product
+pnpm sonamu cone gen Product
 
 # 3. 필요 시 특정 언어로 재생성
-pnpm cone gen Product --regenerate --locale en
+pnpm sonamu cone gen Product --regenerate --locale en
 ```
 
 ## 다음 단계

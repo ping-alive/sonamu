@@ -40,7 +40,11 @@ pnpm dev web
 
 <Tip>
   `pnpm dev web` passes arguments after `--` directly to Vite. For example, to change the port:
-  ```bash pnpm dev web -- --port 5174 ```
+
+  ```bash
+  pnpm dev web -- --port 5174
+  ```
+
 </Tip>
 
 ## How It Works
@@ -138,8 +142,9 @@ The server **automatically restarts** when modifying these files:
 // Modifying user.model.ts
 class UserModelClass extends BaseModelClass {
   @api({ httpMethod: "GET" })
-  async findById(id: number) {
-    return this.getPuri("r").table("users").where("id", id).first();
+  async findById<T extends UserSubsetKey>(subset: T, id: number) {
+    const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+    return rows[0];
   }
 }
 
@@ -221,7 +226,7 @@ Modify code and test immediately:
 // Modify API endpoint
 @api({ httpMethod: "GET" })
 async getUsers() {
-  return this.findMany({ num: 10, page: 1 });
+  return this.findMany("A", { num: 10, page: 1 });
 }
 
 // Save → Auto-restart → Test immediately

@@ -333,13 +333,12 @@ await ProjectModel.findMany("A", {
 
 ## Relationship with Existing Filters
 
-`sonamuFilter` can be used together with custom filters in `ListParams`:
+`sonamuFilter` can be combined with the other `ListParams` fields, such as the built-in `id` filter and any [custom filters](/en/api-reference/base-model/find-many#custom-filters) you add to the entity's `ListParams`:
 
 ```typescript
 const { rows } = await ProjectModel.findMany("A", {
-  // Existing custom filters
+  // Built-in ListParams filter
   id: [1, 2, 3],
-  status: "active",
 
   // sonamuFilter
   sonamuFilter: {

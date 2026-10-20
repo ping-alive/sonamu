@@ -118,7 +118,7 @@ import { UserModel } from "./application/user/user.model";
 
 // Changes to UserModel won't be reflected!
 app.get("/users", async (req, res) => {
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 ```
@@ -131,7 +131,7 @@ app.get("/users", async (req, res) => {
   const { UserModel } = await import("./application/user/user.model");
 
   // When UserModel is modified, latest code is loaded on next request!
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 ```
@@ -164,8 +164,8 @@ Static imports between Boundary files are allowed (Sonamu's enhancement):
 import { PostModel } from "./post.model"; // ✅ OK - both are boundaries
 
 export class UserModel extends BaseModelClass {
-  async getPosts() {
-    return PostModel.findMany({ where: { userId: this.id } });
+  async getPosts(userId: number) {
+    return PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
   }
 }
 ```
@@ -245,7 +245,7 @@ import { UserModel } from "../user/user.model";  // ✅ Both are boundaries
 
 @api({ httpMethod: "POST" })
 async create(body: PostForm) {
-  const user = await UserModel.findById(body.userId);
+  const user = await UserModel.findById("A", body.userId);
 
   if (!user.canCreatePost()) {  // 👈 Use the method just added!
     throw new UnauthorizedException("You don't have permission to create posts");
@@ -344,7 +344,7 @@ import { PaymentService } from "../payment/payment.service";
 
 export class OrderModel extends BaseModelClass {
   static async createOrder(productId: number, quantity: number, userId: number) {
-    const product = await ProductModel.findById(productId);
+    const product = await ProductModel.findById("A", productId);
 
     // Can use ProductModel.reserveStock() immediately!
     await product.reserveStock(quantity);

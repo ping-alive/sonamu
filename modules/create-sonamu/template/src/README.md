@@ -100,10 +100,10 @@ API 패키지는 `sonamu`와 `@sonamu-kit/cli`를 모두 직접 의존합니다.
 ```bash
 # 프로젝트 루트 기준
 cd packages/api
-mise exec -- pnpm add sonamu@^0.11.0 @sonamu-kit/cli@0.1.0
+mise exec -- pnpm add sonamu@^0.12.0 @sonamu-kit/cli@0.2.0
 ```
 
-`@sonamu-kit/cli` 0.1.0은 `sonamu` `^0.11.0`과 호환됩니다. `sonamu` 패키지는 이전 CLI를 대신
+`@sonamu-kit/cli` 0.2.0은 `sonamu` `^0.12.0`과 호환됩니다. `sonamu` 패키지는 이전 CLI를 대신
 실행하는 호환용 실행 파일을 제공하지 않습니다.
 
 ---
@@ -169,7 +169,7 @@ API·웹과 Sonamu UI의 포트는 `packages/api/src/sonamu.config.ts`의 `port`
 | `mise exec -- pnpm start`       | 프로덕션 서버 시작                                |
 | `mise exec -- pnpm test`        | 테스트 실행                                       |
 | `mise exec -- pnpm docker:up`   | Docker DB 시작                                    |
-| `mise exec -- pnpm docker:down` | Docker DB 중지                                    |
+| `mise exec -- pnpm docker:down` | Docker DB 컨테이너 삭제 (데이터 미보존)           |
 | `mise exec -- pnpm dump`        | 테스트 DB 덤프 생성                               |
 | `mise exec -- pnpm seed`        | 덤프를 fixture DB에 적용하고 test DB 동기화       |
 | `mise exec -- pnpm sync:dump`   | seed, 승인된 Migration 실행, dump를 순서대로 실행 |

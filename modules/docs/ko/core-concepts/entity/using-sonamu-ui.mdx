@@ -25,7 +25,7 @@ http://localhost:34900/sonamu-ui
 <Info>Sonamu UI는 별도의 포트 없이 API 서버의 `/sonamu-ui` 경로에서 제공됩니다.</Info>
 
 <Frame caption="Sonamu UI Main">
-  <img src="/modules/docs/images/sonamuUI1.png" alt="Sonamu UI" />
+  <img src="/images/sonamuUI1.png" alt="Sonamu UI" />
 </Frame>
 
 ## 주요 탭 구성
@@ -52,7 +52,7 @@ Sonamu UI는 4개의 주요 탭으로 구성됩니다:
 **Entities** 탭을 클릭하면 프로젝트의 모든 Entity 목록이 표시됩니다.
 
 <Frame caption="Entity List">
-  <img src="/modules/docs/images/usingSonamuUI1.png" alt="Entity List" />
+  <img src="/images/usingSonamuUI1.png" alt="Entity List" />
 </Frame>
 
 **표시 정보**:
@@ -90,7 +90,7 @@ Entity ID는 생성 후 변경할 수 없으므로 신중하게 입력하세요.
 </Steps>
 
 <Frame caption="Create Entity Dialog">
-  <img src="/modules/docs/images/usingSonamuUI2.png" alt="Create Dialog" />
+  <img src="/images/usingSonamuUI2.png" alt="Create Dialog" />
 </Frame>
 
 ## Entity 편집하기
@@ -102,7 +102,7 @@ Entity를 클릭하면 상세 편집 페이지가 열립니다. 4개의 시트�
 Entity의 속성(컬럼)을 관리하는 메인 시트입니다.
 
 <Frame caption="Props Sheet">
-  <img src="/modules/docs/images/sonamuUI-created-entity.png" alt="Props" />
+  <img src="/images/sonamuUI-created-entity.png" alt="Props" />
 </Frame>
 
 #### Props 추가하기
@@ -225,8 +225,8 @@ Entity의 속성(컬럼)을 관리하는 메인 시트입니다.
 - `m`: HNSW 그래프 연결 수 (기본값: 16)
 - `efConstruction`: HNSW 구성 품질 (기본값: 64)
 - `lists`: IVFFlat 클러스터 수 (기본값: 100)
-  </Step>
-  </Steps>
+</Step>
+</Steps>
 
 <Tip>
   **인덱스 네이밍 규칙**: - 일반 인덱스: `{table}_{columns}_idx` - 유니크 인덱스: `{table}_{columns}
@@ -238,7 +238,7 @@ Entity의 속성(컬럼)을 관리하는 메인 시트입니다.
 API 응답을 위한 필드 조합을 정의합니다.
 
 <Frame caption="Relations and Subsets">
-  <img src="/modules/docs/images/sonamuUI-relation-subsets.png" alt="Relations" />
+  <img src="/images/sonamuUI-relation-subsets.png" alt="Relations" />
 </Frame>
 
 #### Subset 키 추가
@@ -283,7 +283,7 @@ API 응답을 위한 필드 조합을 정의합니다.
 Enum 타입의 키와 레이블을 정의합니다.
 
 <Frame caption="Enums Section">
-  <img src="/modules/docs/images/sonamuUI-enums.png" alt="Enums" />
+  <img src="/images/sonamuUI-enums.png" alt="Enums" />
 </Frame>
 
 #### Enum 추가
@@ -439,7 +439,7 @@ Sonamu UI는 입력 즉시 유효성을 검사합니다:
 오류가 있으면 **빨간색 테두리**와 함께 오류 메시지가 표시됩니다.
 
 <Frame caption="Validation Errors">
-  <img src="/modules/docs/images/usingSonamuUI4.png" alt="Validation" />
+  <img src="/images/usingSonamuUI4.png" alt="Validation" />
 </Frame>
 
 ## 자동 완성 기능
@@ -473,7 +473,7 @@ Sonamu UI의 기본 사용법을 익혔다면, 다음 주제를 학습하세요:
   <Card
     title="Scaffolding"
     icon="wand-magic-sparkles"
-    href="/ko/tools-and-cli/scaffolding/generate-code"
+    href="/ko/tools-and-cli/sonamu-ui/scaffolding-tab"
   >
     Model과 Types 파일 자동 생성
   </Card>

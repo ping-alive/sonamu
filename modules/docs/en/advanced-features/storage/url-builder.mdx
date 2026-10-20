@@ -317,7 +317,7 @@ https://bucket.s3.amazonaws.com/private/doc.pdf?X-Amz-Algorithm=...&X-Amz-Expire
 - Secure downloads
 - Time-limited access
 
-### UploadedFile's signedUrl
+### BufferedFile's signedUrl
 
 ```typescript
 @upload()
@@ -624,7 +624,7 @@ const signedUrl = await disk.getSignedUrl("private/doc.pdf", {
    // Add version parameter for cache invalidation
    generateURL: (key) => `/uploads/${key}?v=${Date.now()}`;
    ```
-   </Warning>
+</Warning>
 
 ## CloudFront Configuration
 

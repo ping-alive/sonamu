@@ -9,11 +9,11 @@ You've generated embeddings and stored them in the database. Now it's time to bu
 
 ```typescript
 // You've saved documents
-await DocumentModel.saveOne({
+await DocumentModel.save([{
   title: "Getting Started with Sonamu",
   content: "...",
   embedding: [0.2, 0.8, ...],  // 1024 dimensions
-});
+}]);
 
 // Now you want to search
 // When searching "TypeScript framework"
@@ -87,11 +87,11 @@ class DocumentModelClass extends BaseModelClass {
 pgvector's special operators (`<=>`) cannot be expressed with ordinary `where` conditions:
 
 ```typescript
-// Cannot be expressed with findMany's wq
-await this.findMany({
-  wq: [
+// Cannot be expressed with findMany's sonamuFilter
+await this.findMany("A", {
+  sonamuFilter: {
     /* how to use pgvector operators? */
-  ],
+  },
 });
 
 // Puri's vectorSimilarity()
@@ -271,7 +271,7 @@ class ProductModelClass extends BaseModelClass {
   @api({ httpMethod: "POST" })
   async recommendSimilarProducts(productId: number, limit: number = 10) {
     // Get base product
-    const baseProduct = await this.findById(productId);
+    const baseProduct = await this.findById("A", productId);
 
     if (!baseProduct.embedding) {
       throw new Error("Product embedding does not exist");
@@ -542,7 +542,7 @@ const results = await rdb
    LIMIT 10  -- OK
    -- LIMIT 1000  -- Slow
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

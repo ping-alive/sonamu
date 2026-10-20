@@ -3,7 +3,7 @@ title: "scaffold"
 description: "Auto-generate code from Entity definitions"
 ---
 
-The `pnpm scaffold` command **auto-generates boilerplate code** based on Entity definitions. It generates Model classes and test files in seconds, significantly reducing development time.
+The `pnpm sonamu scaffold` command **auto-generates boilerplate code** based on Entity definitions. It generates Model classes and test files in seconds, significantly reducing development time.
 
 ## Basic Concept
 
@@ -21,10 +21,10 @@ Scaffold is an automation tool that **converts Entities to code**:
 Generate a Model class for an Entity.
 
 ```bash
-pnpm scaffold model
+pnpm sonamu scaffold model User
 ```
 
-An interactive prompt appears:
+If you omit the Entity in a TTY, an interactive prompt asks for it:
 
 ```
 ? Please select entity: (Use arrow keys)
@@ -32,6 +32,8 @@ An interactive prompt appears:
   Post
   Comment
 ```
+
+`scaffold model` fails when the Model file already exists. To regenerate it, see [Regenerating Model](#regenerating-model).
 
 **Generated files**:
 
@@ -111,7 +113,7 @@ export const UserModel = new UserModelClass();
 Generate a test file for a Model.
 
 ```bash
-pnpm scaffold model_test
+pnpm sonamu scaffold model_test User
 ```
 
 **Generated files**:
@@ -147,10 +149,10 @@ Admin list and form components can also be generated from the CLI.
 
 ```bash
 # Generate the list screen
-pnpm scaffold view_list
+pnpm sonamu scaffold view_list User
 
 # Generate the create/edit form
-pnpm scaffold view_form
+pnpm sonamu scaffold view_form User
 ```
 
 **Generated files**:
@@ -261,17 +263,16 @@ describe.skip("UserModelTest", () => {
 ### 2. Migration
 
 ```bash
-# Create and apply migration
-pnpm migrate run
+# Generate the migration from the Entity, then apply it
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 ```
 
 ### 3. Generate Model
 
 ```bash
 # Generate Model class
-pnpm scaffold model
-
-# Select Entity: Product
+pnpm sonamu scaffold model Product
 ```
 
 ### 4. Add Business Logic
@@ -294,7 +295,10 @@ class ProductModelClass extends BaseModelClass<
 
   // Find products by price range
   async findByPriceRange(min: number, max: number) {
-    return this.getPuri("r").table("products").whereBetween("price", [min, max]);
+    return this.getPuri("r")
+      .table("products")
+      .where("price", ">=", min)
+      .where("price", "<=", max);
   }
 }
 ```
@@ -303,9 +307,7 @@ class ProductModelClass extends BaseModelClass<
 
 ```bash
 # Generate test file
-pnpm scaffold model_test
-
-# Select Entity: Product
+pnpm sonamu scaffold model_test Product
 ```
 
 ### 6. Write Tests
@@ -384,8 +386,8 @@ class UserModelClass extends BaseModelClass<
     const [stats] = await this.getPuri("r")
       .table("users")
       .select({
-        postCount: this.raw("COUNT(posts.id)"),
-        commentCount: this.raw("COUNT(comments.id)"),
+        postCount: Puri.rawNumber("COUNT(DISTINCT posts.id)"),
+        commentCount: Puri.rawNumber("COUNT(DISTINCT comments.id)"),
       })
       .leftJoin("posts", "posts.user_id", "users.id")
       .leftJoin("comments", "comments.user_id", "users.id")
@@ -431,23 +433,21 @@ describe("User Model - Extended", () => {
 
 ## Batch Generation for Multiple Entities
 
-### Using Scripts
+### Using `scaffold batch`
 
 ```bash
 # Generate Model for all Entities
-for entity in User Post Comment Category; do
-  echo $entity | pnpm scaffold model
-done
+pnpm sonamu scaffold batch --entity User,Post,Comment,Category --template model --execute
 ```
 
 ### Batch Test Generation
 
 ```bash
 # Generate tests for all Models
-for entity in User Post Comment Category; do
-  echo $entity | pnpm scaffold model_test
-done
+pnpm sonamu scaffold batch --entity User,Post,Comment,Category --template model_test --execute
 ```
+
+`scaffold batch` is a dry-run unless you pass `--execute`. In a TTY it asks for confirmation; add `--confirm` for non-interactive runs. Existing files are skipped unless you add `--overwrite`. Use `scaffold status` or `scaffold preview` with the same `--entity`/`--template` selectors to check which files exist and what would be written.
 
 ## Practical Tips
 
@@ -478,16 +478,16 @@ done
 
 ```typescript
 // 1. Generate basic Model
-pnpm scaffold model
+pnpm sonamu scaffold model User
 
 // 2. Add simple methods first
-async findById(id: number) { ... }
+async findByEmail(email: string) { ... }
 
 // 3. Add complex logic
 async complexQuery() { ... }
 
 // 4. Write tests
-pnpm scaffold model_test
+pnpm sonamu scaffold model_test User
 ```
 
 ### 3. Follow Conventions
@@ -525,8 +525,9 @@ git commit -m "Add User model and tests"
 # Backup existing file
 cp src/application/user/user.model.ts src/application/user/user.model.ts.bak
 
-# Regenerate
-pnpm scaffold model
+# Preview, then regenerate over the existing file
+pnpm sonamu scaffold preview --entity User --template model
+pnpm sonamu scaffold batch --entity User --template model --overwrite --execute
 
 # Restore necessary code
 ```
@@ -538,8 +539,9 @@ pnpm scaffold model
 **Solution**:
 
 ```bash
-# 1. Apply migration
-pnpm migrate run
+# 1. Generate and apply the migration
+pnpm sonamu migrate generate
+pnpm sonamu migrate run --execute
 
 # 2. Update Model manually
 # (Types sync automatically)

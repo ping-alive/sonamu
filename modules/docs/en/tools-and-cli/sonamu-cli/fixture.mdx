@@ -3,7 +3,7 @@ title: "fixture"
 description: "Managing test data"
 ---
 
-The `pnpm fixture` command manages **consistent data sets** for testing. You can copy actual data from the development environment to the test environment for stable and repeatable tests.
+The `pnpm sonamu fixture` command manages **consistent data sets** for testing. You can copy actual data from the development environment to the test environment for stable and repeatable tests.
 
 ## Basic Concept
 
@@ -16,30 +16,23 @@ Fixture is a **fixed data set** for testing:
 
 ## Commands
 
+<Info>
+  `init`, `import`, `sync`, `gen`, and `fetch` are dry-runs unless you pass `--execute`. In a TTY they
+  ask for confirmation; in non-interactive runs (such as CI), add `--confirm`. `explore` only reads data.
+</Info>
+
 ### init - Initialize Test DB
 
 Copy development DB schema to test DB.
 
 ```bash
-pnpm fixture init
+pnpm sonamu fixture init --execute
 ```
 
-**Execution process**:
-
-```
-DUMP...
-  ✓ Schema dumped from development
-
-SYNC to (REMOTE) Fixture DB...
-  ✓ Database myapp_fixture created
-  ✓ Schema applied
-
-SYNC to (LOCAL) Testing DB...
-  ✓ Database myapp_test created
-  ✓ Schema applied
-
-Fixture initialization completed!
-```
+**Output**: `init` dumps the schema of the database for the current `NODE_ENV` and creates the
+Fixture DB and the Test DB from it. It prints a line only for a target it skips: `<label>: Database
+"<name>" Already exists` when the database already exists, or `(LOCAL) Testing DB: Skipped!` when
+the Test DB points to the same database as the Fixture DB.
 
 **Databases created**:
 
@@ -53,27 +46,10 @@ Fixture initialization completed!
 Save specific records from development DB as fixtures.
 
 ```bash
-pnpm fixture import
+pnpm sonamu fixture import User 1 2 3 --execute
 ```
 
-Interactive prompt appears:
-
-```
-? Please select entity: (Use arrow keys)
-❯ User
-  Post
-  Comment
-
-? Enter record IDs (comma-separated): 1,2,3
-
-Importing fixtures...
-  ✓ Imported User #1
-  ✓ Imported User #2
-  ✓ Imported User #3
-  ✓ Imported related records (5 dependencies)
-
-Fixture import completed!
-```
+Pass the Entity and one or more numeric record IDs. In a TTY you can omit the Entity (`pnpm sonamu fixture import 1 2 3 --execute`) and pick it from a prompt; the IDs are always required. Related records are imported too, and the fixtures are then synced to the test database.
 
 **Related data automatically included**:
 
@@ -86,25 +62,12 @@ Fixture import completed!
 Apply saved fixtures to test DB.
 
 ```bash
-pnpm fixture sync
+pnpm sonamu fixture sync --execute
 ```
 
-**Execution process**:
-
-```
-Syncing fixtures...
-
-Clearing test database...
-  ✓ Cleared all tables
-
-Applying fixtures...
-  ✓ Applied 3 users
-  ✓ Applied 7 posts
-  ✓ Applied 12 comments
-  ✓ Applied 5 categories
-
-Fixture sync completed!
-```
+**What it does**: `sync` terminates connections to the Test DB, drops and recreates it, and copies
+the Fixture DB into it with `pg_dump` and `pg_restore`. The output is what `psql`, `pg_dump`, and
+`pg_restore` print.
 
 <Tip>Calling `sync` before test execution ensures you always start with a clean state.</Tip>
 
@@ -113,31 +76,33 @@ Fixture sync completed!
 **Automatically generate fixtures** using Entity's cone metadata. Useful when you don't have real data or need virtual test data.
 
 ```bash
-pnpm fixture gen
+pnpm sonamu fixture gen --execute
 ```
 
 **Interactive mode**:
 
 ```
-? Select entities to generate fixtures for: (Use arrow keys)
+? Fixture를 생성할 Entity를 선택하세요: (Use arrow keys)
 ❯ ◯ User
   ◯ Post
   ◯ Comment
 
-? Number to generate per Entity: 5
+? 각 Entity별 생성 개수: 5
 
-? User entity is included. Select generation method:
-❯ 1. Generate loginable user fixtures
-  2. Generate dummy data (not loginable)
+? User 엔티티가 포함되어 있습니다. 생성 방식을 선택하세요:
+❯ 1. 로그인 가능한 사용자 fixture 생성
+  2. 확인용 데이터(로그인 불가) 생성
 
-? Save method: (Use arrow keys)
-❯ Save to Fixture DB
-  Save to file (auto filename)
-  Save to file (specify filename)
-  Don't save (output only)
+? 저장 방식: (Use arrow keys)
+❯ Fixture DB에 저장
+  파일로 저장 (자동 파일명)
+  파일로 저장 (파일명 지정)
+  저장 안 함 (출력만)
 
-? Generate more realistic data with LLM? (fixtureHint-based, requires ANTHROPIC_API_KEY) No
+? LLM으로 더 현실적인 데이터를 생성할까요? (fixtureHint 기반, ANTHROPIC_API_KEY 필요) No
 ```
+
+The CLI prints these prompts and messages in Korean.
 
 <Info>
   The generation method prompt is only shown when User entity is included in the selection.
@@ -146,7 +111,7 @@ pnpm fixture gen
 
 **Loginable User Fixture Generation**:
 
-When you select the User entity and choose "Generate loginable user fixtures", the system creates actually loginable users through better-auth's `sign-up/email` endpoint.
+When you select the User entity and choose "1. 로그인 가능한 사용자 fixture 생성", the system creates actually loginable users through better-auth's `sign-up/email` endpoint.
 
 How this mode works:
 
@@ -156,18 +121,18 @@ How this mode works:
 4. Outputs the list of created credentials (email, password) to the console
 
 ```
-Generating 5 loginable users...
-  ✅ alice@example.com created
-  ✅ bob@example.com created
-  ⚠️  carol@example.com already exists - skipping.
-  ✅ dave@example.com created
-  ✅ eve@example.com created
+로그인 가능한 사용자 5명 생성 중...
+  ✅ alice@example.com 생성 완료
+  ✅ bob@example.com 생성 완료
+  ⚠️  carol@example.com 이미 존재 - 건너뜁니다.
+  ✅ dave@example.com 생성 완료
+  ✅ eve@example.com 생성 완료
 
-email_verified = true update completed
+email_verified = true 업데이트 완료
 
-✅ 4 loginable users created
+✅ 4명의 로그인 가능한 사용자 생성 완료
 
-Created accounts:
+생성된 계정 목록:
 ┌─────────┬──────────────────────┬────────────┐
 │ (index) │ email                │ password   │
 ├─────────┼──────────────────────┼────────────┤
@@ -189,13 +154,13 @@ Selecting "Generate dummy data (not loginable)" uses the existing `generateBatch
 
 | Option       | Description                                                                        | Example                                      |
 | ------------ | ---------------------------------------------------------------------------------- | -------------------------------------------- |
-| `--all`      | Generate for all Entities                                                          | `pnpm fixture gen --all`                     |
-| `--include`  | Include specific Entities only                                                     | `pnpm fixture gen --include User,Post`       |
-| `--exclude`  | Exclude specific Entities (use with --all)                                         | `pnpm fixture gen --all --exclude Comment`   |
-| `--count`    | Number of records to generate                                                      | `pnpm fixture gen --include User --count 10` |
-| `--save-to`  | Specify save method                                                                | `pnpm fixture gen --save-to db`              |
-| `--use-llm`  | Generate realistic data with LLM (fixtureHint-based, requires `ANTHROPIC_API_KEY`) | `pnpm fixture gen --use-llm`                 |
-| `--no-cache` | Disable LLM cache (use with `--use-llm`)                                           | `pnpm fixture gen --use-llm --no-cache`      |
+| `--all`      | Generate for all Entities                                                          | `pnpm sonamu fixture gen --all --execute`                     |
+| `--include`  | Include specific Entities only                                                     | `pnpm sonamu fixture gen --include User,Post --execute`       |
+| `--exclude`  | Exclude specific Entities (use with --all)                                         | `pnpm sonamu fixture gen --all --exclude Comment --execute`   |
+| `--count`    | Number of records to generate                                                      | `pnpm sonamu fixture gen --include User --count 10 --execute` |
+| `--save-to`  | Specify save method                                                                | `pnpm sonamu fixture gen --save-to db --execute`              |
+| `--use-llm`  | Generate realistic data with LLM (fixtureHint-based, requires `ANTHROPIC_API_KEY`) | `pnpm sonamu fixture gen --use-llm --execute`                 |
+| `--no-cache` | Disable LLM cache (use with `--use-llm`)                                           | `pnpm sonamu fixture gen --use-llm --no-cache --execute`      |
 
 **Save methods**:
 
@@ -206,7 +171,7 @@ Selecting "Generate dummy data (not loginable)" uses the existing `generateBatch
 
 ```bash
 # Example: Generate 10 each of User, Post and save to DB
-pnpm fixture gen --include User,Post --count 10 --save-to db
+pnpm sonamu fixture gen --include User,Post --count 10 --save-to db --execute
 ```
 
 **Value generation priority**:
@@ -307,31 +272,31 @@ To add conditions when querying parents, specify `fixtureParentOverrides` in the
 **Fetch data from actual production (or development) DB** and save to Fixture DB. Use when you need realistic test data.
 
 ```bash
-pnpm fixture fetch
+pnpm sonamu fixture fetch --execute
 ```
 
 **Interactive mode**:
 
 ```
-? Select entities to import: (Use arrow keys)
+? Import할 Entity를 선택하세요: (Use arrow keys)
 ❯ ◯ User
   ◯ Post
   ◯ Comment
 
-Importing User, Post...
-  ✓ User: 10 records imported
-  ✓ Post: 10 records imported
+User, Post import 중...
+✅ User: 10개 import 완료
+✅ Post: 10개 import 완료
 ```
 
 **CLI options**:
 
 | Option       | Description                    | Example                                  |
 | ------------ | ------------------------------ | ---------------------------------------- |
-| `--all`      | Fetch from all Entities        | `pnpm fixture fetch --all`               |
-| `--include`  | Include specific Entities only | `pnpm fixture fetch --include User,Post` |
-| `--exclude`  | Exclude specific Entities      | `pnpm fixture fetch --all --exclude Log` |
-| `--strategy` | Data selection strategy        | `pnpm fixture fetch --strategy recent`   |
-| `--limit`    | Number of records to fetch     | `pnpm fixture fetch --limit 20`          |
+| `--all`      | Fetch from all Entities        | `pnpm sonamu fixture fetch --all --execute`               |
+| `--include`  | Include specific Entities only | `pnpm sonamu fixture fetch --include User,Post --execute` |
+| `--exclude`  | Exclude specific Entities      | `pnpm sonamu fixture fetch --all --exclude Log --execute` |
+| `--strategy` | Data selection strategy        | `pnpm sonamu fixture fetch --strategy recent --execute`   |
+| `--limit`    | Number of records to fetch     | `pnpm sonamu fixture fetch --limit 20 --execute`          |
 
 **Data selection strategies**:
 
@@ -340,7 +305,7 @@ Importing User, Post...
 
 ```bash
 # Example: Fetch 20 most recent User records
-pnpm fixture fetch --include User --strategy recent --limit 20
+pnpm sonamu fixture fetch --include User --strategy recent --limit 20 --execute
 ```
 
 **Features**:
@@ -353,31 +318,31 @@ pnpm fixture fetch --include User --strategy recent --limit 20
 **Query only** DB data. Useful for quickly checking data without saving.
 
 ```bash
-pnpm fixture explore
+pnpm sonamu fixture explore
 ```
 
 **Interactive mode**:
 
 ```
-? Entity to explore: User
+? 탐색할 Entity: User
 
-User 10 records retrieved:
-┌─────────┬────┬────────────────────┬───────────┐
-│ (index) │ id │ email              │ name      │
-├─────────┼────┼────────────────────┼───────────┤
-│    0    │  1 │ 'user1@example.com'│ 'John'    │
-│    1    │  2 │ 'user2@example.com'│ 'Jane'    │
-│   ...   │... │ ...                │ ...       │
-└─────────┴────┴────────────────────┴───────────┘
+User 10개 조회 완료:
+┌─────────┬────┬────────────────────┬──────────┐
+│ (index) │ id │ email              │ name     │
+├─────────┼────┼────────────────────┼──────────┤
+│    0    │  1 │ 'user1@example.com'│ '홍길동' │
+│    1    │  2 │ 'user2@example.com'│ '김철수' │
+│   ...   │... │ ...                │ ...      │
+└─────────┴────┴────────────────────┴──────────┘
 ```
 
 **CLI options**:
 
 | Option       | Description                | Example                                  |
 | ------------ | -------------------------- | ---------------------------------------- |
-| `--include`  | Entity to explore          | `pnpm fixture explore --include User`    |
-| `--strategy` | Data selection strategy    | `pnpm fixture explore --strategy sample` |
-| `--limit`    | Number of records to query | `pnpm fixture explore --limit 5`         |
+| `--include`  | Entity to explore          | `pnpm sonamu fixture explore --include User`    |
+| `--strategy` | Data selection strategy    | `pnpm sonamu fixture explore --strategy sample` |
+| `--limit`    | Number of records to query | `pnpm sonamu fixture explore --limit 5`         |
 
 **Data selection strategies**:
 
@@ -389,7 +354,7 @@ User 10 records retrieved:
 
 ```bash
 # Example: Query 5 most recent records from User table
-pnpm fixture explore --include User --strategy recent --limit 5
+pnpm sonamu fixture explore --include User --strategy recent --limit 5
 ```
 
 ## Usage Workflow
@@ -400,7 +365,7 @@ Run once when starting the project.
 
 ```bash
 # Create test DB and copy schema
-pnpm fixture init
+pnpm sonamu fixture init --execute
 ```
 
 ### 2. Select Needed Data
@@ -409,10 +374,7 @@ Import actual data needed for testing.
 
 ```bash
 # Import User #1, #2, #3
-pnpm fixture import
-
-# Entity: User
-# IDs: 1,2,3
+pnpm sonamu fixture import User 1 2 3 --execute
 ```
 
 ### 3. Write Tests
@@ -491,15 +453,7 @@ import { FileTree, FileItem } from "../../../snippets/FileTree.jsx";
 When importing a Post, connected Users are automatically included.
 
 ```bash
-pnpm fixture import
-
-# Entity: Post
-# IDs: 1
-
-# Automatically included:
-# ✓ Post #1
-# ✓ User #5 (author)
-# ✓ Category #2 (category)
+pnpm sonamu fixture import Post 1 --execute
 ```
 
 ### N:M Relationship Handling
@@ -507,15 +461,7 @@ pnpm fixture import
 Many-to-many relationship tables are also automatically included.
 
 ```bash
-pnpm fixture import
-
-# Entity: Post
-# IDs: 1
-
-# Automatically included:
-# ✓ Post #1
-# ✓ post_tags (junction table)
-# ✓ Tag #1, #2, #3 (connected tags)
+pnpm sonamu fixture import Post 1 --execute
 ```
 
 ## Test Isolation
@@ -530,19 +476,20 @@ describe("User CRUD", () => {
   });
 
   test("Create user", async () => {
-    const user = await UserModel.create({
+    const [userId] = await UserModel.save([{
       email: "new@example.com",
       name: "New User",
-    });
+    }]);
+    const user = await UserModel.findById("A", userId);
 
     expect(user.id).toBeDefined();
   });
 
   test("Delete user", async () => {
-    await UserModel.deleteById(1);
+    await UserModel.del([1]);
 
-    const user = await UserModel.findById(1);
-    expect(user).toBeNull();
+    // The generated findById throws NotFoundException for a missing row
+    await expect(UserModel.findById("A", 1)).rejects.toThrow(NotFoundException);
   });
 });
 ```
@@ -555,17 +502,20 @@ describe("User CRUD", () => {
 
 ### Transaction Isolation
 
+Call `bootstrap(vi)` once in a test file. Each `test()` then runs inside a transaction that is
+rolled back afterwards, so data created in one test does not leak into the next.
+
 ```typescript
-import { Sonamu } from "sonamu";
+import { bootstrap, test } from "sonamu/test";
+import { vi } from "vitest";
+
+bootstrap(vi);
 
 test("Transaction test", async () => {
-  await Sonamu.runScript(async () => {
-    // Execute within transaction
-    const user = await UserModel.create({...});
-    const post = await PostModel.create({...});
+  const [userId] = await UserModel.save([{ email: "tx@example.com", name: "Tx User" }]);
+  await PostModel.save([{ title: "Hello", author_id: userId }]);
 
-    // Auto-rollback after test completes
-  });
+  // Rolled back after the test completes
 });
 ```
 
@@ -581,9 +531,7 @@ describe("Post with Comments", () => {
   });
 
   test("Get Post with comments", async () => {
-    const post = await PostModel.findById(1, {
-      include: ["comments"],
-    });
+    const post = await PostModel.findById("C", 1); // a subset that includes comments
 
     expect(post.comments).toHaveLength(3);
     expect(post.comments[0].author_id).toBe(2);
@@ -602,7 +550,7 @@ describe("Premium User Features", () => {
   });
 
   test("Premium feature access", async () => {
-    const user = await UserModel.findById(10);
+    const user = await UserModel.findById("A", 10);
 
     expect(user.isPremium).toBe(true);
     expect(await user.canAccessFeature("advanced")).toBe(true);
@@ -642,13 +590,9 @@ Error: Foreign key constraint violation
 
 ```bash
 # Import related data first
-pnpm fixture import
-# Entity: User
-# IDs: 1,2,3
+pnpm sonamu fixture import User 1 2 3 --execute
 
-pnpm fixture import
-# Entity: Post
-# IDs: 1,2,3  # References User 1,2,3
+pnpm sonamu fixture import Post 1 2 3 --execute  # References User 1,2,3
 ```
 
 ### Fixture Conflict
@@ -663,10 +607,10 @@ Error: Duplicate entry '1' for key 'PRIMARY'
 
 ```bash
 # Reinitialize Test DB
-pnpm fixture init
+pnpm sonamu fixture init --execute
 
 # Resync fixtures
-pnpm fixture sync
+pnpm sonamu fixture sync --execute
 ```
 
 ## Best Practices
@@ -675,12 +619,10 @@ pnpm fixture sync
 
 ```bash
 # ❌ Import all data
-pnpm fixture import
-# IDs: 1-1000
+pnpm sonamu fixture import User $(seq 1 1000) --execute
 
 # ✅ Only necessary data
-pnpm fixture import
-# IDs: 1,2,3  # Representative cases only
+pnpm sonamu fixture import User 1 2 3 --execute  # Representative cases only
 ```
 
 ### 2. Meaningful Data
@@ -717,8 +659,8 @@ jobs:
     steps:
       - name: Setup Database
         run: |
-          pnpm fixture init
-          pnpm fixture sync
+          pnpm sonamu fixture init --execute --confirm
+          pnpm sonamu fixture sync --execute --confirm
 
       - name: Run Tests
         run: pnpm test

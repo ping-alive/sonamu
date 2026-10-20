@@ -71,7 +71,8 @@ test("사용자 생성", async () => {
 
   console.log("테스트 시작:", email);
 
-  const user = await UserModel.create({ email });
+  const [userId] = await UserModel.save([{ email }]);
+  const user = await UserModel.findById("A", userId);
   console.log("생성된 사용자:", user);
 
   expect(user.email).toBe(email);
@@ -197,11 +198,11 @@ test("에러 메시지 개선", async () => {
   const userId = 999;
 
   // ❌ 기본 에러
-  expect(await UserModel.findById(userId)).toBeDefined();
+  expect(await UserModel.findOne("A", { id: userId })).toBeTruthy();
 
   // ✅ 상세한 에러 메시지
-  const user = await UserModel.findById(userId);
-  expect(user, `사용자 ID ${userId}를 찾을 수 없음`).toBeDefined();
+  const user = await UserModel.findOne("A", { id: userId });
+  expect(user, `사용자 ID ${userId}를 찾을 수 없음`).toBeTruthy();
 });
 ```
 
@@ -307,10 +308,10 @@ test("DB 쿼리 확인", async () => {
   // 쿼리 로깅 활성화 (개발 중)
   const result = await UserModel.getPuri("r")
     .table("users")
-    .select("*")
+    .selectAll()
     .where({ email: "test@example.com" })
     .debug() // 쿼리 출력
-    .getOne();
+    .first();
 
   console.log("결과:", result);
 });
@@ -322,10 +323,10 @@ test("DB 쿼리 확인", async () => {
 test("데이터 생성 확인", async () => {
   const email = "test@example.com";
 
-  await UserModel.create({ email });
+  await UserModel.save([{ email }]);
 
   // DB에서 직접 확인
-  const users = await UserModel.getPuri("r").table("users").select("*").getMany();
+  const users = await UserModel.getPuri("r").table("users").selectAll();
 
   console.log("전체 사용자:", users);
 
@@ -498,16 +499,17 @@ describe("User Tests", () => {
 
   beforeEach(async () => {
     console.log("Setup 시작");
-    testUser = await UserModel.create({
+    const [testUserId] = await UserModel.save([{
       email: "test@example.com",
-    });
+    }]);
+    testUser = await UserModel.findById("A", testUserId);
     console.log("Setup 완료:", testUser.id);
   });
 
   afterEach(async () => {
     console.log("Cleanup 시작");
     if (testUser) {
-      await UserModel.del(testUser.id);
+      await UserModel.del([testUser.id]);
     }
     console.log("Cleanup 완료");
   });
@@ -570,8 +572,8 @@ test("사용자 삭제", async () => {});
 test("test1", async () => {});
 
 // ✅ 명확한 이름
-test("이메일 없이 사용자 생성 시 BadRequestException 발생", async () => {
-  await expect(UserModel.create({ email: "" })).rejects.toThrow(BadRequestException);
+test("존재하지 않는 사용자를 findById로 조회하면 NotFoundException 발생", async () => {
+  await expect(UserModel.findById("A", 999999)).rejects.toThrow(NotFoundException);
 });
 ```
 
@@ -584,7 +586,8 @@ test("사용자 생성", async () => {
   const name = "Test User";
 
   // Act (실행)
-  const user = await UserModel.create({ email, name });
+  const [userId] = await UserModel.save([{ email, name }]);
+  const user = await UserModel.findById("A", userId);
 
   // Assert (검증)
   expect(user.email).toBe(email);

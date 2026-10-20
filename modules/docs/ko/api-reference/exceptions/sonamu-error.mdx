@@ -128,7 +128,7 @@ async getMyProfile(ctx: Context) {
     throw new UnauthorizedException("로그인이 필요합니다");
   }
 
-  return this.findById(ctx.user.id);
+  return this.findById("A", ctx.user.id);
 }
 ```
 
@@ -145,7 +145,7 @@ class NotFoundException extends SoException
 ```typescript
 @api()
 async getUserById(id: number) {
-  const user = await this.findById(id);
+  const user = await this.findOne("A", { id });
 
   if (!user) {
     throw new NotFoundException(`사용자를 찾을 수 없습니다 (ID: ${id})`);
@@ -224,7 +224,7 @@ async deleteUserPosts(userId: number) {
     );
   }
 
-  await this.deleteMany(posts.map(p => p.id));
+  await this.del(posts.map(p => p.id));
 }
 ```
 
@@ -241,7 +241,7 @@ class AlreadyProcessedException extends SoException
 ```typescript
 @api()
 async processOrder(orderId: number) {
-  const order = await this.findById(orderId);
+  const order = await this.findById("A", orderId);
 
   if (order.status === "processed") {
     throw new AlreadyProcessedException(
@@ -335,7 +335,7 @@ throw new BadRequestException("유효하지 않은 데이터", {
 @api({ guards: ["user"] })
 async getMyData(ctx: Context) {
   // ctx.user가 보장됨
-  return this.findById(ctx.user!.id);
+  return this.findById("A", ctx.user!.id);
 }
 
 // 수동 체크 (더 복잡한 로직에 사용)
@@ -356,5 +356,5 @@ async updateProfile(ctx: Context, data: ProfileData) {
 ## 관련 문서
 
 - [커스텀 예외 만들기](/ko/api-reference/exceptions/custom-errors)
-- [Guards 사용하기](/ko/api-development/guards)
-- [에러 핸들링](/ko/api-development/error-handling)
+- [Guards 사용하기](/ko/api-development/authentication/protected-routes)
+- [에러 핸들링](/ko/api-development/validation/error-handling)

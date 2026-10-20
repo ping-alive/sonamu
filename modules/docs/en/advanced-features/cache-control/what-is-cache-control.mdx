@@ -242,7 +242,7 @@ Sonamu has two caching mechanisms:
       cacheControl: { maxAge: 3600 }
     })
     async getProducts() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -263,7 +263,7 @@ Sonamu has two caching mechanisms:
     @cache({ ttl: "10m" })
     @api()
     async getProducts() {
-      return this.findMany({});
+      return this.findMany("A", {});
     }
     ```
 
@@ -289,7 +289,7 @@ Using both together provides **maximum performance**:
   cacheControl: { maxAge: 60 }  // HTTP cache
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -335,7 +335,7 @@ graph TD
   }
 })
 async getProducts() {
-  return this.findMany({});
+  return this.findMany("A", {});
 }
 ```
 
@@ -350,8 +350,8 @@ async getProducts() {
   }
 })
 async getMyOrders(ctx: Context) {
-  return this.findMany({
-    where: [['user_id', ctx.user.id]]
+  return this.findMany("A", {
+    sonamuFilter: { user_id: ctx.user.id },
   });
 }
 ```
@@ -392,7 +392,7 @@ registerSSR({
   }
 })
 async createPayment(data: PaymentSave) {
-  return this.saveOne(data);
+  return this.save([data]);
 }
 ```
 
@@ -459,7 +459,7 @@ async createPayment(data: PaymentSave) {
    })
    async getData() { ... }
    ```
-   </Warning>
+</Warning>
 
 ## Next Steps
 

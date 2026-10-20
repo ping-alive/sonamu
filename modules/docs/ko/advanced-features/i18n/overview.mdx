@@ -55,7 +55,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A[Entity 정의] --> B[pnpm sync]
+    A[Entity 정의] --> B[pnpm sonamu sync]
     B --> C[sd.generated.ts 생성]
     C --> D[ko.ts/en.ts 작성]
     D --> E[SD 함수로 사용]
@@ -65,7 +65,7 @@ flowchart LR
 ```
 
 1. Entity에서 title, prop.desc, enumLabels 정의
-2. `pnpm sync` 실행 시 `sd.generated.ts` 자동 생성
+2. `pnpm sonamu sync` 실행 시 `sd.generated.ts` 자동 생성
 3. `ko.ts`, `en.ts`에서 프로젝트 딕셔너리 작성
 4. `SD("key")` 함수로 현재 locale에 맞는 텍스트 사용
 

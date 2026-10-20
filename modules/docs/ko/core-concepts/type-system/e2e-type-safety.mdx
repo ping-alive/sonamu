@@ -177,29 +177,34 @@ Model의 메서드가 타입 안전한 API 클라이언트로 변환됩니다.
 
 <CodeGroup>
 ```typescript title="user.model.ts"
-@api({ httpMethod: "POST" })
-async save(params: UserSaveParams[]): Promise<number[]> {
+@api({ httpMethod: "POST", clients: ["axios", "tanstack-mutation"] })
+async save(spa: UserSaveParams[]): Promise<number[]> {
   // 구현...
 }
 ```
 
 ```typescript title="services.generated.ts (자동 생성)"
-export async function saveUser(params: UserSaveParams[]): Promise<number[]> {
-  const { data } = await axios.post("/user/save", { params });
-  return data;
+export namespace UserService {
+  export async function save(spa: UserSaveParams[]): Promise<number[]> {
+    return fetch({
+      method: "POST",
+      url: `/api/user/save`,
+      data: { spa },
+    });
+  }
 }
 ```
 
 ```tsx title="컴포넌트에서 사용"
-import { saveUser } from "@/services/services.generated";
+import { UserService } from "@/services/services.generated";
 import type { UserSaveParams } from "@/services/user/user.types";
 
 // ✅ 타입 안전
 const params: UserSaveParams[] = [{ email: "john@test.com", age: 30, role: "admin" }];
-await saveUser(params);
+await UserService.save(params);
 
 // ❌ 컴파일 에러
-await saveUser([
+await UserService.save([
   { email: "john@test.com", age: "30" }, // Type error
 ]);
 ```
@@ -214,7 +219,7 @@ API 요청은 Zod 스키마로 자동 검증됩니다.
 // Sonamu가 자동으로 생성
 fastify.post("/user/save", async (request, reply) => {
   // 자동 검증
-  const params = UserSaveParams.array().parse(request.body.params);
+  const params = UserSaveParams.array().parse(request.body.spa);
 
   // 검증된 타입으로 안전하게 사용
   const result = await UserModel.save(params);
@@ -255,22 +260,33 @@ API 응답도 타입 안전합니다.
 
 <CodeGroup>
 ```typescript title="user.model.ts"
-@api({ httpMethod: "GET" })
-async findById(id: number): Promise<User> {
-  return this.findById("A", id);
+@api({ httpMethod: "GET", clients: ["axios", "tanstack-query"], resourceName: "User" })
+async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
+  const { rows } = await this.findMany(subset, { id, num: 1, page: 1 });
+  if (!rows[0]) {
+    throw new NotFoundException("User not found");
+  }
+  return rows[0];
 }
 ```
 
 ```typescript title="services.generated.ts"
-export async function findUserById(id: number): Promise<User> {
-  const { data } = await axios.get("/user/findById", { params: { id } });
-  return data;
+export namespace UserService {
+  export async function getUser<T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+  ): Promise<UserSubsetMapping[T]> {
+    return fetch({
+      method: "GET",
+      url: `/api/user/findById?${qs.stringify({ subset, id })}`,
+    });
+  }
 }
 ```
 
 ```tsx title="컴포넌트"
-const user = await findUserById(1);
-// user: User (타입 자동 추론)
+const user = await UserService.getUser("A", 1);
+// user: UserSubsetMapping["A"] (타입 자동 추론)
 
 console.log(user.email); // ✅ string
 console.log(user.name); // ❌ Property 'name' does not exist
@@ -284,25 +300,31 @@ TanStack Query hooks도 완벽한 타입 안전성을 제공합니다.
 
 <CodeGroup>
 ```typescript title="services.generated.ts"
-export function useUserById(id: number) {
-  return useQuery({
-    queryKey: ["User", "findById", id],
-    queryFn: () => findUserById(id),
-  });
-}
+export namespace UserService {
+  export const getUserQueryOptions = <T extends UserSubsetKey>(subset: T, id: number) =>
+    queryOptions({
+      queryKey: ["User", "getUser", subset, id],
+      queryFn: () => getUser(subset, id),
+    });
 
-export function useSaveUser() {
-  return useMutation({
-    mutationFn: (params: UserSaveParams[]) => saveUser(params),
-  });
+  export const useUser = <T extends UserSubsetKey>(
+    subset: T,
+    id: number,
+    options?: { enabled?: boolean },
+  ) => useRefreshable(useQuery({ ...getUserQueryOptions(subset, id), ...options }));
+
+  export const useSaveMutation = () =>
+    useMutation({
+      mutationFn: (params: { spa: UserSaveParams[] }) => UserService.save(params.spa),
+    });
 }
 ```
 
 ```tsx title="컴포넌트"
 function UserProfile({ userId }: { userId: number }) {
   // 타입 자동 추론
-  const { data, isLoading, error } = useUserById(userId);
-  // data: User | undefined
+  const { data, isLoading, error } = UserService.useUser("A", userId);
+  // data: UserSubsetMapping["A"] | undefined
   // isLoading: boolean
   // error: Error | null
 
@@ -311,14 +333,14 @@ function UserProfile({ userId }: { userId: number }) {
 
   return (
     <div>
-      <h1>{data.email}</h1> {/* ✅ data는 User 타입 */}
+      <h1>{data.email}</h1> {/* ✅ data는 UserSubsetMapping["A"] 타입 */}
       <p>Age: {data.age}</p>
     </div>
   );
 }
 
 function UserForm() {
-  const { mutate, isPending } = useSaveUser();
+  const { mutate, isPending } = UserService.useSaveMutation();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -326,13 +348,15 @@ function UserForm() {
 
     // ✅ 타입 안전한 호출
     mutate(
-      [
-        {
-          email: formData.get("email") as string,
-          age: Number(formData.get("age")),
-          role: "normal",
-        },
-      ],
+      {
+        spa: [
+          {
+            email: formData.get("email") as string,
+            age: Number(formData.get("age")),
+            role: "normal",
+          },
+        ],
+      },
       {
         onSuccess: (ids) => {
           // ids: number[]
@@ -421,14 +445,14 @@ class UserModelClass extends BaseModelClass<...> {
 
 <Step title="3. 프론트엔드 사용">
 ```tsx title="UserForm.tsx"
-import { useSaveUser } from "@/services/services.generated";
+import { UserService } from "@/services/services.generated";
 import { UserSaveParams } from "@/services/user/user.types";
 
 function UserForm() {
-const { mutate } = useSaveUser();
+const { mutate } = UserService.useSaveMutation();
 
 const handleSubmit = (values: UserSaveParams) => {
-mutate([values]); // ✅ 타입 체크됨
+mutate({ spa: [values] }); // ✅ 타입 체크됨
 };
 
 return <form>...</form>;
@@ -450,7 +474,7 @@ POST /user/save
 }
 
 // Zod 자동 검증
-const params = UserSaveParams.array().parse(request.body.params);
+const params = UserSaveParams.array().parse(request.body.spa);
 ````
 
 **검증**: Zod 스키마로 런타임 검증
@@ -476,11 +500,11 @@ RETURNING id;
 
 <Step title="6. 응답 반환">
 ```typescript
-// Response
-{ "data": [1] }  // number[]
+// 응답 본문: save()의 반환값을 그대로 JSON으로 직렬화 (래퍼 없음)
+[1]  // number[]
 
 // 프론트엔드에서 타입 추론
-const ids = await saveUser([...]);
+const ids = await UserService.save([...]);
 // ids: number[]
 ````
 
@@ -500,13 +524,13 @@ Sonamu의 E2E 타입 안전성은 흔한 타입 불일치 문제를 방지합니
     **Sonamu 해결**:
     ```typescript
     // Model에서 반환 타입 명시
-    @api()
-    async findById(id: number): Promise<User> {
-      return this.findById("A", id);
+    @api({ httpMethod: "GET" })
+    async findById<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
+      // ...
     }
     
     // API 클라이언트도 같은 타입
-    export async function findUserById(id: number): Promise<User> {
+    export async function getUser<T extends UserSubsetKey>(subset: T, id: number): Promise<UserSubsetMapping[T]> {
       // ...
     }
     
@@ -523,13 +547,13 @@ Sonamu의 E2E 타입 안전성은 흔한 타입 불일치 문제를 방지합니
     export const UserSaveParams = z.object({...});
     
     // Model에서 사용
-    async save(params: UserSaveParams[]): Promise<number[]>
+    async save(spa: UserSaveParams[]): Promise<number[]>
     
     // API 클라이언트에서 사용
-    export async function saveUser(params: UserSaveParams[]): Promise<number[]>
+    export async function save(spa: UserSaveParams[]): Promise<number[]>
     
     // 서버에서 자동 검증
-    const validated = UserSaveParams.array().parse(request.body.params);
+    const validated = UserSaveParams.array().parse(request.body.spa);
     ```
   </Accordion>
   
@@ -641,7 +665,7 @@ describe("User type validation", () => {
   >
     생성 타입 활용하기
   </Card>
-  <Card title="Testing" icon="flask" href="/ko/testing/model-testing/unit-tests">
+  <Card title="Testing" icon="flask" href="/ko/testing/writing-tests/test-structure">
     타입 안전한 테스트 작성하기
   </Card>
 </CardGroup>

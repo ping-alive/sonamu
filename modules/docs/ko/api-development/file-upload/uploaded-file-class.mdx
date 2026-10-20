@@ -27,7 +27,7 @@ BufferedFile 클래스는 업로드된 파일의 정보를 제공하고, `saveTo
 ### 파일 정보
 
 ```typescript
-import type { BufferedFile } from "sonamu";
+import type { BufferedFile } from "sonamu/storage";
 
 class FileModel extends BaseModelClass {
   @upload()
@@ -212,7 +212,7 @@ class FileModel extends BaseModelClass {
 
 ```typescript
 class FileValidator {
-  static validateSize(file: UploadedFile, maxSize: number): void {
+  static validateSize(file: BufferedFile, maxSize: number): void {
     if (file.size > maxSize) {
       throw new Error(`File too large: ${file.size} bytes (max ${maxSize} bytes)`);
     }
@@ -241,7 +241,7 @@ class FileModel extends BaseModelClass {
 
 ```typescript
 class FileValidator {
-  static validateMimeType(file: UploadedFile, allowedTypes: string[]): void {
+  static validateMimeType(file: BufferedFile, allowedTypes: string[]): void {
     if (!allowedTypes.includes(file.mimetype)) {
       throw new Error(
         `Invalid file type: ${file.mimetype}. ` + `Allowed: ${allowedTypes.join(", ")}`,
@@ -272,7 +272,7 @@ class ImageModel extends BaseModelClass {
 
 ```typescript
 class FileValidator {
-  static validateExtension(file: UploadedFile, allowedExtensions: string[]): void {
+  static validateExtension(file: BufferedFile, allowedExtensions: string[]): void {
     const ext = file.extname;
 
     if (!ext || !allowedExtensions.includes(ext.toLowerCase())) {
@@ -305,7 +305,7 @@ class DocumentModel extends BaseModelClass {
 
 ```typescript
 class FileValidator {
-  static validateImage(file: UploadedFile): void {
+  static validateImage(file: BufferedFile): void {
     // 크기 확인 (5MB)
     if (file.size > 5 * 1024 * 1024) {
       throw new Error("Image too large (max 5MB)");
@@ -324,7 +324,7 @@ class FileValidator {
     }
   }
 
-  static validateDocument(file: UploadedFile): void {
+  static validateDocument(file: BufferedFile): void {
     // 크기 확인 (20MB)
     if (file.size > 20 * 1024 * 1024) {
       throw new Error("Document too large (max 20MB)");
@@ -343,7 +343,7 @@ class FileValidator {
     }
   }
 
-  static validateVideo(file: UploadedFile): void {
+  static validateVideo(file: BufferedFile): void {
     // 크기 확인 (100MB)
     if (file.size > 100 * 1024 * 1024) {
       throw new Error("Video too large (max 100MB)");
@@ -559,7 +559,7 @@ class FileModel extends BaseModelClass {
 ## 주의사항
 
 <Warning>
-  **UploadedFile 사용 시 주의사항**: 1. `saveToDisk()` 호출 전 검증 필수 2.
+  **BufferedFile 사용 시 주의사항**: 1. `saveToDisk()` 호출 전 검증 필수 2.
   `.buffer`로 미리 로드된 Buffer에 직접 접근 가능 3. `url`, `signedUrl`은 저장 후에만 사용 가능 4. 대용량 파일은
   스트리밍 고려 5. Storage 설정 확인
 </Warning>

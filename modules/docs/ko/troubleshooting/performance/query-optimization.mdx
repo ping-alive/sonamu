@@ -11,7 +11,7 @@ Puri 쿼리 빌더를 활용한 효과적인 쿼리 최적화 방법을 다룹�
 
 ```typescript
 // ❌ 나쁜 예 - 모든 컬럼 조회
-const users = await UserModel.getPuri("r").table("users").select("*");
+const users = await UserModel.getPuri("r").table("users").selectAll();
 
 // ✅ 좋은 예 - 필요한 컬럼만 조회
 const users = await UserModel.getPuri("r").table("users").select("id", "email", "name");
@@ -160,7 +160,7 @@ const result = await OrderModel.getPuri("r").table("orders")
 
 ```typescript
 // ❌ 비효율적 - 모든 행 가져온 후 카운트
-const users = await UserModel.getPuri("r").table("users").select("*");
+const users = await UserModel.getPuri("r").table("users").selectAll();
 const count = users.length;
 
 // ✅ 효율적 - DB에서 카운트
@@ -278,7 +278,7 @@ const users = await UserModel.getPuri("r").table("users")
 async function getUsersWithDetails(userIds: number[]) {
   const results = [];
   for (const id of userIds) {
-    const user = await UserModel.findById(id);
+    const user = await UserModel.findById("A", id);
     results.push(user);
   }
   return results;
@@ -286,7 +286,7 @@ async function getUsersWithDetails(userIds: number[]) {
 
 // ✅ whereIn으로 한 번에 조회
 async function getUsersWithDetails(userIds: number[]) {
-  return UserModel.getPuri("r").table("users").select("*").whereIn("id", userIds);
+  return UserModel.getPuri("r").table("users").selectAll().whereIn("id", userIds);
 }
 ```
 
@@ -396,7 +396,7 @@ class UserModelClass extends BaseModelClass {
   async findActiveUsers() {
     const start = Date.now();
 
-    const users = await this.getPuri("r").table("users").select("*").where({ status: "active" });
+    const users = await this.getPuri("r").table("users").selectAll().where({ status: "active" });
 
     const duration = Date.now() - start;
 

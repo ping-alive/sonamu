@@ -180,8 +180,7 @@ export default defineConfig({
 | Option           | Description          | Default  |
 | ---------------- | -------------------- | -------- |
 | `target`         | Compilation target   | `esnext` |
-| `decorators`     | Decorator support    | `true`   |
-| `sourceMaps`     | Generate source maps | `inline` |
+| `sourcemap`      | Generate source maps | `inline` |
 | `unbundle`       | Preserve file layout | `true`   |
 
 <Tip>
@@ -236,7 +235,7 @@ build returns to the existing tsdown path. Web and Expo AOT are not available in
 
 - TypeScript → JavaScript conversion
 - Decorator transformation complete
-- Source maps included (`.js.map`)
+- Inline source maps embedded in each file
 - Import path resolution complete
 
 ### Web Build Result (Optional)
@@ -445,7 +444,7 @@ jobs:
       # 3. Setup Node.js (enable pnpm cache)
       - uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
 
       # 4. Install dependencies
@@ -499,7 +498,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
       - run: pnpm install
       - run: pnpm test # Run tests
@@ -546,7 +545,7 @@ Using Docker guarantees a **consistent execution environment**. Development, sta
 
 ```dockerfile title="Dockerfile"
 # Stage 1: Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -564,7 +563,7 @@ COPY . .
 RUN pnpm build
 
 # Stage 2: Production stage
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -687,7 +686,7 @@ curl -w "\n%{time_total}s\n" http://localhost:3000/api/users
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="start" icon="play" href="/en/tools-and-cli/sonamu-cli/start">
+  <Card title="start" icon="play" href="/en/tools-and-cli/sonamu-cli/build#running-after-build">
     Run the built server
   </Card>
   <Card title="dev" icon="code" href="/en/tools-and-cli/sonamu-cli/dev">

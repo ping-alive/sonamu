@@ -179,21 +179,30 @@ NODE_ENV=production pnpm sonamu migrate status
 
 **2. Shadow DB에서 테스트 (권장):**
 
+Shadow 대상은 `test`와 `fixture`만 지원하며, Shadow DB는 프로덕션이 아니라 해당 데이터베이스의 임시
+복사본입니다.
+
 ```bash
-NODE_ENV=production pnpm sonamu migrate shadow-test
+pnpm sonamu migrate shadow test --execute
 ```
 
 **3. 실제 DB에 적용:**
 
 ```bash
-NODE_ENV=production pnpm sonamu migrate run
+pnpm sonamu migrate preview production --action apply
+pnpm sonamu migrate apply production --execute --force-reason CHANGE_REQUEST
 ```
 
 **4. 롤백 (필요시):**
 
+대상 인자는 필수이며 `NODE_ENV`로 대신할 수 없습니다. 롤백은 마지막으로 적용된 batch를 되돌립니다.
+
 ```bash
-NODE_ENV=production pnpm sonamu migrate rollback
+pnpm sonamu migrate preview production --action rollback
+pnpm sonamu migrate rollback production --execute --force-reason CHANGE_REQUEST
 ```
+
+이 명령은 TTY에서 확인을 요청합니다. 비대화형 실행에서는 `--confirm`을 추가하세요.
 
 </Accordion>
 
@@ -453,7 +462,7 @@ server {
 
 ```dockerfile
 # api/Dockerfile
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -562,7 +571,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "22"
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -733,6 +742,5 @@ export default defineConfig({
 ## 관련 문서
 
 - [환경 설정](/ko/configuration/environment-variables)
-- [보안](/ko/advanced-features/security)
 - [성능 최적화](/ko/troubleshooting/performance/query-optimization)
-- [Docker 배포](/ko/deployment/docker)
+- [Docker 배포](/ko/faq/deployment#docker)

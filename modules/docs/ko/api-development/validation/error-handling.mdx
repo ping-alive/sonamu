@@ -243,25 +243,27 @@ Sonamu의 내장 에러 핸들러는 다음 형식으로 응답합니다.
 
 ## 에러 핸들러 커스터마이징
 
-Sonamu는 기본 에러 핸들러를 내장하고 있지만, 필요 시 `startServer`의 `lifecycle.onError` 옵션으로 커스텀 에러 핸들러를 설정할 수 있습니다.
+Sonamu는 기본 에러 핸들러를 내장하고 있지만, 필요 시 `sonamu.config.ts`의 `server.lifecycle.onError`로 커스텀 에러 핸들러를 설정할 수 있습니다.
 
 ```typescript
-import { Sonamu, isSoException } from "sonamu";
+import { defineConfig, isSoException } from "sonamu";
 
-Sonamu.startServer({
-  lifecycle: {
-    onError: (error, request, reply) => {
-      // 커스텀 에러 처리 로직
-      if (isSoException(error)) {
-        reply.status(error.statusCode).send({
-          error: error.message,
-          payload: error.payload,
-        });
-      } else {
-        reply.status(500).send({
-          error: "Internal server error",
-        });
-      }
+export default defineConfig({
+  server: {
+    lifecycle: {
+      onError: (error, request, reply) => {
+        // 커스텀 에러 처리 로직
+        if (isSoException(error)) {
+          reply.status(error.statusCode).send({
+            error: error.message,
+            payload: error.payload,
+          });
+        } else {
+          reply.status(500).send({
+            error: "Internal server error",
+          });
+        }
+      },
     },
   },
 });

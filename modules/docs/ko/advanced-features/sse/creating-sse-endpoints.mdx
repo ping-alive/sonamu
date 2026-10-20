@@ -218,16 +218,16 @@ class NotificationModelClass extends BaseModelClass {
       // 실시간 알림 감지 (예: 폴링 또는 이벤트 리스너)
       while (true) {
         // DB에서 새 알림 조회
-        const notifications = await this.findMany({
-          wq: [
-            ["user_id", userId],
-            ["created_at", ">", new Date(Date.now() - 5000)], // 최근 5초
-          ],
+        const notifications = await this.findMany("A", {
+          sonamuFilter: {
+            user_id: userId,
+            created_at: { after: new Date(Date.now() - 5000) }, // 최근 5초
+          },
           num: 10,
         });
 
         // 알림 전송
-        for (const notification of notifications.data) {
+        for (const notification of notifications.rows) {
           sse.publish("notification", {
             id: notification.id,
             type: notification.type,
@@ -346,14 +346,14 @@ class PostModelClass extends BaseModelClass {
 
       while (true) {
         // 새 게시물 조회
-        const posts = await this.findMany({
-          wq: [["created_at", ">", lastCheckTime]],
+        const posts = await this.findMany("A", {
+          sonamuFilter: { created_at: { after: lastCheckTime } },
           num: 20,
-          order: [["created_at", "DESC"]],
+          orderBy: "id-desc",
         });
 
         // 새 게시물 전송
-        for (const post of posts.data) {
+        for (const post of posts.rows) {
           sse.publish("newPost", {
             id: post.id,
             title: post.title,
@@ -694,7 +694,7 @@ async streamWithErrorHandling(ctx: Context): Promise<void> {
      await sse.end();
    }
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 

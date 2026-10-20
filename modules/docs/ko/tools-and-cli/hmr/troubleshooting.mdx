@@ -43,14 +43,14 @@ grep -r "import.*UserModel.*from" src/
 import { UserModel } from "./application/user/user.model";
 
 app.get("/users", async (req, res) => {
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 
 // After - ✅
 app.get("/users", async (req, res) => {
   const { UserModel } = await import("./application/user/user.model");
-  const users = await UserModel.findMany();
+  const { rows: users } = await UserModel.findMany("A");
   res.json(users);
 });
 ```
@@ -338,8 +338,8 @@ Model 간 순환 참조:
 import { PostModel } from "../post/post.model";
 
 export class UserModel extends BaseModelClass {
-  async getPosts() {
-    return PostModel.findMany({ where: { userId: this.id } });
+  async getPosts(userId: number) {
+    return PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
   }
 }
 
@@ -347,8 +347,8 @@ export class UserModel extends BaseModelClass {
 import { UserModel } from "../user/user.model"; // ← 🚨 순환 참조!
 
 export class PostModel extends BaseModelClass {
-  async getAuthor() {
-    return UserModel.findById(this.userId);
+  async getAuthor(userId: number) {
+    return UserModel.findById("A", userId);
   }
 }
 ```
@@ -362,10 +362,11 @@ export class PostModel extends BaseModelClass {
 import type { PostSaved } from "../post/post.types"; // ✅ 타입만
 
 export class UserModel extends BaseModelClass {
-  async getPosts(): Promise<PostSaved[]> {
+  async getPosts(userId: number): Promise<PostSaved[]> {
     // 동적 import로 실제 클래스 로드
     const { PostModel } = await import("../post/post.model");
-    return PostModel.findMany({ where: { userId: this.id } });
+    const { rows } = await PostModel.findMany("A", { sonamuFilter: { user_id: userId } });
+    return rows;
   }
 }
 
@@ -373,9 +374,9 @@ export class UserModel extends BaseModelClass {
 import type { UserSaved } from "../user/user.types"; // ✅ 타입만
 
 export class PostModel extends BaseModelClass {
-  async getAuthor(): Promise<UserSaved> {
+  async getAuthor(userId: number): Promise<UserSaved> {
     const { UserModel } = await import("../user/user.model");
-    return UserModel.findById(this.userId);
+    return UserModel.findById("A", userId);
   }
 }
 ```
@@ -405,8 +406,8 @@ import type { UserSaved } from "./shared-types";
 import { UserModel } from "../user/user.model"; // ✅ 단방향
 
 export class PostModel extends BaseModelClass {
-  async getAuthor() {
-    return UserModel.findById(this.userId);
+  async getAuthor(userId: number) {
+    return UserModel.findById("A", userId);
   }
 }
 
@@ -496,7 +497,7 @@ pnpm dev
 if (diffFilePath.includes("/src/ssr/")) {
   console.log("SSR config changed - reloading...");
   await hot.invalidateFile(diffFilePath, event);
-  await this.autoloadSSRRoutes();
+  await this.autoloadSsrRoutes();
 }
 ```
 

@@ -12,11 +12,11 @@ class DocumentModelClass extends BaseModelClass {
   @api({ httpMethod: "POST" })
   async search(query: string) {
     // 키워드 검색
-    const results = await this.findMany({
-      wq: [
-        ["title", "LIKE", `%${query}%`],
-        ["content", "LIKE", `%${query}%`],
-      ],
+    const results = await this.findMany("A", {
+      sonamuFilter: {
+        title: { contains: query },
+        content: { contains: query },
+      },
     });
     return results;
   }
@@ -68,11 +68,11 @@ flowchart LR
 
 ```typescript
 // 1. 문서 저장 시: 텍스트 → 임베딩 → DB
-await DocumentModel.saveOne({
+await DocumentModel.save([{
   title: "Sonamu 시작하기",
   content: "...",
   embedding: [0.2, 0.8, -0.3, ...],  // 1024개
-});
+}]);
 
 // 2. 검색 시: 쿼리 → 임베딩 → 유사도 계산
 const queryEmbedding = [0.3, 0.7, -0.2, ...];
@@ -169,15 +169,15 @@ class DocumentModelClass extends BaseModelClass {
       "document", // 문서용 임베딩
     );
 
-    // 2. DB에 저장 (Sonamu의 saveOne)
-    const doc = await this.saveOne({
+    // 2. DB에 저장 (Sonamu의 save)
+    const [docId] = await this.save([{
       title,
       content,
       embedding: result.embedding, // 1024개 숫자 배열
       token_count: result.tokenCount,
-    });
+    }]);
 
-    return doc;
+    return docId;
   }
 }
 ```
@@ -284,12 +284,12 @@ async batchCreateDocuments(documents: Array<{
   // 3. DB에 저장
   const savedDocs = await Promise.all(
     documents.map((doc, i) =>
-      this.saveOne({
+      this.save([{
         title: doc.title,
         content: doc.content,
         embedding: embeddings[i].embedding,
         token_count: embeddings[i].tokenCount,
-      })
+      }])
     )
   );
 
@@ -352,11 +352,11 @@ class KnowledgeBaseModelClass extends BaseModelClass {
     const embedding = await Embedding.embedOne(content, "voyage", "document");
 
     // 저장
-    return await this.saveOne({
+    return await this.save([{
       title: file.filename,
       content,
       embedding: embedding.embedding,
-    });
+    }]);
   }
 }
 ```
@@ -408,11 +408,11 @@ async createDocument(title: string, content: string) {
       'document'
     );
 
-    return await this.saveOne({
+    return await this.save([{
       title,
       content,
       embedding: embedding.embedding,
-    });
+    }]);
   } catch (error) {
     if (error.message.includes('API_KEY')) {
       throw new Error('Voyage API 키를 설정하세요: VOYAGE_API_KEY');
@@ -524,7 +524,7 @@ const embeddings = await Embedding.embed(uniqueTexts, "voyage");
    ```typescript
    console.log(`Total tokens: ${result.tokenCount}`);
    ```
-   </Warning>
+</Warning>
 
 ## 다음 단계
 
