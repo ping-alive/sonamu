@@ -1,0 +1,152 @@
+# agent-harness@cartanova-ai 프로젝트 어댑터. 스키마: plugins/agent-harness/docs/project-adapter.md
+# 비밀 값(비밀번호, 토큰, 연결 문자열)은 기록하지 않는다.
+project:
+  adapter_version: 1
+  id: sonamu
+  lease_namespace: cartanova-sonamu
+  checkout_resolver: checkout-root
+  local_environment_names:
+    - development
+    - test
+
+validation:
+  generation:
+    required: false
+    commands: []
+    clean_paths: []
+  format:
+    required: false
+    commands: []
+  # 패키지별 테스트·빌드는 영향받은 모듈의 AGENTS.md 체인이 정한다.
+  tests:
+    required: false
+    commands: []
+  final:
+    required: true
+    commands:
+      - [mise, run, check]
+
+commit:
+  enabled: true
+  checkpoint_policy: workflow
+  # 저장소 history와 동일한 문법. SON 번호는 요청·브랜치·확정된 작업 맥락에서만 가져온다.
+  message_style: "[<package>] <type>(SON-<n>): <한국어 요약>"
+  signoff_required: false
+  signing_required: false
+  pre_commit_gates:
+    - final
+  forbidden_paths: []
+
+# 로컬 DB 대상은 비활성이다. 활성화하려면 플러그인 템플릿으로 .cartanova/local-db.md를
+# 만들고 아래 참조 섹션을 채운다.
+db:
+  default_target: null
+  target_resolver: database-target
+  credential_resolver: database-credentials
+  allowlist: []
+  local_proof:
+    procedure: .cartanova/local-db.md#local-target-proof
+    require_all_effective_connections: true
+  query:
+    direct_sql: read-only
+    require_limit_for_unbounded_results: true
+  mutations:
+    direct_sql: forbidden
+    migration_requires_exact_approval: true
+    replacement_requires_exact_approval: true
+    broad_seed_requires_exact_approval: true
+  lease:
+    registry: shared-e2e
+    resource: database
+    identity: "{host}:{port}/{database}"
+    key: sha256-24
+    metadata_mode: "0600"
+  sync:
+    enabled: false
+    procedure: .cartanova/local-db.md#remote-to-local-synchronization
+    exact_approval_required: true
+
+# 로컬 E2E 대상은 비활성이다. 활성화하려면 플러그인 템플릿으로 .cartanova/local-e2e.md를
+# 만들고 프로세스·포트·참조 섹션을 채운다.
+e2e:
+  run_directory: null
+  ports:
+    api:
+      range: null
+      lease: true
+    web:
+      range: null
+      lease: true
+    app:
+      range: null
+      lease: true
+  processes: []
+  targets:
+    web:
+      enabled: false
+      origin_resolver: e2e-origin
+      procedure: .cartanova/local-e2e.md#web-target
+    app:
+      enabled: false
+      origin_resolver: e2e-origin
+      procedure: .cartanova/local-e2e.md#app-target
+  database:
+    target_resolver: database-target
+    lease_mutating_flows: true
+  auth:
+    resolver: auth-context
+    procedure: .cartanova/local-e2e.md#authentication-resolution
+    secret_output: forbidden
+  leases:
+    registry: shared-e2e
+    key: sha256-24
+    metadata_mode: "0600"
+    checkout:
+      policy: inherit-or-acquire
+    ports:
+      policy: acquire
+    database_for_writes:
+      policy: inherit-or-acquire
+    exclusive_targets:
+      policy: when-required
+  evidence:
+    directory: null
+    screenshots: on-request
+    logs: failures-only
+    publish: forbidden
+    redact_secrets: true
+    redact_unrelated_personal_data: true
+  cleanup:
+    stop_owned_processes: true
+    verify_process_identity: true
+    release_owned_leases: true
+    release_inherited_leases: false
+    remove_owned_secret_material: true
+    preserve_logs: true
+
+resolvers:
+  checkout-root:
+    type: command
+    command: [git, rev-parse, --show-toplevel]
+    output: canonical-path
+    secret_output: forbidden
+  database-target:
+    type: reference
+    reference: .cartanova/local-db.md#target-resolution
+    output: non-secret-target
+    secret_output: forbidden
+  database-credentials:
+    type: reference
+    reference: .cartanova/local-db.md#credential-resolution
+    output: process-injection
+    secret_output: forbidden
+  e2e-origin:
+    type: reference
+    reference: .cartanova/local-e2e.md#target-resolution
+    output: local-origin
+    secret_output: forbidden
+  auth-context:
+    type: reference
+    reference: .cartanova/local-e2e.md#authentication-resolution
+    output: opaque-reference
+    secret_output: forbidden

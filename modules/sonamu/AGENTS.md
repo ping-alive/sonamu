@@ -1,41 +1,24 @@
-# Guide for Coding Agents - modules/sonamu
+# modules/sonamu
 
-Inherits root rules from `../../AGENTS.md`.
-
-## Module role
-
-- `modules/sonamu` is the framework core.
-- Changes here can affect all Sonamu-based projects.
+Framework core; changes affect every Sonamu-based project. Internal tests are limited, so
+miomock integration verification is mandatory evidence. HMR changes usually span
+`@sonamu-kit/hmr-hook`, `@sonamu-kit/hmr-runner`, and `@sonamu-kit/ts-loader`; review
+cross-package impact.
 
 ## High-impact areas
 
-- `src/database/puri.ts`, `src/database/puri.types.ts`
-  - Type inference and nullability behavior are high-risk.
-  - Validate type-level and runtime behavior together.
-- `src/syncer/template*.ts`
-  - Template changes affect generated code across projects.
-  - Verify regeneration impact in miomock before finalizing.
-- `src/database/migrator.ts`
-  - Migration behavior changes require extra caution and explicit evidence.
-- `src/api/config.ts`
-  - Validate runtime/development path resolution differences.
-- `bin/cli.js`
-  - Validate CLI entry behavior after build.
+- `src/database/puri.ts`, `src/database/puri.types.ts`: type inference and nullability are
+  high-risk; validate type-level and runtime behavior together.
+- `src/syncer/template*.ts`: template changes affect generated code across projects; verify
+  regeneration in miomock.
+- `src/database/migrator.ts`: migration behavior changes require explicit evidence.
+- `src/api/config.ts`: validate runtime vs. development path resolution.
+- `bin/cli.js`: validate the CLI entry after build.
 
-## Validation requirements
+## Validation
 
-- Minimum package checks:
-  - `mise exec -- pnpm --filter sonamu build`
-  - `mise exec -- pnpm --filter sonamu test:type`
-- Integration regression checks:
-  - `mise exec -- pnpm --filter miomock-api test`
-- If templates/generation paths changed, validate sync result and generated outputs in miomock.
-
-## Notes
-
-- Sonamu internal tests are limited. Prefer miomock integration verification as mandatory evidence.
-- HMR-related changes often involve `@sonamu-kit/hmr-hook`, `@sonamu-kit/hmr-runner`, `@sonamu-kit/ts-loader`; review cross-package impact.
-
-## Cross-workspace gate
-
-- For changes in this scope, root `mise run check` (oxlint + oxfmt) must pass before handoff.
+- `mise exec -- pnpm --filter sonamu build`
+- `mise exec -- pnpm --filter sonamu test:type`
+- `mise exec -- pnpm --filter miomock-api test`
+- If templates or generation paths changed, validate the sync result and generated outputs in
+  miomock.

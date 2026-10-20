@@ -1,65 +1,42 @@
 # Repository Instructions
 
-Before performing a task, read and follow `.agents/agents/orchestrator.md`.
-
-## Instruction Scope
-
-- This file applies to the entire repository.
-- A deeper `AGENTS.md` takes precedence within its directory.
-- Before changing a file, read the nearest applicable `AGENTS.md`.
-
-## Repository Map
-
-- `modules/sonamu`: Sonamu framework core.
-- `examples/miomock`: Sample application and integration-validation target.
-- `examples/miomock/api`: Source of truth for miomock i18n.
-- `modules/create-sonamu`: Project generator and templates.
-- `modules/docs`: Sonamu documentation.
-- `modules/react-components` and `modules/react-sui`: Shared React packages.
-- `modules/hmr-*` and `modules/ts-loader`: Development runtime and tooling.
-- `modules/tasks`: Distributed task queue.
-
 ## Toolchain
 
 - Run `mise install --locked` for explicit toolchain setup.
-- Use `mise run <task>` for repository-wide tasks.
-- Use `mise exec -- pnpm ...`, `mise exec -- node ...`, and equivalent
-  wrappers for package-local or raw tool commands. Do not invoke host
-  `node`, `npm`, `npx`, or `pnpm` directly.
-- The root `mise.toml` resolves from repository subdirectories.
-- Docker, EAS, and container build files are explicit exceptions where mise
-  is intentionally absent.
+- Use `mise run <task>` for repository-wide tasks and `mise exec -- pnpm ...`
+  (or `mise exec -- node ...`) for package-local or raw tool commands. Do not
+  invoke host `node`, `npm`, `npx`, or `pnpm` directly. The root `mise.toml`
+  resolves from subdirectories.
+- Docker, EAS, and container build files intentionally omit mise.
 
 ## Validation
 
-- Run `mise run check` at the repository root for every code change.
-- Run applicable tests and builds for each affected package.
+- Run `mise run check` (oxlint + oxfmt) at the repository root for every code
+  change.
+- Run the tests and builds listed in each affected module's `AGENTS.md`.
 - For framework-core, generator, template, or generated-output changes, validate
   the resulting behavior in `examples/miomock`.
+- For user-visible UI changes, verify the affected flow in a browser when the
+  application can run locally.
 
-## Language
+## Skills
 
-- Write prompts and reasoning instructions passed from the orchestrator to
-  sub-agents in English.
-- Write code comments and test case descriptions in Korean.
+- Sonamu framework guidance comes from the installed `sonamu-*` skills
+  (`cartanova-ai/sonamu-skills`). Read the applicable one before changing
+  framework behavior.
+- For React changes, follow the `vercel-react-best-practices` skill.
+- Optional: the `agent-harness` plugin from the private `cartanova-ai/skills`
+  repository provides workflow, review, and commit skills. Its project adapter
+  is `.cartanova/harness.yaml`. Without it, use your runtime's defaults.
 
-## Comments
+## Commits
 
-- When code contains business logic, add concise inline comments that explain
-  its intent or rationale.
-- Do not narrate behavior already evident from the code.
-- When a method needs detailed documentation, use JSDoc instead of long inline
-  or block comments.
+Match the subject grammar and language of recent `git log`
+(`[<package>] <type>(SON-<n>): <summary>`, Korean summary). Never invent an
+issue number.
 
-## Frontend
+## Code Style
 
-- For React code changes, read and follow the
-  `vercel-react-best-practices` skill.
-- For user-visible UI behavior changes, verify the affected flow with
-  Playwright MCP when the application can be run locally.
-
-## Sonamu Guidance
-
-Sonamu framework guidance is provided by externally installed `sonamu-*`
-skills. Read the applicable installed skill before changing framework
-behavior.
+- Write code comments and test descriptions in Korean.
+- Add concise inline comments only where business logic needs its intent or
+  rationale explained; use JSDoc for detailed method documentation.

@@ -1,21 +1,10 @@
-# Guide for Coding Agents - modules/tasks
+# modules/tasks
 
-Inherits root rules from `../../AGENTS.md`.
+Distributed task queue. Add regression tests for scheduling, retry, and distribution logic
+changes before completion.
 
-## Package role
-
-- Distributed task queue library.
-
-## Required checks
+## Validation
 
 - `mise exec -- pnpm --filter @sonamu-kit/tasks check`
 - `mise exec -- pnpm --filter @sonamu-kit/tasks test`
 - `mise exec -- pnpm --filter @sonamu-kit/tasks build`
-
-## Testing policy
-
-- For scheduling/retry/distribution logic changes, add regression tests before implementation completion.
-
-## Cross-workspace gate
-
-- For changes in this scope, root `mise run check` (oxlint + oxfmt) must pass before handoff.
