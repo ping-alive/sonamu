@@ -78,10 +78,12 @@ describe("TypeScript 7 Web 빌드 정책", () => {
     await writeFile(path.join(webRoot, "worker.ts"), 'export const worker: string = "ok";\n');
     await expect(execAsync(createWebTypecheckCommand(), { cwd: webRoot })).resolves.toBeDefined();
 
-    for (const artifact of WEB_ARTIFACTS) {
-      const command = artifact.buildCommand({ configFilePath: "" });
-      expect(command).toContain("typecheck-web");
+    // 타입체크는 buildWebCommand가 한 번만 실행하므로 artifact 명령에는 포함되지 않습니다.
+    const commands = WEB_ARTIFACTS.map((artifact) => artifact.buildCommand({}));
+    for (const command of commands) {
+      expect(command).toContain("vite build");
       expect(command).not.toContain("tsc -b");
+      expect(command).not.toContain("typecheck-web");
     }
   });
 });

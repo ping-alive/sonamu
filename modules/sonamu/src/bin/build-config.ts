@@ -226,8 +226,7 @@ export const WEB_ARTIFACTS: BuildArtifact[] = [
     description: "Web 프로젝트 클라이언트 빌드 산출물",
     projectPath: "web",
     preBuildCommand: () => "rm -rf dist/client",
-    buildCommand: () =>
-      `${createWebTypecheckCommand()} && vite build --config vite.config.ts --outDir dist/client`,
+    buildCommand: () => "vite build --config vite.config.ts --outDir dist/client",
   },
   {
     name: "Web Server",
@@ -235,7 +234,7 @@ export const WEB_ARTIFACTS: BuildArtifact[] = [
     projectPath: "web",
     preBuildCommand: () => "rm -rf dist/server",
     buildCommand: () =>
-      `${createWebTypecheckCommand()} && vite build --config vite.config.ts --ssr src/entry-server.generated.tsx --outDir dist/server`,
+      "vite build --config vite.config.ts --ssr src/entry-server.generated.tsx --outDir dist/server",
     postBuildCommand: () =>
       "rm -rf ../api/web-dist && mkdir -p ../api/web-dist && cp -r dist/* ../api/web-dist",
   },
@@ -267,7 +266,7 @@ export async function resolveApiBuildConfigPath(
 
 async function runBuildSteps<T>(
   artifact: BuildArtifact<T>,
-  options: { cwd: string; buildCommandArgs: T },
+  options: { cwd: string; buildCommandArgs: T; exec?: typeof execWithLinePrefix },
 ) {
   const steps = [
     { name: "pre-build", cmd: artifact.preBuildCommand?.() },
@@ -281,7 +280,7 @@ async function runBuildSteps<T>(
     try {
       assert(step.cmd);
       printTaskStart(step.name, step.cmd, isLast);
-      await execWithLinePrefix(step.cmd, { cwd: options.cwd });
+      await (options.exec ?? execWithLinePrefix)(step.cmd, { cwd: options.cwd });
       printTaskSuccess(step.name, isLast);
     } catch (error) {
       printTaskFailed(step.name, isLast);
@@ -332,7 +331,8 @@ export async function buildApiCommand(): Promise<void> {
 
 export async function buildWebCommand({
   skipIfMissing = false,
-}: { skipIfMissing?: boolean } = {}): Promise<void> {
+  exec = execWithLinePrefix,
+}: { skipIfMissing?: boolean; exec?: typeof execWithLinePrefix } = {}): Promise<void> {
   const appRootPath = findAppRootPath();
   const webPath = path.join(appRootPath, "web");
   if (!(await exists(webPath))) {
@@ -345,10 +345,22 @@ export async function buildWebCommand({
 
   const startedAt = Date.now();
   try {
+    // 클라이언트/SSR 빌드가 같은 타입체크를 반복하지 않도록 vite 빌드 전에 한 번만 실행한다.
+    const typecheckCommand = createWebTypecheckCommand();
+    printTaskHeader("Web Typecheck", "Web 프로젝트 타입 검사", webPath);
+    printTaskStart("typecheck", typecheckCommand, true);
+    try {
+      await exec(typecheckCommand, { cwd: webPath });
+      printTaskSuccess("typecheck", true);
+    } catch (error) {
+      printTaskFailed("typecheck", true);
+      throw new Error("typecheck failed", { cause: error });
+    }
+
     for (const artifact of WEB_ARTIFACTS) {
       const cwd = path.join(appRootPath, artifact.projectPath);
       printTaskHeader(artifact.name, artifact.description, cwd);
-      await runBuildSteps(artifact, { cwd, buildCommandArgs: {} });
+      await runBuildSteps(artifact, { cwd, buildCommandArgs: {}, exec });
     }
     printBuildSummary("Web", true, Date.now() - startedAt);
   } catch (error) {
