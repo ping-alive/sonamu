@@ -22,7 +22,7 @@ jobs:
     services:
       # miomock의 PostgreSQL docker compose와 같음
       postgres:
-        image: public.ecr.aws/m9z8n2p9/cartanova/sonamu-postgres:latest
+        image: ghcr.io/cartanova-ai/sonamu-postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: miomock123
