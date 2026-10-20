@@ -151,4 +151,5 @@ publish(
   "./modules/react-components",
   "./modules/create-sonamu",
   "./modules/tasks",
+  "./modules/websocket-redis-adapter",
 );

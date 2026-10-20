@@ -1,6 +1,6 @@
 {
   "name": "@sonamu-kit/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Command-line interface for Sonamu",
   "license": "MIT",
   "bin": {
@@ -48,6 +48,6 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "sonamu": "^0.11.0"
+    "sonamu": "^0.12.0"
   }
 }

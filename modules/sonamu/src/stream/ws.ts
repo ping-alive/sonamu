@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { type EventEmitter } from "node:events";
-import { hostname } from "node:os";
 
 import { type RawData, type WebSocket } from "ws";
 import { z } from "zod";
@@ -9,6 +8,9 @@ import { runtimeTypeOf } from "../runtime-type";
 import { isStringValue } from "../utils/runtime-value";
 import { type WebSocketAudience } from "./ws-audience";
 import { type WebSocketClusterBus } from "./ws-cluster-bus";
+import { type WebSocketFrameConnection } from "./ws-core";
+import { type WebSocketRouteDefinition } from "./ws-delivery";
+import { encodeWebSocketFrame } from "./ws-frame";
 import { type WebSocketPresenceStore } from "./ws-presence-store";
 import {
   type ManagedWebSocketConnection,
@@ -17,6 +19,7 @@ import {
   type WebSocketRoomId,
   type WebSocketUserId,
 } from "./ws-registry";
+import { createWebSocketNodeId, createWebSocketSessionId } from "./ws-session-id";
 import {
   type TelemetryContextProvider,
   type WebSocketTelemetryConnectionSnapshot,
@@ -95,10 +98,11 @@ export interface WebSocketConnection<
     data: WebSocketOutEvents<TOut>[K],
   ): void;
   waitForClose(): Promise<void>;
-  join(roomId: WebSocketRoomId): void;
-  leave(roomId: WebSocketRoomId): void;
-  setUserId(userId: WebSocketUserId): void;
-  clearUserId(): void;
+  // 아래 mutation은 메모리를 즉시 갱신하고, store 반영이 끝나면 resolve한다. reject하지 않는다
+  join(roomId: WebSocketRoomId): Promise<void>;
+  leave(roomId: WebSocketRoomId): Promise<void>;
+  setUserId(userId: WebSocketUserId): Promise<void>;
+  clearUserId(): Promise<void>;
 }
 
 export type AnyWebSocketConnection = WebSocketConnection<object, object>;
@@ -109,6 +113,8 @@ type WebSocketConnectionOptions<
   TOut extends WebSocketEventFields,
   TIn extends WebSocketEventFields,
 > = {
+  // route table 키(보통 API path). 원격 노드가 보낸 envelope에서 이 연결이 받을 frame을 고를 때 쓴다
+  routeKey?: string;
   namespace?: string;
   heartbeat?: number;
   active?: boolean;
@@ -127,6 +133,8 @@ export type WebSocketRuntimeOptions = {
   presenceStore?: WebSocketPresenceStore;
   clusterBus?: WebSocketClusterBus;
   telemetry?: boolean | WebSocketTelemetryOptions;
+  // shutdown 시 진행 중인 store mutation과 publish를 기다리는 상한. 기본값 5000ms
+  drainTimeoutMs?: number;
 };
 
 // registry를 소유하고 connection 생성/shutdown을 담당함. Sonamu 애플리케이션 수명주기와 같이 움직이도록 설계함
@@ -135,9 +143,13 @@ export class WebSocketRuntime {
   readonly telemetryController: WebSocketTelemetryController;
 
   constructor(options: WebSocketRuntimeOptions = {}) {
-    // 분산 환경에서 노드 간 충돌을 막기 위해 hostname + pid로 디폴트 식별자를 만든다.
-    // 같은 호스트에 여러 프로세스가 떠 있어도 pid로 구분되며, 로그/메트릭에서도 식별이 쉬움
-    const resolvedNodeId = options.nodeId ?? `${hostname()}-${process.pid}`;
+    // nodeId를 주지 않으면 store/bus가 가진 nodeId를 따르고, 둘 다 없으면 hostname-pid-랜덤으로 만든다.
+    // store나 bus의 nodeId가 이 값과 다르면 registry 생성 시 즉시 실패한다
+    const resolvedNodeId =
+      options.nodeId ??
+      options.presenceStore?.nodeId ??
+      options.clusterBus?.nodeId ??
+      createWebSocketNodeId();
     this.telemetryController = createWebSocketTelemetryController(options.telemetry, {
       runtimeId: randomUUID(),
       nodeId: resolvedNodeId,
@@ -147,11 +159,25 @@ export class WebSocketRuntime {
       presenceStore: options.presenceStore,
       clusterBus: options.clusterBus,
       telemetryController: this.telemetryController,
+      drainTimeoutMs: options.drainTimeoutMs,
     };
     this.registry = new WebSocketRegistry(registryOptions);
   }
 
-  registerConnection<
+  // routeKey별 outEvents를 등록한다. 같은 키로 다시 호출하면 스키마를 교체한다
+  registerRoute(routeKey: string, route: { outEvents: z.ZodObject }): void {
+    this.registry.registerRoute(routeKey, route.outEvents);
+  }
+
+  // route table 전체를 교체한다. 목록에 없는 routeKey는 제거된다
+  replaceRoutes(routes: WebSocketRouteDefinition[]): void {
+    this.registry.replaceRoutes(routes);
+  }
+
+  /**
+   * 소켓 리스너를 동기로 붙이고 registry에 등록한다. store.register가 끝나면(실패해도) resolve한다.
+   */
+  async registerConnection<
     TOutSchema extends WebSocketEventFields,
     TInSchema extends WebSocketEventFields,
   >(
@@ -160,20 +186,24 @@ export class WebSocketRuntime {
       WebSocketConnectionOptions<TOutSchema, TInSchema>,
       "registry" | "telemetryController"
     >,
-  ): WebSocketConnection<InferWebSocketEventMap<TOutSchema>, InferWebSocketEventMap<TInSchema>> {
-    return new WebSocketConnectionImpl(socket, {
+  ): Promise<
+    WebSocketConnection<InferWebSocketEventMap<TOutSchema>, InferWebSocketEventMap<TInSchema>>
+  > {
+    const connection = new WebSocketConnectionImpl(socket, {
       ...options,
       registry: this.registry,
       telemetryController: this.telemetryController,
     });
+    await this.registry.register(connection, options.active ?? true);
+    return connection;
   }
 
-  activateConnection(connectionId: string): void {
-    this.registry.activate(connectionId);
+  activateConnection(connectionId: string): Promise<void> {
+    return this.registry.activate(connectionId);
   }
 
-  broadcast<Data>(event: string, data: Data, namespace?: string): void {
-    this.registry.broadcast(event, data, namespace);
+  broadcast<Data>(event: string, data: Data, namespace?: string): Promise<void> {
+    return this.registry.broadcast(event, data, namespace);
   }
 
   publishToRoom<Data>(
@@ -181,8 +211,8 @@ export class WebSocketRuntime {
     event: string,
     data: Data,
     namespace?: string,
-  ): void {
-    this.registry.publishToRoom(roomId, event, data, namespace);
+  ): Promise<void> {
+    return this.registry.publishToRoom(roomId, event, data, namespace);
   }
 
   publishToUser<Data>(
@@ -190,12 +220,12 @@ export class WebSocketRuntime {
     event: string,
     data: Data,
     namespace?: string,
-  ): void {
-    this.registry.publishToUser(userId, event, data, namespace);
+  ): Promise<void> {
+    return this.registry.publishToUser(userId, event, data, namespace);
   }
 
-  publishToAudience<Data>(audience: WebSocketAudience, event: string, data: Data): void {
-    this.registry.publishToAudience(audience, event, data);
+  publishToAudience<Data>(audience: WebSocketAudience, event: string, data: Data): Promise<void> {
+    return this.registry.publishToAudience(audience, event, data);
   }
 
   // 프로세스 종료 시 살아있는 연결이 남지 않도록 registry를 순회해 일괄 종료함
@@ -218,12 +248,15 @@ class WebSocketConnectionImpl<
 >
   implements
     WebSocketConnection<InferWebSocketEventMap<TOutSchema>, InferWebSocketEventMap<TInSchema>>,
+    WebSocketFrameConnection,
     TelemetryInspectableConnection,
     TelemetryContextProvider
 {
-  readonly id = randomUUID();
+  readonly id: string;
   readonly transport = "ws";
   readonly namespace: string;
+  readonly routeKey?: string;
+  readonly outEvents: z.ZodObject;
 
   private readonly closeCallbacks: CloseHandler[] = [];
   private readonly messageHandlers = new Map<string, Array<MessageHandler<unknown>>>();
@@ -233,7 +266,6 @@ class WebSocketConnectionImpl<
   private readonly resolveClosePromise: () => void;
   private readonly heartbeatMs: number;
   private readonly eventSchemasIn: Record<string, z.ZodTypeAny>;
-  private readonly eventSchemasOut: Record<string, z.ZodTypeAny>;
 
   private readonly connectionTraceId?: string;
   private readonly connectionSpanId?: string;
@@ -259,6 +291,9 @@ class WebSocketConnectionImpl<
     private readonly socket: WebSocketTransport,
     private readonly options: WebSocketConnectionOptions<TOutSchema, TInSchema>,
   ) {
+    this.id = createWebSocketSessionId(options.registry.nodeId);
+    this.routeKey = options.routeKey;
+    this.outEvents = options.outEvents;
     this.namespace = options.namespace ?? "default";
     this.heartbeatMs = options.heartbeat ?? 30000;
     this.connectionTraceId = options.traceId;
@@ -266,7 +301,6 @@ class WebSocketConnectionImpl<
     this.connectionParentSpanId = options.parentSpanId;
     this.connectionSampled = options.sampled;
     this.eventSchemasIn = options.inEvents["shape"];
-    this.eventSchemasOut = options.outEvents["shape"];
 
     let resolveClosePromise!: () => void;
     this.closePromise = new Promise<void>((resolve) => {
@@ -274,7 +308,7 @@ class WebSocketConnectionImpl<
     });
     this.resolveClosePromise = resolveClosePromise;
 
-    this.options.registry.register(this, options.active ?? true);
+    // 리스너를 동기로 붙여 registry 등록이 끝나기 전에 닫혀도 close를 놓치지 않는다. 등록은 runtime이 이어서 수행한다
     this.socket.on("message", this.handleMessage);
     this.socket.on("close", this.handleClose);
     this.socket.on("error", this.handleError);
@@ -318,22 +352,32 @@ class WebSocketConnectionImpl<
     return this.closePromise;
   }
 
-  join(roomId: WebSocketRoomId): void {
-    this.options.registry.join(this.id, roomId);
+  join(roomId: WebSocketRoomId): Promise<void> {
+    return this.options.registry.join(this.id, roomId);
   }
 
-  leave(roomId: WebSocketRoomId): void {
-    this.options.registry.leave(this.id, roomId);
+  leave(roomId: WebSocketRoomId): Promise<void> {
+    return this.options.registry.leave(this.id, roomId);
   }
 
-  setUserId(userId: WebSocketUserId): void {
+  setUserId(userId: WebSocketUserId): Promise<void> {
     this.currentUserId = String(userId);
-    this.options.registry.setUserId(this.id, userId);
+    return this.options.registry.setUserId(this.id, userId);
   }
 
-  clearUserId(): void {
+  clearUserId(): Promise<void> {
     this.currentUserId = undefined;
-    this.options.registry.clearUserId(this.id);
+    return this.options.registry.clearUserId(this.id);
+  }
+
+  // registry fan-out이 이미 검증·인코딩한 frame을 그대로 보낸다
+  sendFrame(event: string, frame: string): void {
+    if (this.closedInternal || this.socket.readyState !== WS_OPEN) {
+      this.emitPublishDropped(event);
+      return;
+    }
+
+    this.enqueueOutboundMessage(frame, event);
   }
 
   getTelemetrySnapshot(): WebSocketTelemetryConnectionSnapshot {
@@ -578,8 +622,8 @@ class WebSocketConnectionImpl<
   }
 
   private publishValidated<Data>(event: string, data: Data): void {
-    const schema = this.eventSchemasOut[event];
-    if (!schema) {
+    const encoding = encodeWebSocketFrame(this.outEvents, event, data);
+    if (encoding.status === "unknownEvent") {
       this.options.telemetryController.emit({
         name: "ws.publish.rejected",
         level: "error",
@@ -589,8 +633,7 @@ class WebSocketConnectionImpl<
       throw new Error(`Unknown websocket event: ${event}`);
     }
 
-    const parsed = schema.safeParse(data);
-    if (!parsed.success) {
+    if (encoding.status === "invalidPayload") {
       this.options.telemetryController.emit({
         name: "ws.publish.rejected",
         level: "error",
@@ -601,22 +644,20 @@ class WebSocketConnectionImpl<
     }
 
     if (this.closedInternal || this.socket.readyState !== WS_OPEN) {
-      this.options.telemetryController.emit({
-        name: "ws.publish.dropped",
-        level: "debug",
-        ...this.telemetryFields(),
-        detail: { event, reason: "connectionClosed" },
-      });
+      this.emitPublishDropped(event);
       return;
     }
 
-    this.enqueueOutboundMessage(
-      JSON.stringify({
-        event,
-        data: parsed.data,
-      }),
-      event,
-    );
+    this.enqueueOutboundMessage(encoding.frame, event);
+  }
+
+  private emitPublishDropped(event: string): void {
+    this.options.telemetryController.emit({
+      name: "ws.publish.dropped",
+      level: "debug",
+      ...this.telemetryFields(),
+      detail: { event, reason: "connectionClosed" },
+    });
   }
 
   // listener 해제 / heartbeat 중단 / pending queue 비움 / registry unregister / onClose 실행 / waitForClose resolve 을 한 곳에 모아 원자적으로 처리함

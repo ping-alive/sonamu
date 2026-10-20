@@ -7,11 +7,14 @@ allowBuilds:
   "@parcel/watcher": true
   "@swc/core": true
   bcrypt: true
+  cpu-features: false
   esbuild: true
   lefthook: true
   libpq: true
+  protobufjs: false
   sharp: true
   sodium-native: true
+  ssh2: false
   unrs-resolver: true
 
 catalog:
@@ -213,6 +216,7 @@ catalog:
   react-semantic-ui-datepickers: ^2.17.1
   react-syntax-highlighter: ^15.5.0
   read-package-up: ^11.0.0
+  redis: ^6.3.0
   rou3: ^0.7.10
   sass: ^1.92.1
   scss: ^0.2.4
@@ -226,6 +230,7 @@ catalog:
   swr: ^2.3.7
   tailwind-merge: ^3.4.0
   tailwindcss: ^4.0.0
+  testcontainers: ^12.0.0
   ts-node: ^10.9.2
   tsdown: ^0.22.3
   tsx: ^4.21.0

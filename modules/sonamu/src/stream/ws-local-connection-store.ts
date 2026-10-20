@@ -1,14 +1,14 @@
 import { isFunctionValue } from "../utils/runtime-value";
-import { type ManagedWebSocketConnection } from "./ws-core";
+import { type WebSocketFrameConnection } from "./ws-core";
 import {
   type WebSocketTelemetryConnectionSnapshot,
   type TelemetryInspectableConnection,
 } from "./ws-telemetry";
 
 export class WebSocketLocalConnectionStore {
-  private readonly connections = new Map<string, ManagedWebSocketConnection>();
+  private readonly connections = new Map<string, WebSocketFrameConnection>();
 
-  register(connection: ManagedWebSocketConnection): void {
+  register(connection: WebSocketFrameConnection): void {
     this.connections.set(connection.id, connection);
   }
 
@@ -16,12 +16,12 @@ export class WebSocketLocalConnectionStore {
     this.connections.delete(connectionId);
   }
 
-  getConnection(connectionId: string): ManagedWebSocketConnection | undefined {
+  getConnection(connectionId: string): WebSocketFrameConnection | undefined {
     return this.connections.get(connectionId);
   }
 
-  getConnections(connectionIds: string[]): ManagedWebSocketConnection[] {
-    const targets: ManagedWebSocketConnection[] = [];
+  getConnections(connectionIds: string[]): WebSocketFrameConnection[] {
+    const targets: WebSocketFrameConnection[] = [];
     const seen = new Set<string>();
 
     for (const connectionId of connectionIds) {
@@ -63,14 +63,15 @@ export class WebSocketLocalConnectionStore {
   }
 
   closeAll(code?: number, reason?: string): void {
-    for (const connection of this.connections.values()) {
+    // close 도중 unregister가 Map을 바꾸므로 복사본을 순회한다
+    for (const connection of Array.from(this.connections.values())) {
       connection.close(code, reason);
     }
   }
 }
 
 function isTelemetryInspectableConnection(
-  connection: ManagedWebSocketConnection,
-): connection is ManagedWebSocketConnection & TelemetryInspectableConnection {
+  connection: WebSocketFrameConnection,
+): connection is WebSocketFrameConnection & TelemetryInspectableConnection {
   return "getTelemetrySnapshot" in connection && isFunctionValue(connection.getTelemetrySnapshot);
 }

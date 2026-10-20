@@ -25,8 +25,8 @@ class ChatFrameClass extends BaseFrameClass {
     const user = ctx.user;
     if (!user) throw new Error("unauthenticated");
 
-    ctx.ws.join(CHAT_ROOM_ID);
-    ctx.ws.setUserId(user.id);
+    await ctx.ws.join(CHAT_ROOM_ID);
+    await ctx.ws.setUserId(user.id);
 
     ctx.ws.publish("typingUsers", currentTypingUsers());
 
@@ -43,7 +43,12 @@ class ChatFrameClass extends BaseFrameClass {
         created_at: new Date(),
         user: pick(user, ["id", "name", "email", "image"]),
       };
-      Sonamu.websocketRuntime.publishToRoom(CHAT_ROOM_ID, "newMessage", message, CHAT_NAMESPACE);
+      await Sonamu.websocketRuntime.publishToRoom(
+        CHAT_ROOM_ID,
+        "newMessage",
+        message,
+        CHAT_NAMESPACE,
+      );
     });
 
     ctx.ws.onMessage("typing", ({ active }) => {
@@ -54,15 +59,13 @@ class ChatFrameClass extends BaseFrameClass {
       }
     });
 
-    ctx.ws.onClose(() => {
-      ctx.ws.leave(CHAT_ROOM_ID);
-    });
-
+    // 연결이 닫히면 close 콜백 전에 registry에서 해제되며 방 멤버십도 함께 정리되므로 leave가 필요 없다
     await ctx.ws.waitForClose();
   }
 
-  private broadcastTyping(): void {
-    Sonamu.websocketRuntime.publishToRoom(
+  // publish는 reject하지 않으므로 타이머 콜백에서 기다리지 않고 호출해도 안전하다
+  private broadcastTyping(): Promise<void> {
+    return Sonamu.websocketRuntime.publishToRoom(
       CHAT_ROOM_ID,
       "typingUsers",
       currentTypingUsers(),

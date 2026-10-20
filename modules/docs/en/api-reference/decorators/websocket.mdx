@@ -39,11 +39,11 @@ class ChatFrameClass extends BaseFrameClass {
     const user = ctx.user;
     if (!user) throw new Error("unauthenticated");
 
-    ctx.ws.join("global");
-    ctx.ws.setUserId(user.id);
+    await ctx.ws.join("global");
+    await ctx.ws.setUserId(user.id);
 
-    ctx.ws.onMessage("send", (data) => {
-      Sonamu.websocketRuntime.publishToRoom(
+    ctx.ws.onMessage("send", async (data) => {
+      await Sonamu.websocketRuntime.publishToRoom(
         "global",
         "newMessage",
         { id: Date.now(), content: data.content, userId: user.id },
@@ -51,14 +51,12 @@ class ChatFrameClass extends BaseFrameClass {
       );
     });
 
-    ctx.ws.onClose(() => {
-      ctx.ws.leave("global");
-    });
-
     await ctx.ws.waitForClose();
   }
 }
 ```
+
+<Info>Since 0.12, room/user mutations and runtime publishes return a `Promise<void>`. `await` them so the presence store has seen the change before your next step. These promises never reject, so calling them without `await` is also safe.</Info>
 
 ## Options
 
@@ -77,6 +75,8 @@ const OutEvents = z.object({
 });
 ```
 
+When Sonamu starts, it registers every `@websocket` route's `outEvents` in the runtime's route table, keyed by the route path. A runtime publish validates and encodes the payload once per route that declares the event, and each connection receives the frame for its own route. Routes in the same namespace may declare different schemas for the same event name; connections on a route that does not declare the event are skipped.
+
 ### inEvents
 
 Defines client → server event types using a Zod schema.
@@ -90,7 +90,7 @@ const InEvents = z.object({
 });
 ```
 
-<Info>Inbound messages are validated against `inEvents` via the envelope contract. Events not declared in the schema, or payloads that fail validation, are not delivered to handlers and are treated as policy violations.</Info>
+<Info>Inbound messages are validated against `inEvents` via the envelope contract and never reach handlers when they fail. An event not declared in the schema closes the connection with `1008 Policy Violation`; a payload that fails validation closes it with `1007 Invalid Frame Payload Data`.</Info>
 
 ### path
 
@@ -139,7 +139,7 @@ type GuardKey = "query" | "admin" | "user";
 @websocket({ outEvents, inEvents, guards: ["user"] })
 ```
 
-Guard failures are rejected during the handshake and close with `1008 Policy Violation`.
+Guards run after the WebSocket upgrade and before the handler. When `guardHandler` throws a 4xx Sonamu exception such as `UnauthorizedException`, the connection closes with `1008 Policy Violation`; any other error closes it with `1011`.
 
 ### description
 
@@ -174,7 +174,7 @@ type WebSocketContext<TOut, TIn> = BaseContext & {
 
 ### ctx.ws.publish
 
-Sends an event to this connection only.
+Sends an event to this connection only. It is synchronous and throws when the event is not declared in `outEvents` or the payload fails validation.
 
 ```typescript
 ctx.ws.publish("ready", { history: ["hello", "world"] });
@@ -192,11 +192,11 @@ ctx.ws.onMessage("send", async (data) => {
 
 ### ctx.ws.onClose
 
-Runs cleanup when the connection closes.
+Runs cleanup when the connection closes. The connection is already removed from the registry, including all of its rooms and its user binding, before the callbacks run, so you do not need to call `leave` here.
 
 ```typescript
 ctx.ws.onClose(() => {
-  ctx.ws.leave("global");
+  clearTypingState(user.id);
 });
 ```
 
@@ -210,20 +210,29 @@ await ctx.ws.waitForClose();
 
 ### ctx.ws.join / ctx.ws.leave
 
-Joins or leaves a room, which is the broadcast unit.
+Joins or leaves a room, which is the broadcast unit. Both return `Promise<void>`.
 
 ```typescript
-ctx.ws.join("room-1");
-ctx.ws.leave("room-1");
+await ctx.ws.join("room-1");
+await ctx.ws.leave("room-1");
 ```
 
 ### ctx.ws.setUserId / ctx.ws.clearUserId
 
-Attaches a user identifier to the connection so it can be targeted by `publishToUser`.
+Attaches a user identifier to the connection so it can be targeted by `publishToUser`. Both return `Promise<void>`.
 
 ```typescript
-ctx.ws.setUserId(user.id);
+await ctx.ws.setUserId(user.id);
+await ctx.ws.clearUserId();
 ```
+
+User IDs match by type as well as value: a connection bound with `setUserId(1)` does not receive `publishToUser("1", ...)`. Use the same type when binding and publishing.
+
+### Mutation semantics
+
+`join`, `leave`, `setUserId`, and `clearUserId` update the node-local registry synchronously at call time, so a publish issued right after `ctx.ws.join("r")` (even without `await`) already reaches this connection. The returned promise settles after the presence store call for the change resolves or fails. Store calls for one connection run in call order.
+
+The promises never reject. If the presence store fails, the node-local state stays updated, later mutations for the connection still run in order, and the failure is reported as the `ws.registry.mutation.failed` telemetry event. Calling a mutation on a connection that has already closed is ignored and emits `ws.registry.mutation.skipped`.
 
 ## Broadcast
 
@@ -232,20 +241,221 @@ From outside the handler you can also push messages to other connections via `So
 ```typescript
 import { Sonamu } from "sonamu";
 
-Sonamu.websocketRuntime.publishToRoom(
+await Sonamu.websocketRuntime.publishToRoom(
   "global",
   "newMessage",
   { id: 1, content: "hello" },
   "chat", // namespace
 );
 
-Sonamu.websocketRuntime.publishToUser(
+await Sonamu.websocketRuntime.publishToUser(
   userId,
   "notify",
   { kind: "mention" },
   "chat",
 );
 ```
+
+| Method | Signature |
+| --- | --- |
+| `broadcast` | `(event, data, namespace?) => Promise<void>` |
+| `publishToRoom` | `(roomId, event, data, namespace?) => Promise<void>` |
+| `publishToUser` | `(userId, event, data, namespace?) => Promise<void>` |
+| `publishToAudience` | `(audience, event, data) => Promise<void>` |
+
+These methods never reject:
+
+- If the event is unknown to every route, or the payload fails a route's `outEvents` schema, nothing is sent to that route's connections, no connection is closed, and the runtime emits `ws.publish.rejected` telemetry. Routes whose schema accepts the payload still receive it.
+- If routing or the cluster bus fails, local delivery still happens, remote delivery is skipped, and the failure is reported through `ws.fanout.*` / `ws.cluster.*` telemetry.
+
+Publishes from one node reach every recipient, local or remote, in the order they were issued.
+
+<Warning>`ctx.ws.publish` keeps its synchronous behavior: an unknown event or invalid payload throws. Only the runtime publish methods above swallow validation failures.</Warning>
+
+## Reading presence
+
+Read APIs live on `Sonamu.websocketRuntime.registry`.
+
+| Method | Scope | Return |
+| --- | --- | --- |
+| `getConnection(id)` | This node | `WebSocketConnectionMeta \| undefined` |
+| `getConnectionCount(namespace?)` | This node | `number` |
+| `getRoomMembers(roomId, namespace?)` | This node | `WebSocketConnectionMeta[]` |
+| `getStats()` | This node | `WebSocketRegistryStats` |
+| `getRoomMemberCount(roomId, namespace?)` | Cluster-wide | `Promise<{ count: number; partial: boolean }>` |
+
+Node-local reads return snapshot copies; changing a returned object (including its `rooms` set) does not affect the registry.
+
+`getRoomMemberCount` asks the presence store for the active member count across all nodes and never rejects. When the store call throws or rejects, it returns this node's count with `partial: true` and emits `ws.registry.read.failed` telemetry. The runtime does not put its own timeout on the call: the Redis adapter rejects when a call exceeds its `commandDeadlineMs`, which produces the fallback, but a custom store whose call never settles leaves the returned promise pending.
+
+```typescript
+const { count, partial } = await Sonamu.websocketRuntime.registry.getRoomMemberCount("global", "chat");
+```
+
+## Runtime configuration
+
+Configure the runtime with `server.websocket` in `sonamu.config.ts`. A single node works with the defaults.
+
+```typescript
+export default defineConfig({
+  server: {
+    websocket: {
+      nodeId: "api-1",
+      drainTimeoutMs: 5000,
+      telemetry: true,
+    },
+  },
+});
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `nodeId` | `presenceStore.nodeId`, then `clusterBus.nodeId`, then `${hostname()}-${process.pid}-${random}` | Node identifier used for routing. Session IDs embed it. |
+| `presenceStore` | `InMemoryWebSocketPresenceStore` | Cluster presence replica. |
+| `clusterBus` | `NoopWebSocketClusterBus` | Cross-node transport for publishes. |
+| `telemetry` | off | Telemetry options. |
+| `drainTimeoutMs` | `5000` | Upper bound for waiting on pending store mutations and publishes during shutdown. |
+
+The random suffix in the default `nodeId` keeps a restarted container with the same hostname and PID from inheriting the previous node's state. If `presenceStore` or `clusterBus` exposes a `nodeId` that differs from the runtime's `nodeId`, runtime creation throws.
+
+On shutdown, the runtime closes local connections, waits up to `drainTimeoutMs` for queued store mutations and publishes, then calls `presenceStore.shutdown()` (if defined) and `clusterBus.shutdown()`.
+
+### Custom presence store
+
+Every method may return a value or a promise (`MaybePromise<T> = T | Promise<T>`). A synchronous throw is treated like a rejection.
+
+```typescript
+interface WebSocketPresenceStore {
+  readonly nodeId?: string;
+  register(input: WebSocketPresenceRegistration): MaybePromise<void>;
+  activate(sessionId: string): MaybePromise<void>;
+  unregister(sessionId: string): MaybePromise<void>;
+  setUserId(sessionId: string, userId: WebSocketUserId): MaybePromise<void>;
+  clearUserId(sessionId: string): MaybePromise<void>;
+  join(sessionId: string, roomId: WebSocketRoomId): MaybePromise<void>;
+  leave(sessionId: string, roomId: WebSocketRoomId): MaybePromise<void>;
+  resolveRoute(audience: WebSocketAudience, nodeId: string): MaybePromise<WebSocketRoutingPlan>;
+  getRoomMemberCount(roomId: WebSocketRoomId, namespace?: string): MaybePromise<number>;
+  shutdown?(): MaybePromise<void>;
+}
+
+type WebSocketPresenceRegistration = {
+  sessionId: string;
+  nodeId: string;
+  namespace: string;
+  active: boolean;
+  connectedAt: Date;
+};
+
+type WebSocketRoutingPlan = {
+  localSessionIds: string[];
+  remoteNodeIds: string[];
+};
+```
+
+- Each node calls the store only for its own sessions. Calls for one session are issued in call order, each after the previous one settles; `unregister` always comes after `register`.
+- `resolveRoute` splits an audience into the caller's local session IDs and deduplicated remote node IDs, excluding inactive sessions. `connections` audiences are routed from the node ID embedded in each session ID without calling the store.
+- `getRoomMemberCount` counts active members across the cluster.
+- User IDs must match by type (`1` and `"1"` are different).
+- Return copies from read methods; callers must not be able to mutate store state.
+- Bound your own calls. The runtime treats a throw or rejection as a failure but applies no timeout, so a call that never settles keeps that session's later mutations, remote publish routing, and `getRoomMemberCount` waiting. Shutdown stops waiting for pending mutations and publishes after `drainTimeoutMs`.
+
+`InMemoryWebSocketPresenceStore` is the default. Several runtimes in one process can share one instance as a cluster replica, which is useful in tests.
+
+### Custom cluster bus
+
+```typescript
+interface WebSocketClusterBus {
+  readonly nodeId?: string;
+  publish(envelope: WebSocketClusterEnvelope): void | Promise<void>;
+  subscribe(handler: WebSocketClusterEnvelopeHandler): MaybePromise<() => void>;
+  shutdown(): void | Promise<void>;
+}
+
+type WebSocketClusterEnvelope = {
+  id: string;
+  sourceNodeId: string;
+  targetNodeIds: string[];
+  audience: WebSocketAudience;
+  event: string;
+  frames: Record<string, string>; // route key → encoded frame
+  emittedAt: number;
+};
+```
+
+- Deliver each envelope only to the nodes in `targetNodeIds`.
+- The envelope carries frames already validated and encoded by the origin node. The receiving node resolves the audience from its own memory and sends each connection the frame for its route byte for byte, without re-validating. A `z.date()` field therefore arrives as the same ISO string on every node.
+- `subscribe` may return the unsubscribe function directly or through a promise. The runtime calls it once on shutdown. If `subscribe` fails, the runtime keeps working in local-only mode and reports it through telemetry.
+- Connections registered without a route key (for example, through `registerConnection` on a manually created runtime) receive local publishes only.
+
+## Multi-node with Redis
+
+`@sonamu-kit/websocket-redis-adapter` provides a Redis presence store and cluster bus. It requires `sonamu` 0.12.0 or later and the `redis` (node-redis) package `^6` as a peer dependency.
+
+```bash
+pnpm add @sonamu-kit/websocket-redis-adapter redis
+```
+
+Spread the adapter into `server.websocket`. The adapter's `nodeId`, `presenceStore`, and `clusterBus` then share one node ID, so the runtime's node ID check passes.
+
+```typescript
+import { createRedisWebSocketAdapter } from "@sonamu-kit/websocket-redis-adapter";
+
+export default defineConfig({
+  server: {
+    websocket: {
+      ...createRedisWebSocketAdapter({
+        redis: { url: process.env.REDIS_URL },
+        prefix: "myapp:ws",
+      }),
+    },
+  },
+});
+```
+
+The `redis` option accepts one of:
+
+- `RedisClientOptions`: the adapter creates and owns the clients.
+- An existing `RedisClient`: you own it. The adapter only creates and closes a `duplicate()` for pub/sub.
+- An existing `RedisSentinel`: you own it. The adapter subscribes on the Sentinel instance, so pub/sub follows failovers.
+
+The adapter connects lazily on first use and never connects or closes clients you pass in. Call `connect()` on a client or Sentinel you pass in, and attach your own `error` listener to it.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `redis` | (required) | Client options, client, or Sentinel. |
+| `nodeId` | `${hostname()}-${process.pid}-${random}` | Node identifier, in the same format as the runtime default. |
+| `prefix` | `"sonamu:ws"` | Prefix for Redis keys and pub/sub channels. |
+| `heartbeatIntervalMs` | `5000` | How often the node refreshes its liveness and key TTLs. |
+| `nodeTimeoutMs` | `15000` | A node that has not sent a heartbeat for this long is excluded from routing. |
+| `keyTtlMs` | `30000` | TTL of the node's presence keys, so a crashed node's keys expire. |
+| `commandDeadlineMs` | `2000` | Deadline the adapter applies to each Redis call. A late call rejects with `RedisWebSocketDeadlineError`. A failed write schedules a rebuild of the node's presence; a failed read rejects, so the runtime falls back as described above. |
+| `readyTimeoutMs` | `3000` | Maximum wait for the first connection to become ready. If Redis is still unavailable, writes fail and registrations resolve as memory-only until the rebuild. |
+| `drainTimeoutMs` | `5000` | Maximum wait for pending work when the adapter shuts down. |
+
+The package also exports `REDIS_WEBSOCKET_ADAPTER_DEFAULTS` (the default values above) and `RedisWebSocketDeadlineError`. `presenceStore.getStatus()` returns `{ ready, rebuildPending }`.
+
+Failure handling:
+
+- A pending rebuild rewrites all of the node's presence keys from memory at the first of: a standalone client `ready` (reconnect), a Sentinel `MASTER_CHANGE`, or the next successful heartbeat.
+- Each heartbeat also checks that the node's presence keys still exist. If Redis lost a key that memory says must exist (for example through eviction or `FLUSHDB`), the adapter schedules a rebuild even though no command failed.
+- `getRoomMemberCount` counts this node's members from memory and only other nodes' members from Redis, so the count stays correct while this node's keys are being rebuilt.
+- With a Sentinel, every new `MASTER_CHANGE` schedules a rebuild, because a failover can lose recent writes. Repeated events for the same master are ignored, and bursts are debounced into one rebuild. After a failover, `EVALSHA` that fails with `NOSCRIPT` is retried once after `SCRIPT LOAD`.
+- If the cluster bus subscription does not complete in time, `subscribe` rejects and the runtime reports `ws.cluster.subscribe.failed`. The adapter keeps the subscription request and completes it when the connection becomes ready, so this node starts receiving remote publishes again.
+
+<Warning>If several applications share one Redis, give each one its own `prefix`. A client `keyPrefix` applies to keys but not to pub/sub channels, so two applications with the same `prefix` would receive each other's cluster messages.</Warning>
+
+## Migrating to 0.12
+
+- **Async mutations**: `ctx.ws.join`, `leave`, `setUserId`, and `clearUserId` return `Promise<void>`. Add `await`. They never reject, so existing calls without `await` keep working, but code that relies on the store having applied the change must `await`.
+- **Async publishes**: `Sonamu.websocketRuntime.broadcast`, `publishToRoom`, `publishToUser`, and `publishToAudience` return `Promise<void>` and never reject.
+- **Async registration**: `WebSocketRuntime#registerConnection` returns `Promise<WebSocketConnection>` and `activateConnection` returns `Promise<void>`. Code that drives the runtime directly must `await` both.
+- **Typed user ID matching**: `setUserId(1)` no longer matches `publishToUser("1", ...)`. Bind and publish with the same type.
+- **Invalid runtime publishes no longer close connections**: an unknown event or a payload that fails validation is dropped for the affected route with `ws.publish.rejected` telemetry. Recipients are no longer closed with `1011`. `ctx.ws.publish` still throws.
+- **Presence reads**: `getRoomMembers` returns node-local snapshots. Use `await registry.getRoomMemberCount(roomId, namespace)` for a cluster-wide count; check `partial`.
+- **Default `nodeId`** now has a random suffix (`${hostname()}-${process.pid}-${random}`). Session IDs embed the node ID.
+- **Custom stores and buses**: `WebSocketPresenceStore` and `WebSocketClusterBus` changed. Stores implement `resolveRoute` and may return promises. Envelopes carry encoded `frames` per route instead of `data`. `subscribe` may return a promise.
+- **Shutdown** waits up to `drainTimeoutMs` (default `5000`) for pending store mutations and publishes.
 
 ## Combining With Other Decorators
 

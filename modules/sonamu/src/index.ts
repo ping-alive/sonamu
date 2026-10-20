@@ -39,6 +39,7 @@ export * from "./stream/ws-audience";
 export * from "./stream/ws-cluster-bus";
 export * from "./stream/ws-core";
 export * from "./stream/ws-presence-store";
+export * from "./stream/ws-session-id";
 export * from "./stream/ws";
 export * from "./stream/ws-registry";
 export * from "./tasks/decorator";

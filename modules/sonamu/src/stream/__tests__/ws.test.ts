@@ -1,97 +1,20 @@
-import { EventEmitter } from "node:events";
-
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { createWebSocketRuntime, type WebSocketTransport } from "../ws";
+import { createWebSocketRuntime } from "../ws";
 import { WebSocketAudience } from "../ws-audience";
-import {
-  type WebSocketClusterBus,
-  type WebSocketClusterEnvelope,
-  type WebSocketClusterEnvelopeHandler,
-} from "../ws-cluster-bus";
 import { InMemoryWebSocketPresenceStore } from "../ws-presence-store";
+import {
+  FakeWebSocket,
+  RecordingClusterBus,
+  asWebSocket,
+  collectUnhandledRejections,
+  flushAsync,
+  parseFrames,
+} from "./ws-test-helpers";
 
 async function waitForAsyncQueue(rounds: number = 3): Promise<void> {
-  for (let index = 0; index < rounds; index += 1) {
-    await new Promise<void>((resolve) => {
-      setImmediate(resolve);
-    });
-  }
-}
-
-class FakeWebSocket extends EventEmitter {
-  readyState: 0 | 1 | 2 | 3 = 1;
-  bufferedAmount = 0;
-  sentMessages: string[] = [];
-  pingCount = 0;
-  closedWith: { code?: number; reason?: string } | null = null;
-
-  send(data: string): void {
-    this.sentMessages.push(data);
-  }
-
-  close(code?: number, reason?: string): void {
-    this.closedWith = { code, reason };
-    this.readyState = 3;
-    this.emit("close", code ?? 1000, Buffer.from(reason ?? "", "utf-8"));
-  }
-
-  ping(): void {
-    this.pingCount += 1;
-  }
-
-  terminate(): void {
-    this.readyState = 3;
-    this.emit("close", 1006, Buffer.alloc(0));
-  }
-}
-
-function asWebSocket(socket: FakeWebSocket): WebSocketTransport {
-  return {
-    get bufferedAmount() {
-      return socket.bufferedAmount;
-    },
-    get readyState() {
-      return socket.readyState;
-    },
-    close(code, reason) {
-      socket.close(code, reason?.toString());
-    },
-    off(...args) {
-      socket.off(...args);
-    },
-    on(...args) {
-      socket.on(...args);
-    },
-    ping() {
-      socket.ping();
-    },
-    send(data) {
-      socket.send(data.toString());
-    },
-    terminate() {
-      socket.terminate();
-    },
-  };
-}
-
-class FakeClusterBus implements WebSocketClusterBus {
-  readonly published: WebSocketClusterEnvelope[] = [];
-  private readonly handlers = new Set<WebSocketClusterEnvelopeHandler>();
-
-  publish(envelope: WebSocketClusterEnvelope): void {
-    this.published.push(envelope);
-  }
-
-  subscribe(handler: WebSocketClusterEnvelopeHandler): () => void {
-    this.handlers.add(handler);
-    return () => {
-      this.handlers.delete(handler);
-    };
-  }
-
-  shutdown(): void {}
+  await flushAsync(rounds);
 }
 
 describe("WebSocketRuntime", () => {
@@ -117,7 +40,7 @@ describe("WebSocketRuntime", () => {
   it("buffers early messages until handlers are attached", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -143,7 +66,7 @@ describe("WebSocketRuntime", () => {
   it("passes message trace context from meta.traceparent to handlers", async () => {
     const runtime = createWebSocketRuntime({ telemetry: true });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -185,7 +108,7 @@ describe("WebSocketRuntime", () => {
       telemetry: { trace: { propagateMessageTrace: false } },
     });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -225,12 +148,12 @@ describe("WebSocketRuntime", () => {
     });
   });
 
-  it("records ok status for normal close codes", () => {
+  it("records ok status for normal close codes", async () => {
     const runtime = createWebSocketRuntime({
       telemetry: { trace: { recordConnectionLifetimeSpan: true } },
     });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -260,12 +183,12 @@ describe("WebSocketRuntime", () => {
     expect(lifetimeSpans[0].durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it("records error status for non-normal close codes", () => {
+  it("records error status for non-normal close codes", async () => {
     const runtime = createWebSocketRuntime({
       telemetry: { trace: { recordConnectionLifetimeSpan: true } },
     });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -287,12 +210,12 @@ describe("WebSocketRuntime", () => {
     expect(lifetimeSpans[0].durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it("records unset status when close code is unknown", () => {
+  it("records unset status when close code is unknown", async () => {
     const runtime = createWebSocketRuntime({
       telemetry: { trace: { recordConnectionLifetimeSpan: true } },
     });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -330,7 +253,7 @@ describe("WebSocketRuntime", () => {
         traceparent: "00-4bf92f3577b16d8a2e3e24ff02e6c998-00f067aa0ba902b7-01",
       },
     });
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -373,14 +296,16 @@ describe("WebSocketRuntime", () => {
     expect(capturedTrace?.spanId).toMatch(/^[0-9a-f]{16}$/);
   });
 
-  it("emits skipped registry mutation telemetry for missing connections", () => {
+  it("emits skipped registry mutation telemetry for missing connections", async () => {
     const runtime = createWebSocketRuntime({ telemetry: true });
 
-    runtime.activateConnection("missing-connection");
-    runtime.registry.join("missing-connection", "room-1");
-    runtime.registry.leave("missing-connection", "room-1");
-    runtime.registry.setUserId("missing-connection", "user-1");
-    runtime.registry.clearUserId("missing-connection");
+    await expect(runtime.activateConnection("missing-connection")).resolves.toBeUndefined();
+    await expect(runtime.registry.join("missing-connection", "room-1")).resolves.toBeUndefined();
+    await expect(runtime.registry.leave("missing-connection", "room-1")).resolves.toBeUndefined();
+    await expect(
+      runtime.registry.setUserId("missing-connection", "user-1"),
+    ).resolves.toBeUndefined();
+    await expect(runtime.registry.clearUserId("missing-connection")).resolves.toBeUndefined();
 
     const store = runtime.telemetryController.getEventStore();
     const skippedEvents = store?.query({ name: "ws.registry.mutation.skipped" }) ?? [];
@@ -428,14 +353,14 @@ describe("WebSocketRuntime", () => {
   it("keeps inactive connections out of registry fan-out until activated", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
       active: false,
     });
 
-    runtime.broadcast("onReady", {
+    await runtime.broadcast("onReady", {
       ok: true,
     });
     await waitForAsyncQueue();
@@ -443,8 +368,8 @@ describe("WebSocketRuntime", () => {
     expect(socket.sentMessages).toHaveLength(0);
     expect(runtime.registry.getConnectionCount("chat")).toBe(0);
 
-    runtime.activateConnection(connection.id);
-    runtime.broadcast("onReady", {
+    await runtime.activateConnection(connection.id);
+    await runtime.broadcast("onReady", {
       ok: true,
     });
     await waitForAsyncQueue();
@@ -457,26 +382,26 @@ describe("WebSocketRuntime", () => {
     const runtime = createWebSocketRuntime();
     const socketA = new FakeWebSocket();
     const socketB = new FakeWebSocket();
-    const connectionA = runtime.registerConnection(asWebSocket(socketA), {
+    const connectionA = await runtime.registerConnection(asWebSocket(socketA), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
     });
-    const connectionB = runtime.registerConnection(asWebSocket(socketB), {
+    const connectionB = await runtime.registerConnection(asWebSocket(socketB), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
     });
 
-    connectionA.join("room-1");
-    connectionB.join("room-1");
-    connectionA.setUserId("user-1");
+    await connectionA.join("room-1");
+    await connectionB.join("room-1");
+    await connectionA.setUserId("user-1");
 
-    runtime.registry.publishToRoom("room-1", "onRoomMessage", {
+    await runtime.registry.publishToRoom("room-1", "onRoomMessage", {
       roomId: "room-1",
       text: "hello",
     });
-    runtime.registry.publishToUser("user-1", "onReady", {
+    await runtime.registry.publishToUser("user-1", "onReady", {
       ok: true,
     });
 
@@ -496,7 +421,7 @@ describe("WebSocketRuntime", () => {
   it("emits runtime telemetry for room/user bindings and outbound queue flow", async () => {
     const runtime = createWebSocketRuntime({ telemetry: true });
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -504,10 +429,10 @@ describe("WebSocketRuntime", () => {
       spanId: "2222222222222222",
     });
 
-    connection.join("room-1");
-    connection.leave("room-1");
-    connection.setUserId("user-1");
-    connection.clearUserId();
+    await connection.join("room-1");
+    await connection.leave("room-1");
+    await connection.setUserId("user-1");
+    await connection.clearUserId();
 
     expect(() => connection.publishUntyped("missing", {})).toThrow("Unknown websocket event");
     expect(() => connection.publishUntyped("onReady", { ok: "nope" })).toThrow(
@@ -541,21 +466,21 @@ describe("WebSocketRuntime", () => {
     const runtime = createWebSocketRuntime();
     const chatSocket = new FakeWebSocket();
     const otherSocket = new FakeWebSocket();
-    const chatConnection = runtime.registerConnection(asWebSocket(chatSocket), {
+    const chatConnection = await runtime.registerConnection(asWebSocket(chatSocket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
     });
-    const otherConnection = runtime.registerConnection(asWebSocket(otherSocket), {
+    const otherConnection = await runtime.registerConnection(asWebSocket(otherSocket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "other",
     });
 
-    chatConnection.join("room-1");
-    otherConnection.join("room-1");
+    await chatConnection.join("room-1");
+    await otherConnection.join("room-1");
 
-    runtime.registry.publishToRoom(
+    await runtime.registry.publishToRoom(
       "room-1",
       "onRoomMessage",
       {
@@ -575,16 +500,16 @@ describe("WebSocketRuntime", () => {
   it("dedupes union audiences before delivery", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
     });
 
-    connection.join("room-1");
-    connection.setUserId("user-1");
+    await connection.join("room-1");
+    await connection.setUserId("user-1");
 
-    runtime.publishToAudience(
+    await runtime.publishToAudience(
       WebSocketAudience.union(
         WebSocketAudience.room("room-1", "chat"),
         WebSocketAudience.user("user-1", "chat"),
@@ -600,24 +525,26 @@ describe("WebSocketRuntime", () => {
     expect(socket.sentMessages).toHaveLength(1);
   });
 
-  it("publishes a cluster envelope for remote-node audiences", () => {
+  it("publishes a cluster envelope for remote-node audiences", async () => {
     const presenceStore = new InMemoryWebSocketPresenceStore();
-    const clusterBus = new FakeClusterBus();
+    const clusterBus = new RecordingClusterBus();
     const runtime = createWebSocketRuntime({
       nodeId: "local-node",
       presenceStore,
       clusterBus,
     });
+    runtime.registerRoute("/chat", { outEvents: OutEvents });
 
-    presenceStore.register({
+    await presenceStore.register({
       sessionId: "remote-1",
       nodeId: "remote-node",
       namespace: "chat",
       active: true,
+      connectedAt: new Date(),
     });
-    presenceStore.join("remote-1", "room-remote");
+    await presenceStore.join("remote-1", "room-remote");
 
-    runtime.publishToRoom(
+    await runtime.publishToRoom(
       "room-remote",
       "onRoomMessage",
       {
@@ -633,12 +560,16 @@ describe("WebSocketRuntime", () => {
       targetNodeIds: ["remote-node"],
       event: "onRoomMessage",
     });
+    expect(JSON.parse(clusterBus.published[0].frames["/chat"])).toEqual({
+      event: "onRoomMessage",
+      data: { roomId: "room-remote", text: "hello remote" },
+    });
   });
 
   it("closes invalid inbound payloads", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    runtime.registerConnection(asWebSocket(socket), {
+    await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -658,10 +589,10 @@ describe("WebSocketRuntime", () => {
     expect(socket.closedWith?.code).toBe(1007);
   });
 
-  it("still closes and unregisters when onClose callbacks throw", () => {
+  it("still closes and unregisters when onClose callbacks throw", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -683,7 +614,7 @@ describe("WebSocketRuntime", () => {
   it("swallows rejected async onClose callbacks without leaking unhandled rejections", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -707,10 +638,10 @@ describe("WebSocketRuntime", () => {
     expect(runtime.registry.getConnectionCount("chat")).toBe(0);
   });
 
-  it("closes the transport when the socket emits an error", () => {
+  it("closes the transport when the socket emits an error", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    runtime.registerConnection(asWebSocket(socket), {
+    await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -728,7 +659,7 @@ describe("WebSocketRuntime", () => {
   it("closes the connection when a buffered handler rejects after registration", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -751,11 +682,11 @@ describe("WebSocketRuntime", () => {
     expect(socket.closedWith?.code).toBe(1011);
   });
 
-  it("closes slow consumers when outbound backpressure keeps growing", () => {
+  it("closes slow consumers when outbound backpressure keeps growing", async () => {
     const runtime = createWebSocketRuntime();
     const socket = new FakeWebSocket();
     socket.bufferedAmount = 2_000_000;
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -774,7 +705,7 @@ describe("WebSocketRuntime", () => {
     const runtime = createWebSocketRuntime({ telemetry: true });
     const socket = new FakeWebSocket();
     socket.bufferedAmount = 2_000_000;
-    const connection = runtime.registerConnection(asWebSocket(socket), {
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
       outEvents: OutEvents,
       inEvents: InEvents,
       namespace: "chat",
@@ -791,7 +722,7 @@ describe("WebSocketRuntime", () => {
     await Promise.resolve();
 
     connection.publish("onReady", { ok: true });
-    runtime.broadcast("onReady", { ok: true }, "chat");
+    await runtime.broadcast("onReady", { ok: true }, "chat");
 
     const snapshot = runtime.telemetryController.getMetricsSnapshot();
 
@@ -807,7 +738,7 @@ describe("WebSocketRuntime", () => {
     const sockets = Array.from({ length: 300 }, () => new FakeWebSocket());
 
     for (const socket of sockets) {
-      runtime.registerConnection(asWebSocket(socket), {
+      await runtime.registerConnection(asWebSocket(socket), {
         outEvents: OutEvents,
         inEvents: InEvents,
         namespace: "chat",
@@ -829,5 +760,271 @@ describe("WebSocketRuntime", () => {
     expect(JSON.parse(sockets[0].sentMessages[1]).data).toEqual({ ok: false });
     expect(JSON.parse(sockets.at(-1)!.sentMessages[0]).data).toEqual({ ok: true });
     expect(JSON.parse(sockets.at(-1)!.sentMessages[1]).data).toEqual({ ok: false });
+  });
+
+  it("await 없이 join한 직후의 publish도 해당 연결에 전달된다", async () => {
+    const runtime = createWebSocketRuntime();
+    const socket = new FakeWebSocket();
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+
+    // 메모리 갱신은 호출 시점에 동기로 일어나야 한다
+    void connection.join("room-1");
+    expect(runtime.registry.getRoomMembers("room-1", "chat").map((meta) => meta.sessionId)).toEqual(
+      [connection.id],
+    );
+    await runtime.publishToRoom(
+      "room-1",
+      "onRoomMessage",
+      { roomId: "room-1", text: "hi" },
+      "chat",
+    );
+    await waitForAsyncQueue();
+
+    expect(parseFrames(socket)).toEqual([
+      { event: "onRoomMessage", data: { roomId: "room-1", text: "hi" } },
+    ]);
+  });
+
+  it("mutation과 publish 메서드는 Promise<void>를 반환한다", async () => {
+    const runtime = createWebSocketRuntime();
+    const socket = new FakeWebSocket();
+    const registering = runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      active: false,
+      heartbeat: 0,
+    });
+    expect(registering).toBeInstanceOf(Promise);
+    const connection = await registering;
+
+    const results = [
+      runtime.activateConnection(connection.id),
+      connection.join("room-1"),
+      connection.leave("room-1"),
+      connection.setUserId(1),
+      connection.clearUserId(),
+      runtime.broadcast("onReady", { ok: true }),
+      runtime.publishToRoom("room-1", "onReady", { ok: true }),
+      runtime.publishToUser(1, "onReady", { ok: true }),
+      runtime.publishToAudience(WebSocketAudience.all(), "onReady", { ok: true }),
+      runtime.registry.broadcast("onReady", { ok: true }),
+      runtime.registry.publishToRoom("room-1", "onReady", { ok: true }),
+      runtime.registry.publishToUser(1, "onReady", { ok: true }),
+      runtime.registry.publishToAudience(WebSocketAudience.all(), "onReady", { ok: true }),
+    ];
+
+    for (const result of results) {
+      expect(result).toBeInstanceOf(Promise);
+    }
+    await expect(Promise.all(results)).resolves.toEqual(results.map(() => undefined));
+  });
+
+  it("userId는 타입까지 일치해야 publishToUser 대상이 된다", async () => {
+    const runtime = createWebSocketRuntime();
+    const socket = new FakeWebSocket();
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+    await connection.setUserId(1);
+
+    await runtime.publishToUser("1", "onReady", { ok: false });
+    await waitForAsyncQueue();
+    expect(socket.sentMessages).toHaveLength(0);
+
+    await runtime.publishToUser(1, "onReady", { ok: true });
+    await waitForAsyncQueue();
+    expect(parseFrames(socket)).toEqual([{ event: "onReady", data: { ok: true } }]);
+    expect(runtime.registry.getConnection(connection.id)?.userId).toBe(1);
+  });
+
+  it("registry/runtime publish의 잘못된 payload와 모르는 이벤트는 resolve하고 아무도 닫지 않는다", async () => {
+    const runtime = createWebSocketRuntime({ telemetry: true });
+    const socket = new FakeWebSocket();
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+    await connection.join("room-1");
+    await connection.setUserId("user-1");
+    const collect = collectUnhandledRejections();
+
+    await expect(
+      runtime.publishToRoom("room-1", "onReady", { ok: "not-a-boolean" }, "chat"),
+    ).resolves.toBeUndefined();
+    await expect(runtime.broadcast("onUnknown", { ok: true }, "chat")).resolves.toBeUndefined();
+    await expect(
+      runtime.registry.publishToUser("user-1", "onReady", { ok: "still-wrong" }),
+    ).resolves.toBeUndefined();
+    await waitForAsyncQueue(6);
+    const unhandled = collect();
+
+    expect(unhandled).toEqual([]);
+    expect(socket.sentMessages).toHaveLength(0);
+    expect(socket.closedWith).toBeNull();
+    expect(connection.closed).toBe(false);
+    const events = runtime.telemetryController.getEventStore()?.query({}) ?? [];
+    const rejected = events.filter((record) => record.name === "ws.publish.rejected");
+    expect(rejected.map((record) => record.detail)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ event: "onReady", reason: "invalidPayload" }),
+        expect.objectContaining({ event: "onUnknown", reason: "unknownEvent" }),
+      ]),
+    );
+    expect(events.some((record) => record.name === "ws.fanout.publish.failed")).toBe(false);
+
+    // 잘못된 publish 뒤에도 정상 publish는 그대로 전달된다
+    await runtime.publishToRoom("room-1", "onReady", { ok: true }, "chat");
+    await waitForAsyncQueue();
+    expect(parseFrames(socket)).toEqual([{ event: "onReady", data: { ok: true } }]);
+  });
+
+  it("직접 connection.publish는 잘못된 payload와 모르는 이벤트에 동기로 throw한다", async () => {
+    const runtime = createWebSocketRuntime();
+    const socket = new FakeWebSocket();
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+
+    expect(() => connection.publishUntyped("onReady", { ok: "nope" })).toThrow(
+      "Invalid websocket event payload",
+    );
+    expect(() => connection.publishUntyped("missing", {})).toThrow("Unknown websocket event");
+  });
+
+  it("같은 namespace의 두 route가 같은 이벤트를 다른 스키마로 선언하면 각 연결은 자기 route의 frame을 받고, 선언하지 않은 route는 건너뛴다", async () => {
+    const runtime = createWebSocketRuntime({ telemetry: true });
+    const RouteAEvents = z.object({ onNotice: z.object({ value: z.number() }) });
+    const RouteBEvents = z.object({
+      onNotice: z.object({ value: z.number().max(10), label: z.string().default("route-b") }),
+    });
+    const RouteCEvents = z.object({ onOther: z.object({ value: z.number() }) });
+    runtime.registerRoute("/a", { outEvents: RouteAEvents });
+    runtime.registerRoute("/b", { outEvents: RouteBEvents });
+    runtime.registerRoute("/c", { outEvents: RouteCEvents });
+    const sockets = { a: new FakeWebSocket(), b: new FakeWebSocket(), c: new FakeWebSocket() };
+    const connectionA = await runtime.registerConnection(asWebSocket(sockets.a), {
+      routeKey: "/a",
+      outEvents: RouteAEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+    const connectionB = await runtime.registerConnection(asWebSocket(sockets.b), {
+      routeKey: "/b",
+      outEvents: RouteBEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+    const connectionC = await runtime.registerConnection(asWebSocket(sockets.c), {
+      routeKey: "/c",
+      outEvents: RouteCEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+
+    await runtime.broadcast("onNotice", { value: 1, extra: "stripped" }, "chat");
+    await waitForAsyncQueue();
+
+    expect(parseFrames(sockets.a)).toEqual([{ event: "onNotice", data: { value: 1 } }]);
+    expect(parseFrames(sockets.b)).toEqual([
+      { event: "onNotice", data: { value: 1, label: "route-b" } },
+    ]);
+    expect(sockets.c.sentMessages).toEqual([]);
+    for (const connection of [connectionA, connectionB, connectionC]) {
+      expect(connection.closed).toBe(false);
+    }
+
+    // route B의 스키마만 거부하는 payload: route A에는 전달되고 route B는 건너뛰며 아무도 닫히지 않는다
+    await runtime.broadcast("onNotice", { value: 100 }, "chat");
+    await waitForAsyncQueue();
+
+    expect(parseFrames(sockets.a)).toEqual([
+      { event: "onNotice", data: { value: 1 } },
+      { event: "onNotice", data: { value: 100 } },
+    ]);
+    expect(sockets.b.sentMessages).toHaveLength(1);
+    expect(sockets.c.sentMessages).toHaveLength(0);
+    for (const socket of Object.values(sockets)) {
+      expect(socket.closedWith).toBeNull();
+    }
+    const rejected =
+      runtime.telemetryController.getEventStore()?.query({ name: "ws.publish.rejected" }) ?? [];
+    expect(rejected.map((record) => record.detail)).toEqual([
+      expect.objectContaining({ event: "onNotice", reason: "invalidPayload" }),
+    ]);
+  });
+
+  it("같은 route의 연결들은 바이트가 동일한 frame을 받는다", async () => {
+    const runtime = createWebSocketRuntime();
+    const StampEvents = z.object({ onStamp: z.object({ at: z.date() }) });
+    runtime.registerRoute("/stamp", { outEvents: StampEvents });
+    const sockets = [new FakeWebSocket(), new FakeWebSocket()];
+    for (const socket of sockets) {
+      await runtime.registerConnection(asWebSocket(socket), {
+        routeKey: "/stamp",
+        outEvents: StampEvents,
+        inEvents: InEvents,
+        namespace: "chat",
+        heartbeat: 0,
+      });
+    }
+
+    await runtime.broadcast("onStamp", { at: new Date("2026-01-02T03:04:05.000Z") }, "chat");
+    await waitForAsyncQueue();
+
+    expect(sockets[0].sentMessages).toHaveLength(1);
+    expect(sockets[1].sentMessages).toEqual(sockets[0].sentMessages);
+    expect(parseFrames(sockets[0])).toEqual([
+      { event: "onStamp", data: { at: "2026-01-02T03:04:05.000Z" } },
+    ]);
+  });
+
+  it("registry 읽기 API는 내부 상태와 분리된 snapshot을 반환한다", async () => {
+    const runtime = createWebSocketRuntime();
+    const socket = new FakeWebSocket();
+    const connection = await runtime.registerConnection(asWebSocket(socket), {
+      outEvents: OutEvents,
+      inEvents: InEvents,
+      namespace: "chat",
+      heartbeat: 0,
+    });
+    await connection.join("room-1");
+
+    const meta = runtime.registry.getConnection(connection.id);
+    meta!.rooms.add("room-hacked");
+    meta!.rooms.delete("room-1");
+    meta!.active = false;
+    const [member] = runtime.registry.getRoomMembers("room-1", "chat");
+    member.rooms.clear();
+    const stats = runtime.registry.getStats();
+    stats.byNamespace.chat = 999;
+
+    const fresh = runtime.registry.getConnection(connection.id);
+    expect([...fresh!.rooms]).toEqual(["room-1"]);
+    expect(fresh!.active).toBe(true);
+    expect(runtime.registry.getRoomMembers("room-hacked")).toHaveLength(0);
+    expect(runtime.registry.getRoomMembers("room-1", "chat")).toHaveLength(1);
+    expect(runtime.registry.getConnectionCount("chat")).toBe(1);
+    expect(runtime.registry.getStats().byNamespace).toEqual({ chat: 1 });
+
+    await runtime.publishToRoom("room-1", "onReady", { ok: true }, "chat");
+    await waitForAsyncQueue();
+    expect(socket.sentMessages).toHaveLength(1);
   });
 });

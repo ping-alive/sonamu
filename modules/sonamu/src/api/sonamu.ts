@@ -1331,6 +1331,16 @@ class SonamuClass {
     this.aotHttpValidatorRegistry = nextAotRegistry;
     this.preparedApis = nextApis;
     this.preparedModels = nextModels;
+
+    // @websocket route의 outEvents를 api.path 키로 route table에 반영한다.
+    // 발행 노드가 route별로 한 번 인코딩한 frame을 원격 노드가 그대로 보내므로, HMR 뒤에도 최신 스키마를 써야 한다
+    this.websocketRuntimeValue?.replaceRoutes(
+      nextApis.flatMap((api) =>
+        api.websocketOptions
+          ? [{ routeKey: api.path, outEvents: api.websocketOptions.outEvents }]
+          : [],
+      ),
+    );
   }
 
   // WS path를 일반 HTTP GET으로 호출한 경우 426 + Upgrade 헤더로 명시적으로 websocket 접속을 유도함
@@ -1391,7 +1401,7 @@ class SonamuClass {
     ): Promise<void> => {
       const socket = connection.socket;
       let wsContext: WebSocketContext<object, object> | null = null;
-      let rawWs: ReturnType<WebSocketRuntime["registerConnection"]> | null = null;
+      let rawWs: Awaited<ReturnType<WebSocketRuntime["registerConnection"]>> | null = null;
       let preRegisterPhase: "guard" | "query" | "register" | "handler" = "guard";
       let traceContext: WebSocketTelemetryConnectionContext = {};
 
@@ -1403,7 +1413,9 @@ class SonamuClass {
         preRegisterPhase = "query";
         const reqBody = await this.parseWebSocketRequestParams(api, request);
         preRegisterPhase = "register";
-        rawWs = this.websocketRuntime.registerConnection(socket, {
+        // 등록(store 반영 포함)이 끝난 뒤에 context/guard를 진행한다. 리스너는 등록 중에도 붙어 있어 close를 놓치지 않는다
+        rawWs = await this.websocketRuntime.registerConnection(socket, {
+          routeKey: api.path,
           outEvents: api.websocketOptions!.outEvents,
           inEvents: api.websocketOptions!.inEvents,
           namespace: api.websocketOptions!.namespace,
@@ -1427,7 +1439,8 @@ class SonamuClass {
           });
         });
 
-        this.websocketRuntime.activateConnection(rawWs.id);
+        // 활성화가 store에 반영된 뒤 handler를 실행해 handler 안의 publish가 이 연결을 대상으로 잡게 한다
+        await this.websocketRuntime.activateConnection(rawWs.id);
         preRegisterPhase = "handler";
 
         const { ApiParamType } = await import("../types/types");
@@ -1604,16 +1617,16 @@ class SonamuClass {
         return ws.waitForClose();
       },
       join(roomId) {
-        ws.join(roomId);
+        return ws.join(roomId);
       },
       leave(roomId) {
-        ws.leave(roomId);
+        return ws.leave(roomId);
       },
       setUserId(userId) {
-        ws.setUserId(userId);
+        return ws.setUserId(userId);
       },
       clearUserId() {
-        ws.clearUserId();
+        return ws.clearUserId();
       },
     };
   }

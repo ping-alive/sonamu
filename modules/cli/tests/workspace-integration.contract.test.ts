@@ -26,6 +26,31 @@ async function readManifest(relativePath: string): Promise<PackageManifest> {
   return JSON.parse(await readRepositoryFile(relativePath));
 }
 
+type ReleaseVersion = readonly [major: number, minor: number, patch: number];
+
+// CLI 패키지에서 해석 가능한 semver 구현이 없으므로 릴리스 버전(X.Y.Z)만 엄격하게 파싱합니다.
+function parseReleaseVersion(version: string): ReleaseVersion | undefined {
+  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(version);
+  if (!match) return undefined;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+// npm semver의 caret 규칙: 가장 왼쪽의 0이 아닌 자리까지 고정하고 그 아래 자리만 올라갈 수 있습니다.
+function caretRangeAccepts(range: string, version: string) {
+  if (!range.startsWith("^")) return false;
+  const lower = parseReleaseVersion(range.slice(1));
+  const candidate = parseReleaseVersion(version);
+  if (!lower || !candidate) return false;
+
+  const [lowerMajor, lowerMinor, lowerPatch] = lower;
+  const [major, minor, patch] = candidate;
+  if (major !== lowerMajor) return false;
+  if (lowerMajor > 0) return minor > lowerMinor || (minor === lowerMinor && patch >= lowerPatch);
+  if (minor !== lowerMinor) return false;
+  if (lowerMinor > 0) return patch >= lowerPatch;
+  return patch === lowerPatch;
+}
+
 function extractIndentedBlock(content: string, header: string) {
   const lines = content.split("\n");
   const start = lines.indexOf(header);
@@ -217,7 +242,8 @@ describe("최종 CLI 패키지 워크스페이스 통합", () => {
       try {
         const manifest = await readManifest(`modules/${module.name}/package.json`);
         const ownsDefaultSonamuBin = manifest.name === "sonamu" && manifest.bin !== undefined;
-        const ownsNamedSonamuBin = Object.hasOwn(manifest.bin ?? {}, "sonamu");
+        // 문자열 bin은 키가 문자 인덱스뿐이라 이름 있는 sonamu bin으로 판정되지 않는다.
+        const ownsNamedSonamuBin = Object.keys(manifest.bin ?? {}).includes("sonamu");
         if (ownsDefaultSonamuBin || ownsNamedSonamuBin) {
           owners.push(manifest.name ?? module.name);
         }
@@ -285,15 +311,44 @@ describe("최종 CLI 패키지 워크스페이스 통합", () => {
     expect(cliManifest.dependencies?.["@sonamu-kit/hmr-runner"]).toBe("workspace:^");
   });
 
+  it("caret 범위 판정은 0.x 버전에서 같은 minor 라인의 하한 이상만 허용한다", () => {
+    expect(caretRangeAccepts("^0.12.0", "0.12.0")).toBe(true);
+    expect(caretRangeAccepts("^0.12.0", "0.12.7")).toBe(true);
+    expect(caretRangeAccepts("^0.12.3", "0.12.2")).toBe(false);
+    // 0.x에서는 minor 상승이 호환 범위를 벗어나므로 릴리스마다 peer 범위를 갱신해야 합니다.
+    expect(caretRangeAccepts("^0.11.0", "0.12.0")).toBe(false);
+    expect(caretRangeAccepts("^0.11.0", "0.11.15")).toBe(true);
+    expect(caretRangeAccepts("^0.12.0", "0.11.15")).toBe(false);
+    expect(caretRangeAccepts("^0.12.0", "1.12.0")).toBe(false);
+    expect(caretRangeAccepts("^0.0.3", "0.0.4")).toBe(false);
+    expect(caretRangeAccepts("^1.2.0", "1.9.0")).toBe(true);
+    expect(caretRangeAccepts("~0.12.0", "0.12.0")).toBe(false);
+    expect(caretRangeAccepts(">=0.12.0", "0.12.0")).toBe(false);
+    expect(caretRangeAccepts("^0.12", "0.12.0")).toBe(false);
+    expect(caretRangeAccepts("^0.12.0", "0.12.0-beta.1")).toBe(false);
+  });
+
   it("CLI는 sonamu를 peer로 요구하고 sonamu는 CLI를 런타임 의존하지 않는다", async () => {
     const [cliManifest, sonamuManifest] = await Promise.all([
       readManifest("modules/cli/package.json"),
       readManifest("modules/sonamu/package.json"),
     ]);
 
-    expect(sonamuManifest.version).toBe("0.11.0");
-    expect(cliManifest.version).toBe("0.1.0");
-    expect(cliManifest.peerDependencies?.sonamu).toBe("^0.11.0");
+    const sonamuVersion = sonamuManifest.version ?? "";
+    const peerRange = cliManifest.peerDependencies?.sonamu ?? "";
+    const parsedSonamuVersion = parseReleaseVersion(sonamuVersion);
+    expect(parsedSonamuVersion, `sonamu 버전 ${sonamuVersion}`).toBeDefined();
+    expect(parseReleaseVersion(cliManifest.version ?? ""), "CLI 버전").toBeDefined();
+
+    // peer 범위는 워크스페이스 sonamu의 0.minor 라인을 caret으로 고정해야 합니다.
+    // sonamu minor만 올리고 peer 범위를 갱신하지 않으면 여기서 실패합니다.
+    const [sonamuMajor, sonamuMinor] = parsedSonamuVersion ?? [-1, -1];
+    expect(peerRange).toMatch(new RegExp(`^\\^${sonamuMajor}\\.${sonamuMinor}\\.(0|[1-9]\\d*)$`));
+    expect(
+      caretRangeAccepts(peerRange, sonamuVersion),
+      `peer 범위 ${peerRange}가 sonamu ${sonamuVersion}을 허용해야 합니다`,
+    ).toBe(true);
+
     expect(cliManifest.dependencies?.sonamu).toBeUndefined();
     expect(sonamuManifest.dependencies?.["@sonamu-kit/cli"]).toBeUndefined();
     expect(sonamuManifest.optionalDependencies?.["@sonamu-kit/cli"]).toBeUndefined();

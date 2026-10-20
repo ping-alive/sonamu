@@ -3,16 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 import { type WebSocket } from "ws";
 import { z } from "zod";
 
-import {
-  type AnyWebSocketConnection,
-  type WebSocketConnection,
-  WebSocketRuntime,
-} from "../../stream/ws";
+import { type WebSocketConnection, WebSocketRuntime } from "../../stream/ws";
 import { type WebSocketTelemetryConnectionContext } from "../../stream/ws-telemetry";
 import { type SonamuFastifyConfig } from "../../types/types";
 import { type WebSocketContext } from "../context";
 import { type ExtendedApi } from "../decorators";
 import { Sonamu } from "../sonamu";
+
+// runtime.registerConnection이 돌려주는 연결 타입. spy 대역도 이 타입으로 만들어야 한다
+type RuntimeWebSocketConnection = Awaited<ReturnType<WebSocketRuntime["registerConnection"]>>;
 
 interface TestWebSocketMessage {
   roomId?: string;
@@ -25,7 +24,7 @@ interface TestWebSocketEvents {
 describe("Sonamu websocket context scoping", () => {
   it("웹소켓 컨텍스트를 생성한 뒤 해당 컨텍스트 안에서 guard를 실행한다", async () => {
     const executionOrder: string[] = [];
-    const rawWs: AnyWebSocketConnection = {
+    const rawWs: RuntimeWebSocketConnection = {
       id: "ws-guard",
       namespace: "chat",
       transport: "ws" as const,
@@ -38,10 +37,18 @@ describe("Sonamu websocket context scoping", () => {
       waitForClose() {
         return Promise.resolve();
       },
-      join() {},
-      leave() {},
-      setUserId() {},
-      clearUserId() {},
+      join() {
+        return Promise.resolve();
+      },
+      leave() {
+        return Promise.resolve();
+      },
+      setUserId() {
+        return Promise.resolve();
+      },
+      clearUserId() {
+        return Promise.resolve();
+      },
     };
     const runtime = new WebSocketRuntime({ nodeId: "websocket-guard-test" });
     const originalState = Sonamu.captureTestingSnapshot();
@@ -49,8 +56,8 @@ describe("Sonamu websocket context scoping", () => {
     let guardContext: WebSocketContext | null = null;
     let guardTransport: WebSocketContext["transport"] | null = null;
 
-    vi.spyOn(runtime, "registerConnection").mockReturnValue(rawWs);
-    vi.spyOn(runtime, "activateConnection").mockImplementation(() => {
+    vi.spyOn(runtime, "registerConnection").mockResolvedValue(rawWs);
+    vi.spyOn(runtime, "activateConnection").mockImplementation(async () => {
       executionOrder.push("activate");
     });
     vi.spyOn(Sonamu, "createWebSocketContext").mockImplementation(async (_config, request, ws) => {
@@ -144,10 +151,18 @@ describe("Sonamu websocket context scoping", () => {
       waitForClose() {
         return Promise.resolve();
       },
-      join() {},
-      leave() {},
-      setUserId() {},
-      clearUserId() {},
+      join() {
+        return Promise.resolve();
+      },
+      leave() {
+        return Promise.resolve();
+      },
+      setUserId() {
+        return Promise.resolve();
+      },
+      clearUserId() {
+        return Promise.resolve();
+      },
     };
 
     let context: WebSocketContext<TestWebSocketEvents, TestWebSocketEvents> | null = null;
@@ -201,10 +216,18 @@ describe("Sonamu websocket context scoping", () => {
       waitForClose() {
         return Promise.resolve();
       },
-      join() {},
-      leave() {},
-      setUserId() {},
-      clearUserId() {},
+      join() {
+        return Promise.resolve();
+      },
+      leave() {
+        return Promise.resolve();
+      },
+      setUserId() {
+        return Promise.resolve();
+      },
+      clearUserId() {
+        return Promise.resolve();
+      },
     };
 
     let context: WebSocketContext<TestWebSocketEvents, TestWebSocketEvents> | null = null;
@@ -242,5 +265,203 @@ describe("Sonamu websocket context scoping", () => {
     );
 
     expect(seenTraceContext).toEqual(messageTraceContext);
+  });
+
+  it("핸들러는 registerConnection과 activateConnection이 끝날 때까지 기다리며 context → guard → activate → handler 순서를 지킨다", async () => {
+    const executionOrder: string[] = [];
+    const rawWs: RuntimeWebSocketConnection = {
+      id: "ws-async",
+      namespace: "chat",
+      transport: "ws" as const,
+      closed: false,
+      publishUntyped() {},
+      close() {},
+      onClose() {},
+      onMessage() {},
+      publish() {},
+      waitForClose() {
+        return Promise.resolve();
+      },
+      join() {
+        return Promise.resolve();
+      },
+      leave() {
+        return Promise.resolve();
+      },
+      setUserId() {
+        return Promise.resolve();
+      },
+      clearUserId() {
+        return Promise.resolve();
+      },
+    };
+    const runtime = new WebSocketRuntime({ nodeId: "websocket-async-test" });
+    const originalState = Sonamu.captureTestingSnapshot();
+    let releaseRegister!: () => void;
+    let releaseActivate!: () => void;
+    const registerGate = new Promise<void>((resolve) => {
+      releaseRegister = resolve;
+    });
+    const activateGate = new Promise<void>((resolve) => {
+      releaseActivate = resolve;
+    });
+
+    const registerSpy = vi.spyOn(runtime, "registerConnection").mockImplementation(async () => {
+      executionOrder.push("register:start");
+      await registerGate;
+      executionOrder.push("register:end");
+      return rawWs;
+    });
+    const activateSpy = vi
+      .spyOn(runtime, "activateConnection")
+      .mockImplementation(async (connectionId) => {
+        executionOrder.push(`activate:start:${connectionId}`);
+        await activateGate;
+        executionOrder.push("activate:end");
+      });
+    vi.spyOn(Sonamu, "createWebSocketContext").mockImplementation(async (_config, request, ws) => {
+      executionOrder.push("context");
+      return {
+        transport: "ws",
+        request,
+        headers: request.headers,
+        ws,
+        naiteStore: new Map(),
+        locale: "ko",
+        user: null,
+        session: null,
+      };
+    });
+    vi.spyOn(Sonamu, "invokeModelMethod").mockImplementation(async () => {
+      executionOrder.push("handler");
+    });
+
+    const config = /* SAFETY: 테스트는 guardHandler와 contextProvider만 사용한다. */ {
+      guardHandler() {
+        executionOrder.push("guard");
+      },
+      contextProvider(defaultContext) {
+        return defaultContext;
+      },
+    } as SonamuFastifyConfig;
+    const api: ExtendedApi = {
+      modelName: "ChatFrame",
+      methodName: "subscribe",
+      path: "/chat/subscribe",
+      options: { guards: ["user"] },
+      websocketOptions: {
+        outEvents: z.object({}),
+        inEvents: z.object({}),
+        namespace: "chat",
+      },
+      typeParameters: [],
+      parameters: [],
+      returnType: "void",
+    };
+    const request = /* SAFETY: 테스트는 headers와 query만 읽는다. */ {
+      headers: {},
+      query: {},
+    } as FastifyRequest;
+    const socket =
+      /* SAFETY: registerConnection이 mock이라 소켓 메서드는 호출되지 않는다. */ {} as WebSocket;
+    try {
+      Sonamu.websocketRuntime = runtime;
+      Reflect.set(Sonamu, "syncerValue", { types: {} });
+
+      let handlerDone = false;
+      const handling = Sonamu.createWebSocketHandlerForTesting(api, config)(
+        { socket },
+        request,
+      ).then(() => {
+        handlerDone = true;
+      });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+
+      // 등록이 끝나기 전에는 context를 만들지 않는다
+      expect(executionOrder).toEqual(["register:start"]);
+
+      releaseRegister();
+      await new Promise<void>((resolve) => setImmediate(resolve));
+
+      // 활성화가 끝나기 전에는 handler를 실행하지 않는다
+      expect(executionOrder).toEqual([
+        "register:start",
+        "register:end",
+        "context",
+        "guard",
+        "activate:start:ws-async",
+      ]);
+      expect(handlerDone).toBe(false);
+
+      releaseActivate();
+      await handling;
+
+      expect(executionOrder).toEqual([
+        "register:start",
+        "register:end",
+        "context",
+        "guard",
+        "activate:start:ws-async",
+        "activate:end",
+        "handler",
+      ]);
+      expect(registerSpy).toHaveBeenCalledWith(
+        socket,
+        expect.objectContaining({
+          routeKey: "/chat/subscribe",
+          namespace: "chat",
+          active: false,
+        }),
+      );
+      expect(activateSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      Sonamu.restoreTestingSnapshot(originalState);
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("scoped 연결의 join/leave/setUserId/clearUserId는 원본 연결의 promise를 그대로 반환한다", async () => {
+    const joinPromise = Promise.resolve();
+    const leavePromise = Promise.resolve();
+    const setUserIdPromise = Promise.resolve();
+    const clearUserIdPromise = Promise.resolve();
+    const calls: string[] = [];
+    const rawWs: WebSocketConnection<TestWebSocketEvents, TestWebSocketEvents> = {
+      id: "ws-scoped",
+      namespace: "chat",
+      transport: "ws" as const,
+      closed: false,
+      publishUntyped() {},
+      close() {},
+      onClose() {},
+      onMessage() {},
+      publish() {},
+      waitForClose() {
+        return Promise.resolve();
+      },
+      join(roomId) {
+        calls.push(`join:${roomId}`);
+        return joinPromise;
+      },
+      leave(roomId) {
+        calls.push(`leave:${roomId}`);
+        return leavePromise;
+      },
+      setUserId(userId) {
+        calls.push(`setUserId:${JSON.stringify(userId)}`);
+        return setUserIdPromise;
+      },
+      clearUserId() {
+        calls.push("clearUserId");
+        return clearUserIdPromise;
+      },
+    };
+    const scopedWs = Sonamu.createScopedWebSocketConnectionForTesting(rawWs, () => null);
+
+    expect(scopedWs.join("room-1")).toBe(joinPromise);
+    expect(scopedWs.leave("room-1")).toBe(leavePromise);
+    expect(scopedWs.setUserId(1)).toBe(setUserIdPromise);
+    expect(scopedWs.clearUserId()).toBe(clearUserIdPromise);
+    expect(calls).toEqual(["join:room-1", "leave:room-1", "setUserId:1", "clearUserId"]);
   });
 });

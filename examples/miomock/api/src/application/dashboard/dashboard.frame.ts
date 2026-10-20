@@ -144,10 +144,10 @@ class DashboardFrameClass extends BaseFrameClass {
     const user = ctx.user;
 
     if (user?.id) {
-      ctx.ws.setUserId(user.id);
+      await ctx.ws.setUserId(user.id);
 
       if (user.role === "admin") {
-        ctx.ws.join("dashboard:recent-activity:admin");
+        await ctx.ws.join("dashboard:recent-activity:admin");
       }
     }
 

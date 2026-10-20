@@ -149,7 +149,7 @@ class AuditLogModelClass extends BaseModelClass<
           id: result.id,
           ...newAuditLog,
         };
-        Sonamu.websocketRuntime.publishToRoom(
+        await Sonamu.websocketRuntime.publishToRoom(
           "dashboard:recent-activity:admin",
           "activityCreated",
           activity,
@@ -157,10 +157,16 @@ class AuditLogModelClass extends BaseModelClass<
         if (params.actor_id) {
           const user = await UserModel.findById("A", params.actor_id);
           if (user.role !== "admin") {
-            Sonamu.websocketRuntime.publishToUser(params.actor_id, "activityCreated", activity);
+            await Sonamu.websocketRuntime.publishToUser(
+              params.actor_id,
+              "activityCreated",
+              activity,
+            );
           }
         }
-      } catch {}
+      } catch {
+        // 실시간 알림(사용자 조회 포함) 실패는 감사 로그 기록 결과에 영향을 주지 않는다
+      }
 
       return result.id;
     } catch {
