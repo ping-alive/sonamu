@@ -39,6 +39,8 @@ coverage/
 .parcel-cache/
 .npm/
 .eslintcache
+.vite/
+.tanstack/
 
 # Temporary folders
 tmp/

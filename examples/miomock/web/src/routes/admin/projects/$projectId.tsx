@@ -360,9 +360,12 @@ function MilestoneFormDialog({
   onSaved,
 }: MilestoneFormDialogProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const defaultDueDate = new Date();
-  defaultDueDate.setMonth(defaultDueDate.getMonth() + 1);
+  // 기본 마감일(한 달 뒤)은 다이얼로그 마운트 시점에 한 번만 계산합니다.
+  const [defaultDueDate] = useState(() => {
+    const dueDate = new Date();
+    dueDate.setMonth(dueDate.getMonth() + 1);
+    return dueDate;
+  });
 
   const { form, setForm, register, submit } = useTypeForm(MilestoneSaveParams, {
     project_id: projectId,

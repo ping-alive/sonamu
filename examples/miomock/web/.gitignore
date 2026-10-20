@@ -11,6 +11,10 @@ node_modules
 dist
 *.local
 
+# Vite·TanStack Router 캐시
+.vite/
+.tanstack/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

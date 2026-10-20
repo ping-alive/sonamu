@@ -38,6 +38,10 @@ interface MonthPickerMultipleProps {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+function getCurrentYear(): number {
+  return new Date().getFullYear();
+}
+
 export function MonthPickerMultiple({
   CalendarIcon,
   ChevronDownIcon,
@@ -53,14 +57,16 @@ export function MonthPickerMultiple({
 
   // Popover open state
   const [isOpen, setIsOpen] = React.useState(false);
+  // 렌더 중 현재 시각을 읽지 않도록 마운트 시점에 기록하고, 팝오버를 열 때 갱신합니다.
+  const [now, setNow] = React.useState(() => new Date());
 
   // Temp states (managed internally)
   const [tempIsRangeMode, setTempIsRangeMode] = React.useState(defaultRangeMode);
   const [tempDate, setTempDate] = React.useState<Date | undefined>();
   const [tempDateRange, setTempDateRange] = React.useState<DateRange | undefined>();
-  const [tempYear, setTempYear] = React.useState(new Date().getFullYear());
-  const [tempRangeStartYear, setTempRangeStartYear] = React.useState(new Date().getFullYear());
-  const [tempRangeEndYear, setTempRangeEndYear] = React.useState(new Date().getFullYear());
+  const [tempYear, setTempYear] = React.useState(getCurrentYear);
+  const [tempRangeStartYear, setTempRangeStartYear] = React.useState(getCurrentYear);
+  const [tempRangeEndYear, setTempRangeEndYear] = React.useState(getCurrentYear);
   const [draftSource, setDraftSource] = React.useState(() => ({ value, defaultRangeMode }));
 
   const years = React.useMemo(
@@ -69,7 +75,11 @@ export function MonthPickerMultiple({
     [yearRange.start, yearRange.end],
   );
 
-  const resetDraft = (nextValue: MonthPickerValue | undefined, nextDefaultRangeMode: boolean) => {
+  const resetDraft = (
+    nextValue: MonthPickerValue | undefined,
+    nextDefaultRangeMode: boolean,
+    currentYear: number,
+  ) => {
     if (nextValue?.type === "range") {
       setTempIsRangeMode(true);
       setTempDateRange({ from: nextValue.from, to: nextValue.to });
@@ -82,7 +92,6 @@ export function MonthPickerMultiple({
       setTempDateRange(undefined);
       setTempYear(nextValue.date.getFullYear());
     } else {
-      const currentYear = new Date().getFullYear();
       setTempIsRangeMode(nextDefaultRangeMode);
       setTempDate(undefined);
       setTempDateRange(undefined);
@@ -98,21 +107,23 @@ export function MonthPickerMultiple({
     (draftSource.value !== value || draftSource.defaultRangeMode !== defaultRangeMode)
   ) {
     setDraftSource({ value, defaultRangeMode });
-    resetDraft(value, defaultRangeMode);
+    resetDraft(value, defaultRangeMode, now.getFullYear());
   }
 
   // 팝오버를 열 때 확정된 값을 임시 편집 상태로 복사합니다.
   const handleOpenChange = (open: boolean) => {
     if (open) {
+      const openedAt = new Date();
+      setNow(openedAt);
       setDraftSource({ value, defaultRangeMode });
-      resetDraft(value, defaultRangeMode);
+      resetDraft(value, defaultRangeMode, openedAt.getFullYear());
     }
     setIsOpen(open);
   };
 
   const getDisplayDate = () => {
     if (!value) {
-      return placeholder ?? `- ${format(new Date(), dateFormat)}`;
+      return placeholder ?? `- ${format(now, dateFormat)}`;
     }
     if (value.type === "single") {
       return format(value.date, dateFormat);

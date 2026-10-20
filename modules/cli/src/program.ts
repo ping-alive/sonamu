@@ -276,31 +276,34 @@ function alternatives(
   );
 }
 
-function entityParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
-  const entityArgument = (commandName: string, key: string) =>
-    map(argument(string(), { errors: argumentErrors }), (value) =>
-      result(commandName, { [key]: value }),
-    );
-  const patch = () =>
-    map(
-      object(
-        {
-          file: option("--file", string(), { errors: optionErrors }),
-          mode: mutationMode(),
-          confirm: withDefault(flag("--confirm", { errors: flagErrors }), false),
-        },
-        { errors: { unexpectedInput: message`[INVALID_OPTION_VALUE]` } },
-      ),
-      ({ file, mode, ...options }) => result("entity.apply", {}, { file, ...mode, ...options }),
-    );
+function entityArgument(commandName: string, key: string) {
+  return map(argument(string(), { errors: argumentErrors }), (value) =>
+    result(commandName, { [key]: value }),
+  );
+}
 
+function entityPatch() {
+  return map(
+    object(
+      {
+        file: option("--file", string(), { errors: optionErrors }),
+        mode: mutationMode(),
+        confirm: withDefault(flag("--confirm", { errors: flagErrors }), false),
+      },
+      { errors: { unexpectedInput: message`[INVALID_OPTION_VALUE]` } },
+    ),
+    ({ file, mode, ...options }) => result("entity.apply", {}, { file, ...mode, ...options }),
+  );
+}
+
+function entityParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
   return branch(
     "entity",
     alternatives([
       branch("list", leaf("entity.list")),
       branch("show", entityArgument("entity.show", "entityId")),
       branch("search", entityArgument("entity.search", "query")),
-      branch("apply", patch()),
+      branch("apply", entityPatch()),
     ]),
   );
 }
@@ -482,11 +485,13 @@ function stubParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
   return branch("stub", alternatives([branch("entity", entity), branch("practice", practice)]));
 }
 
+function scaffoldEntity(commandName: string) {
+  return map(argument(string(), { errors: argumentErrors }), (entityId) =>
+    result(`scaffold.${commandName}`, { entityId }),
+  );
+}
+
 function scaffoldParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
-  const scaffold = (commandName: string) =>
-    map(argument(string(), { errors: argumentErrors }), (entityId) =>
-      result(`scaffold.${commandName}`, { entityId }),
-    );
   const selection = (commandName: "scaffold.status" | "scaffold.preview" | "scaffold.batch") =>
     map(
       object({
@@ -527,10 +532,10 @@ function scaffoldParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
   return branch(
     "scaffold",
     alternatives([
-      branch("model", scaffold("model")),
-      branch("model_test", scaffold("model_test")),
-      branch("view_list", scaffold("view_list")),
-      branch("view_form", scaffold("view_form")),
+      branch("model", scaffoldEntity("model")),
+      branch("model_test", scaffoldEntity("model_test")),
+      branch("view_list", scaffoldEntity("view_list")),
+      branch("view_form", scaffoldEntity("view_form")),
       branch("status", selection("scaffold.status")),
       branch("preview", selection("scaffold.preview")),
       branch("batch", batch),
@@ -665,29 +670,35 @@ function i18nParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
   );
 }
 
+function taskRunArgument(commandName: string) {
+  return map(argument(string(), { errors: argumentErrors }), (runId) =>
+    result(commandName, { runId }),
+  );
+}
+
+function taskRunMutation(commandName: string) {
+  return map(
+    object({
+      runId: argument(string(), { errors: argumentErrors }),
+      mode: mutationMode(),
+      confirm: withDefault(flag("--confirm", { errors: flagErrors }), false),
+    }),
+    ({ runId, mode, ...options }) => result(commandName, { runId }, { ...mode, ...options }),
+  );
+}
+
 function taskParser(): Parser<"sync", ParsedSonamuArgs, unknown> {
-  const runArgument = (commandName: string) =>
-    map(argument(string(), { errors: argumentErrors }), (runId) => result(commandName, { runId }));
-  const mutate = (commandName: string) =>
-    map(
-      object({
-        runId: argument(string(), { errors: argumentErrors }),
-        mode: mutationMode(),
-        confirm: withDefault(flag("--confirm", { errors: flagErrors }), false),
-      }),
-      ({ runId, mode, ...options }) => result(commandName, { runId }, { ...mode, ...options }),
-    );
   return branch(
     "task",
     alternatives([
       branch("definitions", leaf("task.definitions")),
       branch("list", leaf("task.list")),
-      branch("show", runArgument("task.show")),
-      branch("steps", runArgument("task.steps")),
-      branch("watch", runArgument("task.watch")),
-      branch("pause", mutate("task.pause")),
-      branch("resume", mutate("task.resume")),
-      branch("cancel", mutate("task.cancel")),
+      branch("show", taskRunArgument("task.show")),
+      branch("steps", taskRunArgument("task.steps")),
+      branch("watch", taskRunArgument("task.watch")),
+      branch("pause", taskRunMutation("task.pause")),
+      branch("resume", taskRunMutation("task.resume")),
+      branch("cancel", taskRunMutation("task.cancel")),
     ]),
   );
 }
