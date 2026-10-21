@@ -3,6 +3,11 @@
   "version": "0.2.0",
   "description": "Command-line interface for Sonamu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cartanova-ai/sonamu.git",
+    "directory": "modules/cli"
+  },
   "bin": {
     "sonamu": "./bin/sonamu.js"
   },
