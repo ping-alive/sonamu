@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import semver from "semver";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
 import { type CliHandlers, type RunSonamuCliOptions } from "../src/runtime.js";
@@ -326,7 +327,7 @@ describe("CLI 버전 메타데이터", () => {
     const result = await run(harness.options);
 
     expect(result.exitCode).toBe(0);
-    expect(manifestVersion).toMatch(/^\d+\.\d+\.\d+/);
+    expect(semver.valid(manifestVersion), `CLI 버전 ${manifestVersion}`).not.toBeNull();
     expect(harness.stdout.join("").trim()).toBe(manifestVersion);
   });
 

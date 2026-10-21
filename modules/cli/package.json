@@ -45,8 +45,10 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/semver": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
+    "semver": "catalog:",
     "sonamu": "workspace:^",
     "tsdown": "catalog:",
     "typescript": "catalog:",

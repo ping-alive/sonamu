@@ -327,6 +327,9 @@ catalogs:
     '@types/react-syntax-highlighter':
       specifier: ^15.5.13
       version: 15.5.13
+    '@types/semver':
+      specifier: ^7.8.0
+      version: 7.8.0
     '@types/supertest':
       specifier: ^6.0.3
       version: 6.0.3
@@ -588,6 +591,9 @@ catalogs:
     semantic-ui-react:
       specifier: ^2.1.3
       version: 2.1.5
+    semver:
+      specifier: ^7.8.0
+      version: 7.8.4
     sonner:
       specifier: ^2.0.7
       version: 2.0.7
@@ -1069,12 +1075,18 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 25.0.7
+      '@types/semver':
+        specifier: 'catalog:'
+        version: 7.8.0
       oxfmt:
         specifier: 'catalog:'
         version: 0.55.0
       oxlint:
         specifier: 'catalog:'
         version: 1.86.0(oxlint-tsgolint@7.0.2003)
+      semver:
+        specifier: 'catalog:'
+        version: 7.8.4
       sonamu:
         specifier: workspace:^
         version: link:../sonamu
@@ -1205,8 +1217,6 @@ importers:
       typescript:
         specifier: catalog:ts-node-compat
         version: '@typescript/typescript6@6.0.2'
-
-  modules/hmr-hook/tmp: {}
 
   modules/hmr-runner:
     dependencies:
@@ -6255,6 +6265,9 @@ packages:
 
   '@types/resolve@1.20.6':
     resolution: {integrity: sha512-A4STmOXPhMUtHH+S6ymgE2GiBSMqf4oTvcQZMcHzokuTLVYzXTB8ttjcgxOVaAp2lGwEdzZ0J+cRbbeevQj1UQ==}
+
+  '@types/semver@7.8.0':
+    resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
 
   '@types/ssh2-streams@0.1.13':
     resolution: {integrity: sha512-faHyY3brO9oLEA0QlcO8N2wT7R0+1sHWZvQ+y3rMLwdY1ZyS1z0W3t65j9PqT4HmQ6ALzNe7RZlNuCNE0wBSWA==}
@@ -13068,7 +13081,7 @@ snapshots:
       outdent: 0.5.0
       prettier: 2.8.8
       resolve-from: 5.0.0
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/assemble-release-plan@6.0.9':
     dependencies:
@@ -13077,7 +13090,7 @@ snapshots:
       '@changesets/should-skip-package': 0.1.2
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/changelog-git@0.2.1':
     dependencies:
@@ -13110,7 +13123,7 @@ snapshots:
       package-manager-detector: 0.2.11
       picocolors: 1.1.1
       resolve-from: 5.0.0
-      semver: 7.7.3
+      semver: 7.8.4
       spawndamnit: 3.0.1
       term-size: 2.2.1
     transitivePeerDependencies:
@@ -13135,7 +13148,7 @@ snapshots:
       '@changesets/types': 6.1.0
       '@manypkg/get-packages': 1.1.3
       picocolors: 1.1.1
-      semver: 7.7.3
+      semver: 7.8.4
 
   '@changesets/get-release-plan@4.0.14':
     dependencies:
@@ -16723,6 +16736,8 @@ snapshots:
 
   '@types/resolve@1.20.6': {}
 
+  '@types/semver@7.8.0': {}
+
   '@types/ssh2-streams@0.1.13':
     dependencies:
       '@types/node': 25.0.7
@@ -20244,7 +20259,7 @@ snapshots:
       ignore-by-default: 1.0.1
       minimatch: 10.2.4
       pstree.remy: 1.1.8
-      semver: 7.7.3
+      semver: 7.8.4
       simple-update-notifier: 2.0.0
       supports-color: 5.5.0
       touch: 3.1.1
@@ -21505,7 +21520,7 @@ snapshots:
 
   simple-update-notifier@2.0.0:
     dependencies:
-      semver: 7.7.3
+      semver: 7.8.4
 
   sisteransi@1.0.5: {}
 
