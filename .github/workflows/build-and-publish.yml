@@ -39,19 +39,19 @@ jobs:
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           audience: sts.amazonaws.com
           aws-region: ap-northeast-2
           role-to-assume: arn:aws:iam::788833265042:role/GitHubActions
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Checkout code
         uses: actions/checkout@v5
@@ -59,7 +59,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup mise
-        uses: jdx/mise-action@v3
+        uses: jdx/mise-action@v4
         with:
           cache: true
           install_args: --locked
@@ -79,7 +79,7 @@ jobs:
       # GHCR에 이미지 올리기 위한 준비입니다.
       - name: Log in to GitHub Container Registry
         if: github.event_name == 'push' # PR로 트리거 안 되게 해용
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
