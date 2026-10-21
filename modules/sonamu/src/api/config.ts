@@ -201,7 +201,7 @@ export type SonamuServerOptions = {
   // 프로젝트 외부에서 접근할 수 있는 URL. 기본값은 {server.listen.host}:{server.listen.port} 입니다.
   baseUrl?: string;
 
-  fastify?: Omit<FastifyServerOptions, "logger">;
+  fastify?: Omit<FastifyServerOptions, "logger" | "loggerInstance">;
 
   listen?: {
     port: number;

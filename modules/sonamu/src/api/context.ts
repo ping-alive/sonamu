@@ -1,13 +1,7 @@
-import {
-  type IncomingHttpHeaders,
-  type IncomingMessage,
-  type Server,
-  type ServerResponse,
-} from "http";
+import { type IncomingHttpHeaders } from "http";
 
 import { type Session, type User } from "better-auth";
 import { type FastifyReply, type FastifyRequest } from "fastify";
-import { type RouteGenericInterface } from "fastify/types/route";
 import { type ZodObject } from "zod";
 
 import { type NaiteStore } from "../naite/naite";
@@ -32,7 +26,7 @@ type BaseContext = {
 
 export type Context = BaseContext & {
   transport: "http";
-  reply: FastifyReply<Server, IncomingMessage, ServerResponse, RouteGenericInterface>;
+  reply: FastifyReply;
   createSSE: <T extends ZodObject>(events: T) => ReturnType<typeof createSSEFactory<T>>;
   /** buffer 모드에서 업로드된 파일 */
   bufferedFiles?: BufferedFile[];

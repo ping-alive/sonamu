@@ -162,6 +162,7 @@ describe("Sonamu 서버 플러그인 등록 순서", () => {
 
   async function createProductionServer(
     plugins: SonamuServerOptions["plugins"],
+    logging: SonamuConfig["logging"] = false,
   ): Promise<FastifyInstance> {
     const config: SonamuConfig = {
       api: { dir: "src", route: { prefix: "/api" } },
@@ -169,7 +170,7 @@ describe("Sonamu 서버 플러그인 등록 순서", () => {
       sync: { targets: [] },
       validation: { zodCompiler: false },
       database: {},
-      logging: false,
+      logging,
       server: {
         plugins,
         apiConfig,
@@ -183,6 +184,15 @@ describe("Sonamu 서버 플러그인 등록 순서", () => {
     await server.listen({ host: "127.0.0.1", port: 0 });
     return server;
   }
+
+  // Fastify 5는 logger 옵션에 로거 인스턴스를 넘기면 FST_ERR_LOG_INVALID_LOGGER_CONFIG로 부팅이 실패한다
+  it("logging이 켜진 기본 설정에서도 LogTape 로거로 서버가 부팅된다", async () => {
+    const server = await createProductionServer({}, { fastifyCategory: ["fastify"] });
+
+    const response = await requestServer(server, { path: "/api/payload/large" });
+
+    expect(response.statusCode).toBe(200);
+  });
 
   it("운영 서버에서 compress: true이면 JSON 응답을 gzip으로 압축한다", async () => {
     const server = await createProductionServer({ compress: true });

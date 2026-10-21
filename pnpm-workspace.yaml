@@ -24,29 +24,29 @@ catalog:
   "@ai-sdk/openai": ^3.0.0
   "@ai-sdk/provider": ^3.0.0
   "@ai-sdk/provider-utils": ^4.0.0
-  "@ai-sdk/react": ^2.0.104
+  "@ai-sdk/react": ^3.0.280
   "@aws-sdk/client-ecr-public": ^3.1034.0
   "@aws-sdk/client-s3": ^3.958.0
   "@aws-sdk/ecr-public": ^3.958.0
   "@aws-sdk/lib-storage": ^3.971.0
   "@aws-sdk/s3-request-presigner": ^3.958.0
-  "@better-auth/api-key": ~1.6.0
-  "@better-auth/passkey": ~1.6.0
-  "@better-auth/sso": ~1.6.0
+  "@better-auth/api-key": ~1.6.33
+  "@better-auth/passkey": ~1.6.33
+  "@better-auth/sso": ~1.6.33
   "@changesets/cli": ^2.29.4
   "@dagrejs/dagre": ^1.1.8
   "@dnd-kit/core": ^4.0.3
   "@dnd-kit/sortable": ^5.1.0
   "@dnd-kit/utilities": ^3.2.2
-  "@faker-js/faker": ^9.2.0
-  "@fastify/compress": ^7.0.3
-  "@fastify/cors": ^8.1.0
-  "@fastify/formbody": ^7.1.0
-  "@fastify/middie": ^8.3.0
-  "@fastify/multipart": ^8
-  "@fastify/passport": ^2.2.0
-  "@fastify/static": ^7
-  "@fastify/websocket": ^8.3.0
+  "@faker-js/faker": ^10.5.0
+  "@fastify/compress": ^9.2.2
+  "@fastify/cors": ^11.3.1
+  "@fastify/formbody": ^9.0.1
+  "@fastify/middie": ^9.3.2
+  "@fastify/multipart": ^10.1.4
+  "@fastify/passport": ^4.0.4
+  "@fastify/static": ^10.1.6
+  "@fastify/websocket": ^11.3.4
   "@hookform/resolvers": ^5.2.2
   "@iconify-json/lucide": ^1.2.82
   "@iconify-json/mdi": ^1.2.3
@@ -137,15 +137,15 @@ catalog:
   "@typescript/typescript6": 6.0.2
   "@uiw/react-json-view": 2.0.0-alpha.41
   "@vitejs/plugin-react": 6.0.2
-  "@vitest/coverage-v8": ^4.1.9
+  "@vitest/coverage-v8": ^4.1.12
   "@xyflow/react": ^12.9.3
   agentation: ^2.3.0
   ai: ^6.0.1
   autoprefixer: ^10.4.20
-  axios: ^1.15.0
+  axios: ^1.20.0
   bcrypt: ^6.0.0
   bentocache: ^1.5.0
-  better-auth: ~1.6.0
+  better-auth: ~1.6.33
   c12: ^3.3.2
   c8: ^10.1.3
   chalk: ^4.1.2
@@ -167,9 +167,9 @@ catalog:
   execa: ^8.0.1
   fast-deep-equal: ^3.1.3
   fast-glob: ^3.3.3
-  fastify: ^4
+  fastify: ^5.12.7
   fastify-file-upload: ^4.0.0
-  fastify-qs: ^4.0.0
+  fastify-qs: ^5.0.0
   fastify-sse-v2: ^4.2.1
   flydrive: ^1.3.0
   fs-extra: ^11.3.0
@@ -183,7 +183,7 @@ catalog:
   lucide-react: ^0.462.0
   luxon: ^3.0.3
   mime-types: ^3.0.1
-  minimatch: ^10.0.3
+  minimatch: ^10.2.6
   minimist: ^1.2.8
   next-themes: ^0.4.6
   node-cron: ^4.2.1
@@ -200,11 +200,11 @@ catalog:
   pg: ^8.16.3
   pg-native: ^3.5.2
   pgvector: ^0.2.1
-  picomatch: ^4.0.2
-  postcss: ^8.4.49
+  picomatch: ^4.0.7
+  postcss: ^8.5.31
   prompts: ^2.4.2
   prop-types: ^15.8.1
-  qs: ^6.14.1
+  qs: ^6.16.1
   radashi: ^12.2.0
   react: ^19.2.3
   react-day-picker: ^8.10.1
@@ -213,7 +213,7 @@ catalog:
   react-hook-form: ^7.66.1
   react-markdown: ^9.0.1
   react-resizable-panels: ^3.0.6
-  react-router-dom: ^6.30.2
+  react-router-dom: ^7.18.0
   react-semantic-ui-datepickers: ^2.17.1
   react-syntax-highlighter: ^15.5.0
   read-package-up: ^11.0.0
@@ -238,12 +238,12 @@ catalog:
   tsx: ^4.21.0
   typescript: 7.1.0-dev.20260831.1
   unplugin-icons: 0.20.2
-  uuid: ^13.0.0
+  uuid: ^13.0.2
   vaul: ^1.1.2
-  vite: 8.0.16
+  vite: 8.1.6
   vite-plugin-dts: 5.0.2
   vite-tsconfig-paths: ^6.1.1
-  vitest: ^4.1.9
+  vitest: ^4.1.12
   voyageai: ^0.0.8
   xlsx: ^0.18.5
   zod: ^4.3.6
@@ -277,7 +277,6 @@ minimumReleaseAgeExclude:
   - "@vitejs/*"
   - tsdown
   - rolldown
-  - typescript
   - "@typescript/*"
 
 overrides:
@@ -293,7 +292,7 @@ overrides:
   axios@>=0.8.1 <0.28.0: ">=0.28.0"
   brace-expansion@<1.1.13: ">=1.1.13"
   brace-expansion@>=2.0.0 <2.0.3: ">=2.0.3"
-  brace-expansion@>=4.0.0 <5.0.5: ">=5.0.5"
+  brace-expansion@>=4.0.0 <5.0.12: ">=5.0.12"
   defu@<=6.1.4: ">=6.1.5"
   diff@>=4.0.0 <4.0.4: ">=4.0.4"
   diff@>=6.0.0 <8.0.3: ">=8.0.3"
@@ -303,10 +302,12 @@ overrides:
   fast-xml-parser@>=5.0.0 <5.5.6: ">=5.5.6"
   fast-xml-parser@>=5.0.0 <5.5.7: ">=5.5.7"
   fast-xml-parser@>=5.0.9 <=5.3.3: ">=5.3.4"
+  fast-xml-parser@>=5.0.0 <5.7.0: ">=5.7.0"
   flatted@<3.4.0: ">=3.4.0"
   flatted@<=3.4.1: ">=3.4.2"
   follow-redirects@<=1.15.11: ">=1.16.0"
-  immutable@>=5.0.0 <5.1.5: ">=5.1.5"
+  form-data@>=4.0.0 <4.0.6: ">=4.0.6"
+  immutable@>=5.0.0 <5.1.8: ">=5.1.8"
   lodash-es@<=4.17.23: ">=4.18.0"
   lodash-es@>=4.0.0 <=4.17.22: ">=4.17.23"
   lodash-es@>=4.0.0 <=4.17.23: ">=4.18.0"
@@ -327,10 +328,23 @@ overrides:
   prismjs@<1.30.0: ">=1.30.0"
   qs@<6.14.1: ">=6.14.1"
   qs@>=6.7.0 <=6.14.1: ">=6.14.2"
+  qs@>=6.11.1 <6.16.0: ">=6.16.0"
   rollup@>=4.0.0 <4.59.0: ">=4.59.0"
   seroval@<1.4.1: ">=1.4.1"
   seroval@<=1.4.0: ">=1.4.1"
-  # pnpm 11에서 호환되는 serializer 패키지군을 유지하도록 seroval 버전을 고정합니다.
-  seroval: 1.4.2
+  # @tanstack/router-core 1.143 타입은 seroval 1.6.4+의 PluginInfo 제약과 충돌하므로 취약점이 패치된 최소 버전에 고정한다 (GHSA: <=1.6.2)
+  seroval: 1.6.3
   svgo@>=3.0.0 <3.3.3: ">=3.3.3"
   yaml@>=2.0.0 <2.8.3: ">=2.8.3"
+  postcss@<8.5.23: ">=8.5.23"
+  nanoid@>=3.0.0 <3.3.18: ">=3.3.18"
+  tinypool@>=2.0.0 <2.1.2: ">=2.1.2"
+  fast-uri@>=3.0.0 <3.1.8: "^3.1.8"
+  browserslist@<4.28.7: ">=4.28.7"
+  baseline-browser-mapping@<2.11.0: ">=2.11.0"
+  source-map-js@<1.2.2: ">=1.2.2"
+  js-yaml@>=4.0.0 <4.3.2: "^4.3.2"
+  # GHSA 범위가 <7.1.6 전체라 6.x 소비자(@tailwindcss/typography, eslint-plugin-vue)도 7.1.6으로 올린다
+  postcss-selector-parser@<7.1.6: ">=7.1.6"
+  # js-yaml@3는 argparse를 bin 스크립트에서만 쓰므로 sprintf-js가 없는 argparse 2로 올려도 라이브러리 사용에는 영향이 없다
+  argparse@<2.0.0: "^2.0.1"

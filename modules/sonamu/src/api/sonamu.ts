@@ -9,7 +9,12 @@ import { dispose as logtapeDispose } from "@logtape/logtape";
 import { type Auth, type BetterAuthOptions } from "better-auth";
 import chalk from "chalk";
 import { type FSWatcher } from "chokidar";
-import { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
+import {
+  type FastifyBaseLogger,
+  type FastifyInstance,
+  type FastifyReply,
+  type FastifyRequest,
+} from "fastify";
 import mime, { lookup as mimeLookup } from "mime-types";
 import { type WebSocket } from "ws";
 import { type ZodObject } from "zod";
@@ -470,14 +475,17 @@ class SonamuClass {
     const options = this.config.server;
     const { default: fastify } = await import("fastify");
     const { getLogTapeFastifyLogger } = await import("@logtape/fastify");
+    // Fastify 5는 logger 옵션에 설정 객체만 받고, 로거 인스턴스는 loggerInstance로 넘겨야 한다
+    // SAFETY: LogTape 어댑터는 pino 호환 메서드 집합(trace~fatal, silent, child)을 제공하며 Fastify 4에서도 같은 객체를 logger로 넘겨 동작했다.
+    const loggerInstance: FastifyBaseLogger | undefined =
+      this.config.logging !== false
+        ? (getLogTapeFastifyLogger({
+            category: this.config.logging?.fastifyCategory ?? ["fastify"],
+          }) as FastifyBaseLogger)
+        : undefined;
     const server = fastify({
       ...options.fastify,
-      logger:
-        this.config.logging !== false
-          ? getLogTapeFastifyLogger({
-              category: this.config.logging?.fastifyCategory ?? ["fastify"],
-            })
-          : undefined,
+      loggerInstance,
     });
     this.server = server;
     this.websocketRuntime = new WebSocketRuntime(options.websocket);
@@ -714,13 +722,14 @@ class SonamuClass {
         // 등록된 API와 일치하지 않는 요청에 대한 fallback입니다.
         throw new NotFoundException(SD("error.api.notFound"));
       },
-      wsHandler: async (connection, request) => {
-        await this.handleDevWebSocketRequest(connection.socket, request, config);
+      wsHandler: async (socket, request) => {
+        await this.handleDevWebSocketRequest(socket, request, config);
       },
     });
 
+    // HEAD는 위 GET catch-all이 exposeHeadRoutes로 자동 노출하므로 중복 선언하면 Fastify 5가 FST_ERR_DUPLICATED_ROUTE를 던진다
     server.route({
-      method: ["HEAD", "POST", "PUT", "DELETE", "PATCH"],
+      method: ["POST", "PUT", "DELETE", "PATCH"],
       url: `${this.config.api.route.prefix}/*`,
       handler: async (request, reply) => {
         const handler = await this.handleDevApiRequest(request, config);
@@ -784,13 +793,14 @@ class SonamuClass {
         }
         throw new NotFoundException(SD("error.api.notFound"));
       },
-      wsHandler: async (connection, request) => {
-        await this.handleDevWebSocketRequest(connection.socket, request, config);
+      wsHandler: async (socket, request) => {
+        await this.handleDevWebSocketRequest(socket, request, config);
       },
     });
 
+    // HEAD는 위 GET catch-all이 exposeHeadRoutes로 자동 노출하므로 중복 선언하면 Fastify 5가 FST_ERR_DUPLICATED_ROUTE를 던진다
     server.route({
-      method: ["HEAD", "POST", "PUT", "DELETE", "PATCH"],
+      method: ["POST", "PUT", "DELETE", "PATCH"],
       url: `${this.config.api.route.prefix}/*`,
       handler: async (request, reply) => {
         const result = await this.handleDevApiRequest(request, config);
@@ -1380,7 +1390,7 @@ class SonamuClass {
     }
 
     const handler = this.createWebSocketHandler(matchedApi, config);
-    await handler({ socket }, request);
+    await handler(socket, request);
   }
 
   // WS route 핸들러의 실행 순서를 고정함:
@@ -1393,13 +1403,8 @@ class SonamuClass {
   }
 
   private createWebSocketHandler(api: ExtendedApi, config: SonamuFastifyConfig) {
-    return async (
-      connection: {
-        socket: WebSocket;
-      },
-      request: FastifyRequest,
-    ): Promise<void> => {
-      const socket = connection.socket;
+    // @fastify/websocket 11부터 wsHandler는 connection 래퍼 대신 ws.WebSocket을 직접 전달한다
+    return async (socket: WebSocket, request: FastifyRequest): Promise<void> => {
       let wsContext: WebSocketContext<object, object> | null = null;
       let rawWs: Awaited<ReturnType<WebSocketRuntime["registerConnection"]>> | null = null;
       let preRegisterPhase: "guard" | "query" | "register" | "handler" = "guard";

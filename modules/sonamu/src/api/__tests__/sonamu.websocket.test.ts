@@ -111,10 +111,7 @@ describe("Sonamu websocket context scoping", () => {
       Reflect.set(Sonamu, "syncerValue", { types: {} });
 
       await Sonamu.createWebSocketHandlerForTesting(api, config)(
-        {
-          socket:
-            /* SAFETY: API 데코레이터와 Zod 검증기 등록 계약이 이 값의 타입을 보장한다. */ {} as WebSocket,
-        },
+        /* SAFETY: API 데코레이터와 Zod 검증기 등록 계약이 이 값의 타입을 보장한다. */ {} as WebSocket,
         request,
       );
 
@@ -369,12 +366,11 @@ describe("Sonamu websocket context scoping", () => {
       Reflect.set(Sonamu, "syncerValue", { types: {} });
 
       let handlerDone = false;
-      const handling = Sonamu.createWebSocketHandlerForTesting(api, config)(
-        { socket },
-        request,
-      ).then(() => {
-        handlerDone = true;
-      });
+      const handling = Sonamu.createWebSocketHandlerForTesting(api, config)(socket, request).then(
+        () => {
+          handlerDone = true;
+        },
+      );
       await new Promise<void>((resolve) => setImmediate(resolve));
 
       // 등록이 끝나기 전에는 context를 만들지 않는다

@@ -1,4 +1,4 @@
-import { type FastifyInstance } from "fastify";
+import { type FastifyError, type FastifyInstance } from "fastify";
 import type z from "zod";
 
 import { isObjectValue, isStringValue } from "../utils/runtime-value";
@@ -19,7 +19,8 @@ function isZodIssuePayload<Value>(payload: Value): payload is Value & z.core.$Zo
 }
 
 export function setupErrorHandler(server: FastifyInstance) {
-  server.setErrorHandler((error, request, reply) => {
+  // Fastify 5는 error 타입 기본값이 unknown이므로 기존 FastifyError 계약을 명시한다
+  server.setErrorHandler<FastifyError>((error, request, reply) => {
     error.statusCode ??= 400;
 
     if (isSoException(error) && isZodIssuePayload(error.payload)) {

@@ -14,7 +14,7 @@ export type CompressOptions = {
   /** 압축을 적용할 최소 바이트 크기 (기본값: 1024) */
   threshold?: number;
   /** 사용할 인코딩 우선순위 (기본값: ["br", "gzip", "deflate"]) */
-  encodings?: ("br" | "gzip" | "deflate" | "identity")[];
+  encodings?: ("zstd" | "br" | "gzip" | "deflate" | "identity")[];
   /** 압축할 Content-Type 필터 */
   customTypes?: RegExp | ((contentType: string) => boolean);
 };

@@ -22,7 +22,6 @@ export default function ChatComponent({ fixtureRecords, onUpdateFixtures }: Chat
   const [transportErrorMessage, setTransportErrorMessage] = useState<string | null>(null);
 
   const { messages, status, sendMessage, setMessages, stop } = useChat({
-    // @ts-expect-error TODO: fix this (ai-sdk stable/beta 이슈)
     transport: new DefaultChatTransport({
       api: "/sonamu-ui/api/ai/fixture/chat",
     }),

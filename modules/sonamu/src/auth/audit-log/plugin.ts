@@ -85,6 +85,8 @@ const getOrganizationTriggerInfo = (user: { id?: string } | null | undefined): B
 type BetterAuthRequestCtx = GenericEndpointContext & {
   context: GenericEndpointContext["context"] & {
     location?: BuilderLocation | null;
+    // after hook에서 dispatch가 채우는 응답값. better-auth 1.6.2x부터 GenericEndpointContext 타입에서 빠졌지만 HookEndpointContext에는 남아 있다.
+    returned?: unknown;
   };
 };
 
