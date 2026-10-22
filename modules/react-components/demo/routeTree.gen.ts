@@ -9,31 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as NavigationRouteImport } from './routes/navigation'
-import { Route as LayoutRouteImport } from './routes/layout'
-import { Route as FormRouteImport } from './routes/form'
-import { Route as DialogsAlertsRouteImport } from './routes/dialogs-alerts'
-import { Route as DataDisplayRouteImport } from './routes/data-display'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DataDisplayRouteImport } from './routes/data-display'
+import { Route as DialogsAlertsRouteImport } from './routes/dialogs-alerts'
+import { Route as FormRouteImport } from './routes/form'
+import { Route as LayoutRouteImport } from './routes/layout'
+import { Route as NavigationRouteImport } from './routes/navigation'
 
-const NavigationRoute = NavigationRouteImport.update({
-  id: '/navigation',
-  path: '/navigation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/layout',
-  path: '/layout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FormRoute = FormRouteImport.update({
-  id: '/form',
-  path: '/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DialogsAlertsRoute = DialogsAlertsRouteImport.update({
-  id: '/dialogs-alerts',
-  path: '/dialogs-alerts',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataDisplayRoute = DataDisplayRouteImport.update({
@@ -41,9 +26,24 @@ const DataDisplayRoute = DataDisplayRouteImport.update({
   path: '/data-display',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DialogsAlertsRoute = DialogsAlertsRouteImport.update({
+  id: '/dialogs-alerts',
+  path: '/dialogs-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormRoute = FormRouteImport.update({
+  id: '/form',
+  path: '/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/layout',
+  path: '/layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NavigationRoute = NavigationRouteImport.update({
+  id: '/navigation',
+  path: '/navigation',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -110,32 +110,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/navigation': {
-      id: '/navigation'
-      path: '/navigation'
-      fullPath: '/navigation'
-      preLoaderRoute: typeof NavigationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/layout': {
-      id: '/layout'
-      path: '/layout'
-      fullPath: '/layout'
-      preLoaderRoute: typeof LayoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/form': {
-      id: '/form'
-      path: '/form'
-      fullPath: '/form'
-      preLoaderRoute: typeof FormRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dialogs-alerts': {
-      id: '/dialogs-alerts'
-      path: '/dialogs-alerts'
-      fullPath: '/dialogs-alerts'
-      preLoaderRoute: typeof DialogsAlertsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data-display': {
@@ -145,11 +124,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataDisplayRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dialogs-alerts': {
+      id: '/dialogs-alerts'
+      path: '/dialogs-alerts'
+      fullPath: '/dialogs-alerts'
+      preLoaderRoute: typeof DialogsAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/form': {
+      id: '/form'
+      path: '/form'
+      fullPath: '/form'
+      preLoaderRoute: typeof FormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/layout': {
+      id: '/layout'
+      path: '/layout'
+      fullPath: '/layout'
+      preLoaderRoute: typeof LayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/navigation': {
+      id: '/navigation'
+      path: '/navigation'
+      fullPath: '/navigation'
+      preLoaderRoute: typeof NavigationRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

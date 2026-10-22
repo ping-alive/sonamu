@@ -9,51 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TestResultsRouteImport } from './routes/test-results'
-import { Route as TasksRouteImport } from './routes/tasks'
-import { Route as ScaffoldingRouteImport } from './routes/scaffolding'
-import { Route as MigrationsRouteImport } from './routes/migrations'
-import { Route as I18nRouteImport } from './routes/i18n'
-import { Route as FixtureRouteImport } from './routes/fixture'
-import { Route as EntitiesRouteImport } from './routes/entities'
-import { Route as CddRouteImport } from './routes/cdd'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TasksWorkflowRunIdRouteImport } from './routes/tasks_.$workflowRunId'
+import { Route as CddRouteImport } from './routes/cdd'
+import { Route as EntitiesRouteImport } from './routes/entities'
+import { Route as FixtureRouteImport } from './routes/fixture'
+import { Route as I18nRouteImport } from './routes/i18n'
+import { Route as MigrationsRouteImport } from './routes/migrations'
+import { Route as ScaffoldingRouteImport } from './routes/scaffolding'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as TestResultsRouteImport } from './routes/test-results'
 import { Route as EntitiesEntityIdRouteImport } from './routes/entities/$entityId'
+import { Route as TasksWorkflowRunIdRouteImport } from './routes/tasks_.$workflowRunId'
 
-const TestResultsRoute = TestResultsRouteImport.update({
-  id: '/test-results',
-  path: '/test-results',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TasksRoute = TasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScaffoldingRoute = ScaffoldingRouteImport.update({
-  id: '/scaffolding',
-  path: '/scaffolding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MigrationsRoute = MigrationsRouteImport.update({
-  id: '/migrations',
-  path: '/migrations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const I18nRoute = I18nRouteImport.update({
-  id: '/i18n',
-  path: '/i18n',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FixtureRoute = FixtureRouteImport.update({
-  id: '/fixture',
-  path: '/fixture',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntitiesRoute = EntitiesRouteImport.update({
-  id: '/entities',
-  path: '/entities',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CddRoute = CddRouteImport.update({
@@ -61,20 +31,50 @@ const CddRoute = CddRouteImport.update({
   path: '/cdd',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const EntitiesRoute = EntitiesRouteImport.update({
+  id: '/entities',
+  path: '/entities',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TasksWorkflowRunIdRoute = TasksWorkflowRunIdRouteImport.update({
-  id: '/tasks_/$workflowRunId',
-  path: '/tasks/$workflowRunId',
+const FixtureRoute = FixtureRouteImport.update({
+  id: '/fixture',
+  path: '/fixture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const I18nRoute = I18nRouteImport.update({
+  id: '/i18n',
+  path: '/i18n',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MigrationsRoute = MigrationsRouteImport.update({
+  id: '/migrations',
+  path: '/migrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScaffoldingRoute = ScaffoldingRouteImport.update({
+  id: '/scaffolding',
+  path: '/scaffolding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestResultsRoute = TestResultsRouteImport.update({
+  id: '/test-results',
+  path: '/test-results',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntitiesEntityIdRoute = EntitiesEntityIdRouteImport.update({
   id: '/$entityId',
   path: '/$entityId',
   getParentRoute: () => EntitiesRoute,
+} as any)
+const TasksWorkflowRunIdRoute = TasksWorkflowRunIdRouteImport.update({
+  id: '/tasks_/$workflowRunId',
+  path: '/tasks/$workflowRunId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -174,53 +174,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/test-results': {
-      id: '/test-results'
-      path: '/test-results'
-      fullPath: '/test-results'
-      preLoaderRoute: typeof TestResultsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tasks': {
-      id: '/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof TasksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scaffolding': {
-      id: '/scaffolding'
-      path: '/scaffolding'
-      fullPath: '/scaffolding'
-      preLoaderRoute: typeof ScaffoldingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/migrations': {
-      id: '/migrations'
-      path: '/migrations'
-      fullPath: '/migrations'
-      preLoaderRoute: typeof MigrationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/i18n': {
-      id: '/i18n'
-      path: '/i18n'
-      fullPath: '/i18n'
-      preLoaderRoute: typeof I18nRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fixture': {
-      id: '/fixture'
-      path: '/fixture'
-      fullPath: '/fixture'
-      preLoaderRoute: typeof FixtureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/entities': {
-      id: '/entities'
-      path: '/entities'
-      fullPath: '/entities'
-      preLoaderRoute: typeof EntitiesRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cdd': {
@@ -230,18 +188,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CddRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/entities': {
+      id: '/entities'
+      path: '/entities'
+      fullPath: '/entities'
+      preLoaderRoute: typeof EntitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tasks_/$workflowRunId': {
-      id: '/tasks_/$workflowRunId'
-      path: '/tasks/$workflowRunId'
-      fullPath: '/tasks/$workflowRunId'
-      preLoaderRoute: typeof TasksWorkflowRunIdRouteImport
+    '/fixture': {
+      id: '/fixture'
+      path: '/fixture'
+      fullPath: '/fixture'
+      preLoaderRoute: typeof FixtureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/i18n': {
+      id: '/i18n'
+      path: '/i18n'
+      fullPath: '/i18n'
+      preLoaderRoute: typeof I18nRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/migrations': {
+      id: '/migrations'
+      path: '/migrations'
+      fullPath: '/migrations'
+      preLoaderRoute: typeof MigrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scaffolding': {
+      id: '/scaffolding'
+      path: '/scaffolding'
+      fullPath: '/scaffolding'
+      preLoaderRoute: typeof ScaffoldingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-results': {
+      id: '/test-results'
+      path: '/test-results'
+      fullPath: '/test-results'
+      preLoaderRoute: typeof TestResultsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entities/$entityId': {
@@ -250,6 +243,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/entities/$entityId'
       preLoaderRoute: typeof EntitiesEntityIdRouteImport
       parentRoute: typeof EntitiesRoute
+    }
+    '/tasks_/$workflowRunId': {
+      id: '/tasks_/$workflowRunId'
+      path: '/tasks/$workflowRunId'
+      fullPath: '/tasks/$workflowRunId'
+      preLoaderRoute: typeof TasksWorkflowRunIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }

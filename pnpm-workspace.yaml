@@ -111,9 +111,9 @@ catalog:
   "@tailwindcss/vite": ^4.3.3
   "@tanstack/react-query": ^5.104.5
   "@tanstack/react-query-devtools": ^5.91.1
-  "@tanstack/react-router": 1.143.11
-  "@tanstack/react-router-devtools": 1.143.11
-  "@tanstack/router-plugin": 1.143.11
+  "@tanstack/react-router": 1.170.45
+  "@tanstack/react-router-devtools": 1.167.2
+  "@tanstack/router-plugin": 1.168.47
   "@types/bcrypt": ^6
   "@types/fs-extra": ^11.0.4
   "@types/inflection": ^2.0.0

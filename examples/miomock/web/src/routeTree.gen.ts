@@ -11,33 +11,33 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminSignupRouteImport } from './routes/admin/signup'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
-import { Route as Admin2faVerifyRouteImport } from './routes/admin/2fa-verify'
 import { Route as Admin2faSetupRouteImport } from './routes/admin/2fa-setup'
-import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
-import { Route as AdminTelemetryIndexRouteImport } from './routes/admin/telemetry/index'
-import { Route as AdminTagsIndexRouteImport } from './routes/admin/tags/index'
-import { Route as AdminSelectTestIndexRouteImport } from './routes/admin/select-test/index'
-import { Route as AdminProjectsIndexRouteImport } from './routes/admin/projects/index'
-import { Route as AdminFilesIndexRouteImport } from './routes/admin/files/index'
-import { Route as AdminEmployeesIndexRouteImport } from './routes/admin/employees/index'
-import { Route as AdminDocumentsIndexRouteImport } from './routes/admin/documents/index'
-import { Route as AdminDepartmentsIndexRouteImport } from './routes/admin/departments/index'
-import { Route as AdminCompaniesIndexRouteImport } from './routes/admin/companies/index'
-import { Route as AdminChatIndexRouteImport } from './routes/admin/chat/index'
+import { Route as Admin2faVerifyRouteImport } from './routes/admin/2fa-verify'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminSignupRouteImport } from './routes/admin/signup'
 import { Route as AdminAuditLogsIndexRouteImport } from './routes/admin/audit-logs/index'
-import { Route as AdminUsersFormRouteImport } from './routes/admin/users/form'
-import { Route as AdminTagsFormRouteImport } from './routes/admin/tags/form'
-import { Route as AdminProjectsFormRouteImport } from './routes/admin/projects/form'
-import { Route as AdminProjectsProjectIdRouteImport } from './routes/admin/projects/$projectId'
-import { Route as AdminFilesUploadTestRouteImport } from './routes/admin/files/upload-test'
-import { Route as AdminFilesFormRouteImport } from './routes/admin/files/form'
-import { Route as AdminEmployeesFormRouteImport } from './routes/admin/employees/form'
-import { Route as AdminDocumentsFormRouteImport } from './routes/admin/documents/form'
-import { Route as AdminDepartmentsFormRouteImport } from './routes/admin/departments/form'
-import { Route as AdminCompaniesFormRouteImport } from './routes/admin/companies/form'
+import { Route as AdminChatIndexRouteImport } from './routes/admin/chat/index'
+import { Route as AdminCompaniesIndexRouteImport } from './routes/admin/companies/index'
 import { Route as AdminCompaniesCompanyIdRouteImport } from './routes/admin/companies/$companyId'
+import { Route as AdminCompaniesFormRouteImport } from './routes/admin/companies/form'
+import { Route as AdminDepartmentsIndexRouteImport } from './routes/admin/departments/index'
+import { Route as AdminDepartmentsFormRouteImport } from './routes/admin/departments/form'
+import { Route as AdminDocumentsIndexRouteImport } from './routes/admin/documents/index'
+import { Route as AdminDocumentsFormRouteImport } from './routes/admin/documents/form'
+import { Route as AdminEmployeesIndexRouteImport } from './routes/admin/employees/index'
+import { Route as AdminEmployeesFormRouteImport } from './routes/admin/employees/form'
+import { Route as AdminFilesIndexRouteImport } from './routes/admin/files/index'
+import { Route as AdminFilesFormRouteImport } from './routes/admin/files/form'
+import { Route as AdminFilesUploadTestRouteImport } from './routes/admin/files/upload-test'
+import { Route as AdminProjectsIndexRouteImport } from './routes/admin/projects/index'
+import { Route as AdminProjectsProjectIdRouteImport } from './routes/admin/projects/$projectId'
+import { Route as AdminProjectsFormRouteImport } from './routes/admin/projects/form'
+import { Route as AdminSelectTestIndexRouteImport } from './routes/admin/select-test/index'
+import { Route as AdminTagsIndexRouteImport } from './routes/admin/tags/index'
+import { Route as AdminTagsFormRouteImport } from './routes/admin/tags/form'
+import { Route as AdminTelemetryIndexRouteImport } from './routes/admin/telemetry/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminUsersFormRouteImport } from './routes/admin/users/form'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -49,14 +49,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSignupRoute = AdminSignupRouteImport.update({
-  id: '/admin/signup',
-  path: '/admin/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
+const Admin2faSetupRoute = Admin2faSetupRouteImport.update({
+  id: '/admin/2fa-setup',
+  path: '/admin/2fa-setup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Admin2faVerifyRoute = Admin2faVerifyRouteImport.update({
@@ -64,64 +59,14 @@ const Admin2faVerifyRoute = Admin2faVerifyRouteImport.update({
   path: '/admin/2fa-verify',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Admin2faSetupRoute = Admin2faSetupRouteImport.update({
-  id: '/admin/2fa-setup',
-  path: '/admin/2fa-setup',
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: '/admin/users/',
-  path: '/admin/users/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminTelemetryIndexRoute = AdminTelemetryIndexRouteImport.update({
-  id: '/admin/telemetry/',
-  path: '/admin/telemetry/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminTagsIndexRoute = AdminTagsIndexRouteImport.update({
-  id: '/admin/tags/',
-  path: '/admin/tags/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminSelectTestIndexRoute = AdminSelectTestIndexRouteImport.update({
-  id: '/admin/select-test/',
-  path: '/admin/select-test/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminProjectsIndexRoute = AdminProjectsIndexRouteImport.update({
-  id: '/admin/projects/',
-  path: '/admin/projects/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminFilesIndexRoute = AdminFilesIndexRouteImport.update({
-  id: '/admin/files/',
-  path: '/admin/files/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmployeesIndexRoute = AdminEmployeesIndexRouteImport.update({
-  id: '/admin/employees/',
-  path: '/admin/employees/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminDocumentsIndexRoute = AdminDocumentsIndexRouteImport.update({
-  id: '/admin/documents/',
-  path: '/admin/documents/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminDepartmentsIndexRoute = AdminDepartmentsIndexRouteImport.update({
-  id: '/admin/departments/',
-  path: '/admin/departments/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminCompaniesIndexRoute = AdminCompaniesIndexRouteImport.update({
-  id: '/admin/companies/',
-  path: '/admin/companies/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminChatIndexRoute = AdminChatIndexRouteImport.update({
-  id: '/admin/chat/',
-  path: '/admin/chat/',
+const AdminSignupRoute = AdminSignupRouteImport.update({
+  id: '/admin/signup',
+  path: '/admin/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuditLogsIndexRoute = AdminAuditLogsIndexRouteImport.update({
@@ -129,49 +74,19 @@ const AdminAuditLogsIndexRoute = AdminAuditLogsIndexRouteImport.update({
   path: '/admin/audit-logs/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminUsersFormRoute = AdminUsersFormRouteImport.update({
-  id: '/admin/users/form',
-  path: '/admin/users/form',
+const AdminChatIndexRoute = AdminChatIndexRouteImport.update({
+  id: '/admin/chat/',
+  path: '/admin/chat/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminTagsFormRoute = AdminTagsFormRouteImport.update({
-  id: '/admin/tags/form',
-  path: '/admin/tags/form',
+const AdminCompaniesIndexRoute = AdminCompaniesIndexRouteImport.update({
+  id: '/admin/companies/',
+  path: '/admin/companies/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminProjectsFormRoute = AdminProjectsFormRouteImport.update({
-  id: '/admin/projects/form',
-  path: '/admin/projects/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminProjectsProjectIdRoute = AdminProjectsProjectIdRouteImport.update({
-  id: '/admin/projects/$projectId',
-  path: '/admin/projects/$projectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminFilesUploadTestRoute = AdminFilesUploadTestRouteImport.update({
-  id: '/admin/files/upload-test',
-  path: '/admin/files/upload-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminFilesFormRoute = AdminFilesFormRouteImport.update({
-  id: '/admin/files/form',
-  path: '/admin/files/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmployeesFormRoute = AdminEmployeesFormRouteImport.update({
-  id: '/admin/employees/form',
-  path: '/admin/employees/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminDocumentsFormRoute = AdminDocumentsFormRouteImport.update({
-  id: '/admin/documents/form',
-  path: '/admin/documents/form',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminDepartmentsFormRoute = AdminDepartmentsFormRouteImport.update({
-  id: '/admin/departments/form',
-  path: '/admin/departments/form',
+const AdminCompaniesCompanyIdRoute = AdminCompaniesCompanyIdRouteImport.update({
+  id: '/admin/companies/$companyId',
+  path: '/admin/companies/$companyId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCompaniesFormRoute = AdminCompaniesFormRouteImport.update({
@@ -179,9 +94,94 @@ const AdminCompaniesFormRoute = AdminCompaniesFormRouteImport.update({
   path: '/admin/companies/form',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCompaniesCompanyIdRoute = AdminCompaniesCompanyIdRouteImport.update({
-  id: '/admin/companies/$companyId',
-  path: '/admin/companies/$companyId',
+const AdminDepartmentsIndexRoute = AdminDepartmentsIndexRouteImport.update({
+  id: '/admin/departments/',
+  path: '/admin/departments/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDepartmentsFormRoute = AdminDepartmentsFormRouteImport.update({
+  id: '/admin/departments/form',
+  path: '/admin/departments/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDocumentsIndexRoute = AdminDocumentsIndexRouteImport.update({
+  id: '/admin/documents/',
+  path: '/admin/documents/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDocumentsFormRoute = AdminDocumentsFormRouteImport.update({
+  id: '/admin/documents/form',
+  path: '/admin/documents/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEmployeesIndexRoute = AdminEmployeesIndexRouteImport.update({
+  id: '/admin/employees/',
+  path: '/admin/employees/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEmployeesFormRoute = AdminEmployeesFormRouteImport.update({
+  id: '/admin/employees/form',
+  path: '/admin/employees/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFilesIndexRoute = AdminFilesIndexRouteImport.update({
+  id: '/admin/files/',
+  path: '/admin/files/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFilesFormRoute = AdminFilesFormRouteImport.update({
+  id: '/admin/files/form',
+  path: '/admin/files/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFilesUploadTestRoute = AdminFilesUploadTestRouteImport.update({
+  id: '/admin/files/upload-test',
+  path: '/admin/files/upload-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProjectsIndexRoute = AdminProjectsIndexRouteImport.update({
+  id: '/admin/projects/',
+  path: '/admin/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProjectsProjectIdRoute = AdminProjectsProjectIdRouteImport.update({
+  id: '/admin/projects/$projectId',
+  path: '/admin/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProjectsFormRoute = AdminProjectsFormRouteImport.update({
+  id: '/admin/projects/form',
+  path: '/admin/projects/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSelectTestIndexRoute = AdminSelectTestIndexRouteImport.update({
+  id: '/admin/select-test/',
+  path: '/admin/select-test/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTagsIndexRoute = AdminTagsIndexRouteImport.update({
+  id: '/admin/tags/',
+  path: '/admin/tags/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTagsFormRoute = AdminTagsFormRouteImport.update({
+  id: '/admin/tags/form',
+  path: '/admin/tags/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTelemetryIndexRoute = AdminTelemetryIndexRouteImport.update({
+  id: '/admin/telemetry/',
+  path: '/admin/telemetry/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersFormRoute = AdminUsersFormRouteImport.update({
+  id: '/admin/users/form',
+  path: '/admin/users/form',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -191,7 +191,7 @@ export interface FileRoutesByFullPath {
   '/admin/2fa-verify': typeof Admin2faVerifyRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/signup': typeof AdminSignupRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/admin/companies/$companyId': typeof AdminCompaniesCompanyIdRoute
   '/admin/companies/form': typeof AdminCompaniesFormRoute
   '/admin/departments/form': typeof AdminDepartmentsFormRoute
@@ -203,18 +203,18 @@ export interface FileRoutesByFullPath {
   '/admin/projects/form': typeof AdminProjectsFormRoute
   '/admin/tags/form': typeof AdminTagsFormRoute
   '/admin/users/form': typeof AdminUsersFormRoute
-  '/admin/audit-logs': typeof AdminAuditLogsIndexRoute
-  '/admin/chat': typeof AdminChatIndexRoute
-  '/admin/companies': typeof AdminCompaniesIndexRoute
-  '/admin/departments': typeof AdminDepartmentsIndexRoute
-  '/admin/documents': typeof AdminDocumentsIndexRoute
-  '/admin/employees': typeof AdminEmployeesIndexRoute
-  '/admin/files': typeof AdminFilesIndexRoute
-  '/admin/projects': typeof AdminProjectsIndexRoute
-  '/admin/select-test': typeof AdminSelectTestIndexRoute
-  '/admin/tags': typeof AdminTagsIndexRoute
-  '/admin/telemetry': typeof AdminTelemetryIndexRoute
-  '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/audit-logs/': typeof AdminAuditLogsIndexRoute
+  '/admin/chat/': typeof AdminChatIndexRoute
+  '/admin/companies/': typeof AdminCompaniesIndexRoute
+  '/admin/departments/': typeof AdminDepartmentsIndexRoute
+  '/admin/documents/': typeof AdminDocumentsIndexRoute
+  '/admin/employees/': typeof AdminEmployeesIndexRoute
+  '/admin/files/': typeof AdminFilesIndexRoute
+  '/admin/projects/': typeof AdminProjectsIndexRoute
+  '/admin/select-test/': typeof AdminSelectTestIndexRoute
+  '/admin/tags/': typeof AdminTagsIndexRoute
+  '/admin/telemetry/': typeof AdminTelemetryIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -287,7 +287,7 @@ export interface FileRouteTypes {
     | '/admin/2fa-verify'
     | '/admin/login'
     | '/admin/signup'
-    | '/admin'
+    | '/admin/'
     | '/admin/companies/$companyId'
     | '/admin/companies/form'
     | '/admin/departments/form'
@@ -299,18 +299,18 @@ export interface FileRouteTypes {
     | '/admin/projects/form'
     | '/admin/tags/form'
     | '/admin/users/form'
-    | '/admin/audit-logs'
-    | '/admin/chat'
-    | '/admin/companies'
-    | '/admin/departments'
-    | '/admin/documents'
-    | '/admin/employees'
-    | '/admin/files'
-    | '/admin/projects'
-    | '/admin/select-test'
-    | '/admin/tags'
-    | '/admin/telemetry'
-    | '/admin/users'
+    | '/admin/audit-logs/'
+    | '/admin/chat/'
+    | '/admin/companies/'
+    | '/admin/departments/'
+    | '/admin/documents/'
+    | '/admin/employees/'
+    | '/admin/files/'
+    | '/admin/projects/'
+    | '/admin/select-test/'
+    | '/admin/tags/'
+    | '/admin/telemetry/'
+    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -419,29 +419,8 @@ declare module '@tanstack/react-router' {
     '/admin/': {
       id: '/admin/'
       path: '/admin'
-      fullPath: '/admin'
+      fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/signup': {
-      id: '/admin/signup'
-      path: '/admin/signup'
-      fullPath: '/admin/signup'
-      preLoaderRoute: typeof AdminSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/2fa-verify': {
-      id: '/admin/2fa-verify'
-      path: '/admin/2fa-verify'
-      fullPath: '/admin/2fa-verify'
-      preLoaderRoute: typeof Admin2faVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/2fa-setup': {
@@ -451,151 +430,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Admin2faSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/users/': {
-      id: '/admin/users/'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersIndexRouteImport
+    '/admin/2fa-verify': {
+      id: '/admin/2fa-verify'
+      path: '/admin/2fa-verify'
+      fullPath: '/admin/2fa-verify'
+      preLoaderRoute: typeof Admin2faVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/telemetry/': {
-      id: '/admin/telemetry/'
-      path: '/admin/telemetry'
-      fullPath: '/admin/telemetry'
-      preLoaderRoute: typeof AdminTelemetryIndexRouteImport
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/tags/': {
-      id: '/admin/tags/'
-      path: '/admin/tags'
-      fullPath: '/admin/tags'
-      preLoaderRoute: typeof AdminTagsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/select-test/': {
-      id: '/admin/select-test/'
-      path: '/admin/select-test'
-      fullPath: '/admin/select-test'
-      preLoaderRoute: typeof AdminSelectTestIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/projects/': {
-      id: '/admin/projects/'
-      path: '/admin/projects'
-      fullPath: '/admin/projects'
-      preLoaderRoute: typeof AdminProjectsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/files/': {
-      id: '/admin/files/'
-      path: '/admin/files'
-      fullPath: '/admin/files'
-      preLoaderRoute: typeof AdminFilesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/employees/': {
-      id: '/admin/employees/'
-      path: '/admin/employees'
-      fullPath: '/admin/employees'
-      preLoaderRoute: typeof AdminEmployeesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/documents/': {
-      id: '/admin/documents/'
-      path: '/admin/documents'
-      fullPath: '/admin/documents'
-      preLoaderRoute: typeof AdminDocumentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/departments/': {
-      id: '/admin/departments/'
-      path: '/admin/departments'
-      fullPath: '/admin/departments'
-      preLoaderRoute: typeof AdminDepartmentsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/companies/': {
-      id: '/admin/companies/'
-      path: '/admin/companies'
-      fullPath: '/admin/companies'
-      preLoaderRoute: typeof AdminCompaniesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/chat/': {
-      id: '/admin/chat/'
-      path: '/admin/chat'
-      fullPath: '/admin/chat'
-      preLoaderRoute: typeof AdminChatIndexRouteImport
+    '/admin/signup': {
+      id: '/admin/signup'
+      path: '/admin/signup'
+      fullPath: '/admin/signup'
+      preLoaderRoute: typeof AdminSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/audit-logs/': {
       id: '/admin/audit-logs/'
       path: '/admin/audit-logs'
-      fullPath: '/admin/audit-logs'
+      fullPath: '/admin/audit-logs/'
       preLoaderRoute: typeof AdminAuditLogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/users/form': {
-      id: '/admin/users/form'
-      path: '/admin/users/form'
-      fullPath: '/admin/users/form'
-      preLoaderRoute: typeof AdminUsersFormRouteImport
+    '/admin/chat/': {
+      id: '/admin/chat/'
+      path: '/admin/chat'
+      fullPath: '/admin/chat/'
+      preLoaderRoute: typeof AdminChatIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/tags/form': {
-      id: '/admin/tags/form'
-      path: '/admin/tags/form'
-      fullPath: '/admin/tags/form'
-      preLoaderRoute: typeof AdminTagsFormRouteImport
+    '/admin/companies/': {
+      id: '/admin/companies/'
+      path: '/admin/companies'
+      fullPath: '/admin/companies/'
+      preLoaderRoute: typeof AdminCompaniesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/projects/form': {
-      id: '/admin/projects/form'
-      path: '/admin/projects/form'
-      fullPath: '/admin/projects/form'
-      preLoaderRoute: typeof AdminProjectsFormRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/projects/$projectId': {
-      id: '/admin/projects/$projectId'
-      path: '/admin/projects/$projectId'
-      fullPath: '/admin/projects/$projectId'
-      preLoaderRoute: typeof AdminProjectsProjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/files/upload-test': {
-      id: '/admin/files/upload-test'
-      path: '/admin/files/upload-test'
-      fullPath: '/admin/files/upload-test'
-      preLoaderRoute: typeof AdminFilesUploadTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/files/form': {
-      id: '/admin/files/form'
-      path: '/admin/files/form'
-      fullPath: '/admin/files/form'
-      preLoaderRoute: typeof AdminFilesFormRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/employees/form': {
-      id: '/admin/employees/form'
-      path: '/admin/employees/form'
-      fullPath: '/admin/employees/form'
-      preLoaderRoute: typeof AdminEmployeesFormRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/documents/form': {
-      id: '/admin/documents/form'
-      path: '/admin/documents/form'
-      fullPath: '/admin/documents/form'
-      preLoaderRoute: typeof AdminDocumentsFormRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/departments/form': {
-      id: '/admin/departments/form'
-      path: '/admin/departments/form'
-      fullPath: '/admin/departments/form'
-      preLoaderRoute: typeof AdminDepartmentsFormRouteImport
+    '/admin/companies/$companyId': {
+      id: '/admin/companies/$companyId'
+      path: '/admin/companies/$companyId'
+      fullPath: '/admin/companies/$companyId'
+      preLoaderRoute: typeof AdminCompaniesCompanyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/companies/form': {
@@ -605,11 +486,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCompaniesFormRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/companies/$companyId': {
-      id: '/admin/companies/$companyId'
-      path: '/admin/companies/$companyId'
-      fullPath: '/admin/companies/$companyId'
-      preLoaderRoute: typeof AdminCompaniesCompanyIdRouteImport
+    '/admin/departments/': {
+      id: '/admin/departments/'
+      path: '/admin/departments'
+      fullPath: '/admin/departments/'
+      preLoaderRoute: typeof AdminDepartmentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/departments/form': {
+      id: '/admin/departments/form'
+      path: '/admin/departments/form'
+      fullPath: '/admin/departments/form'
+      preLoaderRoute: typeof AdminDepartmentsFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/documents/': {
+      id: '/admin/documents/'
+      path: '/admin/documents'
+      fullPath: '/admin/documents/'
+      preLoaderRoute: typeof AdminDocumentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/documents/form': {
+      id: '/admin/documents/form'
+      path: '/admin/documents/form'
+      fullPath: '/admin/documents/form'
+      preLoaderRoute: typeof AdminDocumentsFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/employees/': {
+      id: '/admin/employees/'
+      path: '/admin/employees'
+      fullPath: '/admin/employees/'
+      preLoaderRoute: typeof AdminEmployeesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/employees/form': {
+      id: '/admin/employees/form'
+      path: '/admin/employees/form'
+      fullPath: '/admin/employees/form'
+      preLoaderRoute: typeof AdminEmployeesFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/files/': {
+      id: '/admin/files/'
+      path: '/admin/files'
+      fullPath: '/admin/files/'
+      preLoaderRoute: typeof AdminFilesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/files/form': {
+      id: '/admin/files/form'
+      path: '/admin/files/form'
+      fullPath: '/admin/files/form'
+      preLoaderRoute: typeof AdminFilesFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/files/upload-test': {
+      id: '/admin/files/upload-test'
+      path: '/admin/files/upload-test'
+      fullPath: '/admin/files/upload-test'
+      preLoaderRoute: typeof AdminFilesUploadTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/projects/': {
+      id: '/admin/projects/'
+      path: '/admin/projects'
+      fullPath: '/admin/projects/'
+      preLoaderRoute: typeof AdminProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/projects/$projectId': {
+      id: '/admin/projects/$projectId'
+      path: '/admin/projects/$projectId'
+      fullPath: '/admin/projects/$projectId'
+      preLoaderRoute: typeof AdminProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/projects/form': {
+      id: '/admin/projects/form'
+      path: '/admin/projects/form'
+      fullPath: '/admin/projects/form'
+      preLoaderRoute: typeof AdminProjectsFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/select-test/': {
+      id: '/admin/select-test/'
+      path: '/admin/select-test'
+      fullPath: '/admin/select-test/'
+      preLoaderRoute: typeof AdminSelectTestIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/tags/': {
+      id: '/admin/tags/'
+      path: '/admin/tags'
+      fullPath: '/admin/tags/'
+      preLoaderRoute: typeof AdminTagsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/tags/form': {
+      id: '/admin/tags/form'
+      path: '/admin/tags/form'
+      fullPath: '/admin/tags/form'
+      preLoaderRoute: typeof AdminTagsFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/telemetry/': {
+      id: '/admin/telemetry/'
+      path: '/admin/telemetry'
+      fullPath: '/admin/telemetry/'
+      preLoaderRoute: typeof AdminTelemetryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/form': {
+      id: '/admin/users/form'
+      path: '/admin/users/form'
+      fullPath: '/admin/users/form'
+      preLoaderRoute: typeof AdminUsersFormRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
