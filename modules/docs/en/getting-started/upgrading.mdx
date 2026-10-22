@@ -47,9 +47,12 @@ These `sonamu` peer dependency ranges changed in 0.13.0. Align the catalog in yo
 | `ioredis` | `^5` | `^6` | Sonamu’s cache and WebSocket adapters work without code changes. If you use ioredis directly, see the [ioredis 6 release notes](https://github.com/redis/ioredis/releases). |
 | `pgvector` | `^0.2` | `^0.3` | None |
 | `voyageai` | `^0.0.8` | `^0.4` | None. Sonamu only calls `VoyageAIClient.embed()`. |
+| `ai` | `^6` | `^7` | `StreamTextResult`, the return type of `streamText()`, now takes three type arguments; if you spell it out, use `StreamTextResult<Tools, Context, Output>`. `toUIMessageStreamResponse().headers` is a `Headers` instance, so read it with `headers.entries()`, not `Object.entries()`. |
+| `@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/provider` | `^3` | `^4` | Custom providers written against the V3 specs (`ProviderV3`, `TranscriptionModelV3`, and so on) keep working. |
+| `@ai-sdk/provider-utils` | `^4` | `^5` | `ToolExecutionOptions` is now generic: `ToolExecutionOptions<Context>`. |
 
-`fastify` is covered in the Fastify 5 section above. All other peer ranges, including the AI SDK
-(`ai` 6, `@ai-sdk/*` 3) and `knex`, are unchanged. `ai` 7 and `@ai-sdk/*` 4 are not supported yet.
+`fastify` is covered in the Fastify 5 section above. All other peer ranges, including `knex`, are
+unchanged.
 
 The template project’s dev dependencies moved as well. `vitest` 5 (with `@vitest/coverage-v8`)
 enables `clearMocks` by default, so tests that rely on mock call history from earlier tests

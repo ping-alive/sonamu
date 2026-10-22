@@ -44,9 +44,11 @@ Sonamu 0.13부터 Fastify 5와 그에 맞는 `@fastify/*` 플러그인 메이저
 | `ioredis` | `^5` | `^6` | Sonamu의 캐시·WebSocket 어댑터는 코드 변경 없이 동작합니다. ioredis를 직접 사용한다면 [ioredis 6 변경 사항](https://github.com/redis/ioredis/releases)을 확인하세요. |
 | `pgvector` | `^0.2` | `^0.3` | 없음 |
 | `voyageai` | `^0.0.8` | `^0.4` | 없음. Sonamu는 `VoyageAIClient.embed()`만 사용합니다. |
+| `ai` | `^6` | `^7` | `streamText()` 결과 타입 `StreamTextResult`의 제네릭이 3개가 됐습니다. 직접 타입을 적었다면 `StreamTextResult<Tools, Context, Output>`으로 맞추세요. `toUIMessageStreamResponse()`의 `headers`는 `Headers` 인스턴스이므로 `Object.entries()`가 아닌 `headers.entries()`로 읽어야 합니다. |
+| `@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/provider` | `^3` | `^4` | 커스텀 provider는 V3 스펙(`ProviderV3`, `TranscriptionModelV3` 등)을 그대로 쓸 수 있습니다. |
+| `@ai-sdk/provider-utils` | `^4` | `^5` | `ToolExecutionOptions`가 제네릭(`ToolExecutionOptions<Context>`)이 됐습니다. |
 
-`fastify`는 위 Fastify 5 절을 참고하세요. AI SDK(`ai` 6, `@ai-sdk/*` 3), `knex` 등 나머지 peer 의존성
-범위는 그대로입니다. `ai` 7 / `@ai-sdk/*` 4는 아직 지원하지 않습니다.
+`fastify`는 위 Fastify 5 절을 참고하세요. `knex` 등 나머지 peer 의존성 범위는 그대로입니다.
 
 템플릿 프로젝트의 개발 의존성도 함께 올랐습니다. `vitest` 5(`@vitest/coverage-v8` 포함)는
 `clearMocks`가 기본으로 활성화되어, 앞선 테스트의 mock 호출 기록에 의존하던 테스트는 실패합니다.
