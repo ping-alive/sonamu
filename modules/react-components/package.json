@@ -122,6 +122,8 @@
     "autoprefixer": "catalog:",
     "better-auth": "catalog:",
     "postcss": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "storybook": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
