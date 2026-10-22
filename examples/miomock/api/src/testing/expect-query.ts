@@ -96,7 +96,8 @@ function extractColumn<Column>(column: Column): string | null {
 
   const exprSql = parser.exprToSQL(column.expr, dbOption());
   const alias = "as" in column ? extractAlias(column.as) : null;
-  return alias ? `${exprSql} AS \`${alias}\`` : exprSql;
+  // alias는 실제 SQL과 같은 식별자 인용부호(PostgreSQL은 큰따옴표)로 붙인다
+  return alias ? `${exprSql} AS "${alias}"` : exprSql;
 }
 
 function extractSetColumn<SetItem>(setItem: SetItem): string | null {

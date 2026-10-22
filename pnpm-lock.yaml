@@ -466,8 +466,8 @@ catalogs:
       specifier: ^2.2.3
       version: 2.2.3
     knex:
-      specifier: ^3.2.9
-      version: 3.2.9
+      specifier: ^3.3.0
+      version: 3.3.0
     luxon:
       specifier: ^3.0.3
       version: 3.7.2
@@ -829,7 +829,7 @@ importers:
         version: 18.0.8
       knex:
         specifier: 'catalog:'
-        version: 3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0)
+        version: 3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0)
       pg:
         specifier: 'catalog:'
         version: 8.23.1(pg-native@3.9.1)
@@ -1746,7 +1746,7 @@ importers:
         version: 6.0.0
       bentocache:
         specifier: 'catalog:'
-        version: 1.6.1(ioredis@6.0.0(supports-color@5.5.0))(knex@3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0))(kysely@0.29.7)
+        version: 1.6.1(ioredis@6.0.0(supports-color@5.5.0))(knex@3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0))(kysely@0.29.7)
       better-auth:
         specifier: 'catalog:'
         version: 1.7.11(@opentelemetry/api@1.9.0)(pg@8.23.1(pg-native@3.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(solid-js@1.9.10)(vitest@5.0.5)
@@ -1785,7 +1785,7 @@ importers:
         version: 6.0.0(supports-color@5.5.0)
       knex:
         specifier: 'catalog:'
-        version: 3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0)
+        version: 3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0)
       mime-types:
         specifier: 'catalog:'
         version: 3.0.2
@@ -2006,7 +2006,7 @@ importers:
         version: 3.0.2
       knex:
         specifier: 'catalog:'
-        version: 3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0)
+        version: 3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0)
       node-cron:
         specifier: 'catalog:'
         version: 4.6.0
@@ -8104,12 +8104,13 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  knex@3.2.9:
-    resolution: {integrity: sha512-dtAILTjBMaG8YloP5oBxohDIKyIsdQ/TkcVvSjhsksvsjeH63Y0PADyuMDfNZKbVT3Rlx3vEYVBlecbPT/KerA==}
+  knex@3.3.0:
+    resolution: {integrity: sha512-LgWl031hNuLv9Lhxdd9093zULa2aNcoP04Bk29e5NidgRcEr/T0rAr2WYi4BhjTiCDoQiRU56meUE5rppLKZzQ==}
     engines: {node: '>=16'}
     hasBin: true
     peerDependencies:
       better-sqlite3: '*'
+      mariadb: '*'
       mysql: '*'
       mysql2: '*'
       pg: '*'
@@ -8119,6 +8120,8 @@ packages:
       tedious: '*'
     peerDependenciesMeta:
       better-sqlite3:
+        optional: true
+      mariadb:
         optional: true
       mysql:
         optional: true
@@ -9950,8 +9953,8 @@ packages:
   tar-stream@3.2.2:
     resolution: {integrity: sha512-+8NeqHRjQWH9nYlwo2gamAMImZCVzI4UoEgDpWorBt9OEfppiZn+uSkskzQKPWIZyji/C8fpWO7u69G0DX0tbg==}
 
-  tarn@3.0.2:
-    resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
+  tarn@3.1.2:
+    resolution: {integrity: sha512-3RTvqKZcK/17jnJ8rMKFXbyNogywTs1z0gVPPwFsJGX46rkmUHOdIaSQ/aVO1rS7nH+soiXiWk7rvUXxndm8Dg==}
     engines: {node: '>=8.0.0'}
 
   teex@1.0.1:
@@ -14900,7 +14903,7 @@ snapshots:
       node-addon-api: 8.5.0
       node-gyp-build: 4.8.4
 
-  bentocache@1.6.1(ioredis@6.0.0(supports-color@5.5.0))(knex@3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0))(kysely@0.29.7):
+  bentocache@1.6.1(ioredis@6.0.0(supports-color@5.5.0))(knex@3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0))(kysely@0.29.7):
     dependencies:
       '@boringnode/bus': 0.9.0(ioredis@6.0.0(supports-color@5.5.0))
       '@julr/utils': 1.9.0
@@ -14910,7 +14913,7 @@ snapshots:
       p-timeout: 7.0.1
     optionalDependencies:
       ioredis: 6.0.0(supports-color@5.5.0)
-      knex: 3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0)
+      knex: 3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0)
       kysely: 0.29.7
 
   better-auth@1.7.11(@opentelemetry/api@1.9.0)(pg@8.23.1(pg-native@3.9.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(solid-js@1.9.10)(vitest@5.0.5):
@@ -16659,7 +16662,7 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  knex@3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0):
+  knex@3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@11.0.0):
     dependencies:
       colorette: 2.0.19
       commander: 10.0.1
@@ -16673,7 +16676,7 @@ snapshots:
       pg-connection-string: 2.6.2
       rechoir: 0.8.0
       resolve-from: 5.0.0
-      tarn: 3.0.2
+      tarn: 3.1.2
       tildify: 2.0.0
     optionalDependencies:
       pg: 8.23.1(pg-native@3.9.1)
@@ -16681,7 +16684,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  knex@3.2.9(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0):
+  knex@3.3.0(pg-native@3.9.1)(pg@8.23.1(pg-native@3.9.1))(supports-color@5.5.0):
     dependencies:
       colorette: 2.0.19
       commander: 10.0.1
@@ -16695,7 +16698,7 @@ snapshots:
       pg-connection-string: 2.6.2
       rechoir: 0.8.0
       resolve-from: 5.0.0
-      tarn: 3.0.2
+      tarn: 3.1.2
       tildify: 2.0.0
     optionalDependencies:
       pg: 8.23.1(pg-native@3.9.1)
@@ -18827,7 +18830,7 @@ snapshots:
       - bare-buffer
       - react-native-b4a
 
-  tarn@3.0.2: {}
+  tarn@3.1.2: {}
 
   teex@1.0.1:
     dependencies:

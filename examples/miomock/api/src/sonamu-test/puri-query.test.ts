@@ -57,7 +57,7 @@ describe("Puri Query", () => {
 
       expectQuery(query, "type").toMatchInlineSnapshot(`"select"`);
       expectQuery(query, "table").toMatchInlineSnapshot(`"users"`);
-      expectQuery(query, "columns").toMatchInlineSnapshot(`""users"."id" AS \`id\`"`);
+      expectQuery(query, "columns").toMatchInlineSnapshot(`""users"."id" AS "id""`);
     });
 
     test("select with alias", async () => {
@@ -67,7 +67,7 @@ describe("Puri Query", () => {
 
       expectQuery(query, "type").toMatchInlineSnapshot(`"select"`);
       expectQuery(query, "table").toMatchInlineSnapshot(`"users"`);
-      expectQuery(query, "columns").toMatchInlineSnapshot(`""users"."id" AS \`userId\`"`);
+      expectQuery(query, "columns").toMatchInlineSnapshot(`""users"."id" AS "userId""`);
     });
 
     test("selectAll", async () => {
@@ -438,7 +438,7 @@ describe("Puri Query", () => {
       const query = Naite.get("puri:executed-query").first();
 
       expectQuery(query, "columns").toMatchInlineSnapshot(
-        '"SUM("employees"."salary") AS `totalSalary`"',
+        '"SUM("employees"."salary") AS "totalSalary""',
       );
     });
 
@@ -448,7 +448,7 @@ describe("Puri Query", () => {
       const query = Naite.get("puri:executed-query").first();
 
       expectQuery(query, "columns").toMatchInlineSnapshot(
-        '"AVG("employees"."salary") AS `avgSalary`"',
+        '"AVG("employees"."salary") AS "avgSalary""',
       );
     });
 
@@ -458,7 +458,7 @@ describe("Puri Query", () => {
       const query = Naite.get("puri:executed-query").first();
 
       expectQuery(query, "columns").toMatchInlineSnapshot(
-        '"MAX("employees"."salary") AS `maxSalary`"',
+        '"MAX("employees"."salary") AS "maxSalary""',
       );
     });
 
@@ -468,7 +468,7 @@ describe("Puri Query", () => {
       const query = Naite.get("puri:executed-query").first();
 
       expectQuery(query, "columns").toMatchInlineSnapshot(
-        '"MIN("employees"."salary") AS `minSalary`"',
+        '"MIN("employees"."salary") AS "minSalary""',
       );
     });
 
