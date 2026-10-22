@@ -136,20 +136,23 @@ describe("BackendPostgres", () => {
           updated_at: trx.fn.now(),
         });
 
-      const createAttempt = backend.createStepAttempt({
-        workflowRunId: workflowRun.id,
-        workerId: firstWorker,
-        stepName: "during-reclaim",
-        kind: "function",
-        config: {},
-        context: null,
-      });
+      // commit 전에 거부되면 핸들러가 붙기 전이라 unhandled rejection이 되므로 생성 시점에 기대를 건다
+      const createAttempt = expect(
+        backend.createStepAttempt({
+          workflowRunId: workflowRun.id,
+          workerId: firstWorker,
+          stepName: "during-reclaim",
+          kind: "function",
+          config: {},
+          context: null,
+        }),
+      ).rejects.toThrow("Failed to create step attempt");
 
       await sleep(20);
       await trx.commit();
       committed = true;
 
-      await expect(createAttempt).rejects.toThrow("Failed to create step attempt");
+      await createAttempt;
     } catch (error) {
       if (!committed) {
         await trx.rollback();
