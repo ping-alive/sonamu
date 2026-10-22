@@ -29,7 +29,8 @@
               "ko/getting-started/quick-start",
               "ko/getting-started/project-structure",
               "ko/getting-started/first-entity",
-              "ko/getting-started/development-workflow"
+              "ko/getting-started/development-workflow",
+              "ko/getting-started/upgrading"
             ]
           },
           {
@@ -585,7 +586,8 @@
               "en/getting-started/quick-start",
               "en/getting-started/project-structure",
               "en/getting-started/first-entity",
-              "en/getting-started/development-workflow"
+              "en/getting-started/development-workflow",
+              "en/getting-started/upgrading"
             ]
           },
           {

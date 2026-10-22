@@ -1,0 +1,62 @@
+---
+title: "업그레이드 안내"
+description: "Sonamu 버전을 올릴 때 필요한 변경 사항"
+---
+
+## 0.12.x: Fastify 5
+
+Sonamu 0.12부터 Fastify 5와 그에 맞는 `@fastify/*` 플러그인 메이저 버전을 사용합니다. Fastify와
+플러그인은 `sonamu`의 의존성이므로 `sonamu`를 올리고 `pnpm install`을 다시 실행하면 함께
+갱신됩니다. 프로젝트가 `fastify`를 직접 의존성으로 선언했다면 `^5`로 맞추거나 제거하세요.
+
+`@api`, `@websocket`, `@stream`, 인증, 파일 업로드 등 Sonamu가 제공하는 기능은 코드를 바꾸지
+않아도 그대로 동작합니다. 다음 세 곳을 직접 사용했다면 확인이 필요합니다.
+
+<Steps>
+  <Step title="server.plugins.ws.errorHandler">
+    `@fastify/websocket` 11부터 두 번째 인자가 `{ socket }` 래퍼가 아닌 `ws.WebSocket`
+    인스턴스입니다. `connection.socket`을 `socket`으로 바꾸세요.
+  </Step>
+  <Step title="server.plugins.custom, lifecycle.onError">
+    Fastify 4 전용 API(`request.routerPath`, `reply.context`, `reply.getResponseTime()`,
+    `reply.redirect(code, url)` 인자 순서 등)는 제거되거나 바뀌었습니다. Fastify 5
+    [마이그레이션 가이드](https://fastify.dev/docs/latest/Guides/Migration-Guide-V5/)를 참고하세요.
+    `server.fastify` 옵션에는 더 이상 `logger`를 넣을 수 없습니다. Sonamu가 `loggerInstance`로
+    로거를 설정합니다.
+  </Step>
+  <Step title="request.hostname">
+    Fastify 5의 `request.hostname`에는 포트가 포함되지 않습니다. 포트가 필요하면 `request.port`
+    또는 `request.headers.host`를 사용하세요.
+  </Step>
+</Steps>
+
+### create-sonamu로 생성한 프로젝트
+
+생성된 프로젝트의 `pnpm-workspace.yaml`은 `seroval`을 `1.4.2`로 고정합니다. 이 버전에는
+역직렬화 취약점이 있으므로 다음과 같이 바꾸세요.
+
+```yaml pnpm-workspace.yaml
+overrides:
+  seroval: ^1.6.11
+  seroval-plugins: 1.5.6
+```
+
+`@tanstack/router-core`의 타입 선언이 `seroval` 1.6의 타입과 맞지 않아 `sonamu build`의 web
+타입 검사가 실패합니다. `web/tsconfig.node.json`에 `skipLibCheck`를 추가하세요.
+
+```json web/tsconfig.node.json
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}
+```
+
+새로 생성하는 프로젝트에는 두 변경이 이미 적용되어 있습니다.

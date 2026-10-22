@@ -1,0 +1,64 @@
+---
+title: "Upgrading"
+description: "Changes required when upgrading Sonamu"
+---
+
+## 0.12.x: Fastify 5
+
+Starting with Sonamu 0.12, the framework runs on Fastify 5 and the matching major versions of
+the `@fastify/*` plugins. Fastify and its plugins are dependencies of `sonamu`, so bumping
+`sonamu` and re-running `pnpm install` upgrades them together. If your project declares
+`fastify` directly, align it to `^5` or remove it.
+
+Everything Sonamu provides (`@api`, `@websocket`, `@stream`, auth, file upload, and so on)
+works without code changes. Review the three places below only if your project uses them
+directly.
+
+<Steps>
+  <Step title="server.plugins.ws.errorHandler">
+    Starting with `@fastify/websocket` 11, the second argument is the `ws.WebSocket` instance
+    instead of a `{ socket }` wrapper. Replace `connection.socket` with `socket`.
+  </Step>
+  <Step title="server.plugins.custom, lifecycle.onError">
+    Fastify 4-only APIs (`request.routerPath`, `reply.context`, `reply.getResponseTime()`,
+    the `reply.redirect(code, url)` argument order, and others) were removed or changed. See the
+    Fastify 5 [migration guide](https://fastify.dev/docs/latest/Guides/Migration-Guide-V5/). The
+    `server.fastify` option no longer accepts `logger`; Sonamu configures the logger through
+    `loggerInstance`.
+  </Step>
+  <Step title="request.hostname">
+    In Fastify 5, `request.hostname` no longer includes the port. Use `request.port` or
+    `request.headers.host` when you need it.
+  </Step>
+</Steps>
+
+### Projects generated with create-sonamu
+
+A generated project's `pnpm-workspace.yaml` pins `seroval` to `1.4.2`. That version has a
+deserialization vulnerability, so change the override to:
+
+```yaml pnpm-workspace.yaml
+overrides:
+  seroval: ^1.6.11
+  seroval-plugins: 1.5.6
+```
+
+The type declarations in `@tanstack/router-core` do not match `seroval` 1.6, which makes the
+web typecheck step of `sonamu build` fail. Add `skipLibCheck` to `web/tsconfig.node.json`:
+
+```json web/tsconfig.node.json
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}
+```
+
+Newly generated projects already include both changes.
