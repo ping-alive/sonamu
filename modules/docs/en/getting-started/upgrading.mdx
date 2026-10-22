@@ -45,14 +45,14 @@ These `sonamu` peer dependency ranges changed in 0.13.0. Align the catalog in yo
 | `better-auth`, `@better-auth/*` | `~1.6` | `~1.7` | `twoFactor.enable()` now returns a union discriminated by `method`; `totpURI` and `backupCodes` exist only when `method === "totp"`. |
 | `zod` | `^4.3` | `^4.6` | Required by better-auth 1.7. Two installed copies of zod cause type errors, so align the catalog, then run `pnpm dedupe`. |
 | `ioredis` | `^5` | `^6` | Sonamu’s cache and WebSocket adapters work without code changes. If you use ioredis directly, see the [ioredis 6 release notes](https://github.com/redis/ioredis/releases). |
+| `knex` | `^3.2` | `^3.3` | None |
 | `pgvector` | `^0.2` | `^0.3` | None |
 | `voyageai` | `^0.0.8` | `^0.4` | None. Sonamu only calls `VoyageAIClient.embed()`. |
 | `ai` | `^6` | `^7` | `StreamTextResult`, the return type of `streamText()`, now takes three type arguments; if you spell it out, use `StreamTextResult<Tools, Context, Output>`. `toUIMessageStreamResponse().headers` is a `Headers` instance, so read it with `headers.entries()`, not `Object.entries()`. |
 | `@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/provider` | `^3` | `^4` | Custom providers written against the V3 specs (`ProviderV3`, `TranscriptionModelV3`, and so on) keep working. |
 | `@ai-sdk/provider-utils` | `^4` | `^5` | `ToolExecutionOptions` is now generic: `ToolExecutionOptions<Context>`. |
 
-`fastify` is covered in the Fastify 5 section above. All other peer ranges, including `knex`, are
-unchanged.
+`fastify` is covered in the Fastify 5 section above. All other peer ranges are unchanged.
 
 The template project’s dev dependencies moved as well. `vitest` 5 (with `@vitest/coverage-v8`)
 enables `clearMocks` by default, so tests that rely on mock call history from earlier tests
@@ -60,7 +60,7 @@ will fail. `vite` 8.3 and `dotenv` 18 need no attention.
 
 ### Projects generated with create-sonamu
 
-A generated project's `pnpm-workspace.yaml` pins `seroval` to `1.4.2`. That version has a
+A generated project’s `pnpm-workspace.yaml` pins `seroval` to `1.4.2`. That version has a
 deserialization vulnerability, so change the override to:
 
 ```yaml pnpm-workspace.yaml
@@ -69,22 +69,12 @@ overrides:
   seroval-plugins: 1.5.6
 ```
 
-The type declarations in `@tanstack/router-core` do not match `seroval` 1.6, which makes the
-web typecheck step of `sonamu build` fail. Add `skipLibCheck` to `web/tsconfig.node.json`:
+The type declarations in `@tanstack/router-core` below 1.171 do not match `seroval` 1.6, which
+makes the web typecheck step of `sonamu build` fail. Raise `@tanstack/react-router` and
+`@tanstack/router-plugin` in the catalog to `1.170.45` or later. The 1.170 generator rewrites
+`routeTree.gen.ts` in a new format; commit that change after the first `sonamu dev` run.
 
-```json web/tsconfig.node.json
-{
-  "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": ["vite.config.ts"]
-}
-```
+If you cannot upgrade TanStack Router yet, add `"skipLibCheck": true` to `web/tsconfig.node.json`
+instead so the typecheck passes.
 
 Newly generated projects already include both changes.

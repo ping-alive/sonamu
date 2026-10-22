@@ -264,7 +264,7 @@ overrides:
   mdast-util-to-hast@>=13.0.0 <13.2.1: ">=13.2.1"
   prismjs@<1.30.0: ">=1.30.0"
   # seroval 1.6.2 이하는 fromJSON 역직렬화 취약점(GHSA-p6vx-979v-rg4c 등)이 있어 패치 버전 이상으로 올립니다.
-  # @tanstack/router-core 타입 선언과 seroval 1.6의 충돌은 web/tsconfig.node.json의 skipLibCheck로 흡수하고,
+  # @tanstack/router-core 1.171 이상은 seroval 1.6 타입과 호환되므로 별도 우회가 필요 없고,
   # seroval-plugins 1.6 이상은 seroval에서 isStream을 import하므로 createPlugin만 쓰는 1.5.6으로 함께 고정한다.
   seroval: ^1.6.11
   seroval-plugins: 1.5.6
