@@ -138,7 +138,7 @@ function LayoutPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Resizable</h2>
         <div className="border rounded-lg p-6 bg-card">
-          <ResizablePanelGroup direction="horizontal" className="max-w-md border rounded">
+          <ResizablePanelGroup orientation="horizontal" className="max-w-md border rounded">
             <ResizablePanel defaultSize={50}>
               <div className="flex h-[200px] items-center justify-center p-6">
                 <span className="font-semibold">패널 1</span>

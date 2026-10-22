@@ -35,8 +35,8 @@ catalog:
   "@better-auth/sso": ~1.7.11
   "@changesets/cli": ^3.0.3
   "@dagrejs/dagre": ^3.1.1
-  "@dnd-kit/core": ^4.0.3
-  "@dnd-kit/sortable": ^5.1.0
+  "@dnd-kit/core": ^6.3.1
+  "@dnd-kit/sortable": ^10.0.0
   "@dnd-kit/utilities": ^3.2.2
   "@faker-js/faker": ^10.5.0
   "@fastify/compress": ^9.2.2
@@ -121,7 +121,7 @@ catalog:
   "@types/luxon": ^3.7.6
   "@types/mime-types": ^3.0.1
   "@types/minimist": ^1.2.5
-  "@types/node": 25.0.7
+  "@types/node": 26.6.5
   "@types/pg": ^8.23.1
   "@types/picomatch": ^4.0.3
   "@types/prompts": ^2.0.14
@@ -176,7 +176,7 @@ catalog:
   inflection: ^3.0.2
   input-otp: ^1.5.0
   ioredis: ^6.0.0
-  jotai: ^2.14.0
+  jotai: ^3.0.1
   json5: ^2.2.3
   knex: ^3.3.0
   lodash-es: ^4.17.21
@@ -207,12 +207,12 @@ catalog:
   qs: ^6.16.1
   radashi: ^12.9.6
   react: ^19.3.1
-  react-day-picker: ^8.10.1
+  react-day-picker: ^10.0.2
   react-dom: ^19.3.1
   react-draggable: ^4.5.0
   react-hook-form: ^7.90.0
   react-markdown: ^10.1.0
-  react-resizable-panels: ^3.0.6
+  react-resizable-panels: ^4.14.7
   react-router-dom: ^7.18.0
   react-semantic-ui-datepickers: ^2.17.1
   react-syntax-highlighter: ^16.1.2

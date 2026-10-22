@@ -3,7 +3,7 @@
   "type": "module",
   "devDependencies": {
     "@oxlint/plugins": "1.80.0",
-    "@types/node": "^25",
+    "@types/node": "^26",
     "@vitest/coverage-v8": "^4.1.2",
     "corepack": "^0.34.1",
     "cowsay": "^1.6.0",

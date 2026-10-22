@@ -283,7 +283,8 @@ export function ImageUploaderFrame(props: ImageUploaderFrameProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const handleDragStart = (e: DragStartEvent) => {
-    setActiveId(e.active.id);
+    // @dnd-kit 6부터 id가 UniqueIdentifier(string | number)라 문자열로 정규화한다
+    setActiveId(String(e.active.id));
   };
 
   const handleDragEndUnified = (e: DragEndEvent) => {
@@ -291,8 +292,8 @@ export function ImageUploaderFrame(props: ImageUploaderFrameProps) {
     setActiveId(null);
     if (!over || active.id === over.id) return;
 
-    const oldIndex = reconciledOrder.indexOf(active.id);
-    const newIndex = reconciledOrder.indexOf(over.id);
+    const oldIndex = reconciledOrder.indexOf(String(active.id));
+    const newIndex = reconciledOrder.indexOf(String(over.id));
     if (oldIndex < 0 || newIndex < 0) return;
 
     const newOrder = arrayMove(reconciledOrder, oldIndex, newIndex);

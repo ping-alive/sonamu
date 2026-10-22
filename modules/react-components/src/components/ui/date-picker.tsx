@@ -58,7 +58,7 @@ export function DatePicker({
           onSelect={(date) => {
             onValueChange?.(date);
           }}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>
