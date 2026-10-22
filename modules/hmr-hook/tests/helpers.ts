@@ -109,7 +109,10 @@ export function runProcess(scriptPath: string, options?: NodeOptions) {
       const waitUntilOutput = async () => {
         // 린트 리팩토링: execa로 생성된 child는 항상 stdout 존재
         if (!child.stdout) throw new Error("stdout not available");
-        await pEvent(child.stdout, "data", (value) => value.toString().includes(output));
+        // p-event 8부터 필터 인자가 unknown이라 stdout chunk(Buffer | string)로 좁힌다
+        await pEvent(child.stdout, "data", (value: Buffer | string) =>
+          value.toString().includes(output),
+        );
       };
 
       return await pTimeout(waitUntilOutput(), {

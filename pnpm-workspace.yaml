@@ -18,8 +18,8 @@ allowBuilds:
   unrs-resolver: true
 
 catalog:
-  "@adonisjs/ace": ^13.3.0
-  "@adonisjs/tsconfig": ^1.4.1
+  "@adonisjs/ace": ^14.1.1
+  "@adonisjs/tsconfig": ^2.0.0
   "@ai-sdk/anthropic": ^3.0.0
   "@ai-sdk/openai": ^3.0.0
   "@ai-sdk/provider": ^3.0.0
@@ -33,8 +33,8 @@ catalog:
   "@better-auth/api-key": ~1.7.11
   "@better-auth/passkey": ~1.7.11
   "@better-auth/sso": ~1.7.11
-  "@changesets/cli": ^2.29.4
-  "@dagrejs/dagre": ^1.1.8
+  "@changesets/cli": ^3.0.3
+  "@dagrejs/dagre": ^3.1.1
   "@dnd-kit/core": ^4.0.3
   "@dnd-kit/sortable": ^5.1.0
   "@dnd-kit/utilities": ^3.2.2
@@ -47,16 +47,16 @@ catalog:
   "@fastify/passport": ^4.0.4
   "@fastify/static": ^10.1.6
   "@fastify/websocket": ^11.3.4
-  "@hookform/resolvers": ^5.2.2
+  "@hookform/resolvers": ^6.0.0
   "@iconify-json/lucide": ^1.2.146
   "@iconify-json/mdi": ^1.2.3
   "@iconify/json": ^2.2.545
   "@iconify/react": ^6.0.2
   "@japa/assert": ^4.1.1
-  "@japa/file-system": ^2.3.2
-  "@japa/runner": ^4.4.0
+  "@japa/file-system": ^3.0.0
+  "@japa/runner": ^5.4.0
   "@japa/snapshot": ^2.0.9
-  "@julr/tooling-configs": ^4.0.0
+  "@julr/tooling-configs": ^6.1.2
   "@loaderkit/resolve": ^1.0.6
   "@clack/prompts": ^1.8.1
   "@logtape/fastify": 2.4.2
@@ -131,7 +131,7 @@ catalog:
   "@types/react-dom": ^19.3.0
   "@types/react-syntax-highlighter": ^15.5.13
   "@types/semver": ^7.8.0
-  "@types/supertest": ^6.0.3
+  "@types/supertest": ^7.2.1
   "@types/ws": ^8.18.2
   "@typescript/native-preview": ^7.0.0-dev.20251225.1
   "@typescript/typescript6": 6.0.2
@@ -139,7 +139,7 @@ catalog:
   "@vitejs/plugin-react": 6.1.2
   "@vitest/coverage-v8": ^5.0.5
   "@xyflow/react": ^12.12.0
-  agentation: ^2.3.0
+  agentation: ^3.1.2
   ai: ^6.0.1
   autoprefixer: ^10.6.1
   axios: ^1.20.0
@@ -147,9 +147,9 @@ catalog:
   bentocache: ^1.6.1
   better-auth: ~1.7.11
   c12: ^3.3.4
-  c8: ^10.1.3
-  chalk: ^4.1.2
-  chokidar: ^4.0.3
+  c8: ^12.0.0
+  chalk: ^6.0.1
+  chokidar: ^6.0.0
   class-variance-authority: ^0.7.1
   classnames: ^2.3.2
   clsx: ^2.1.1
@@ -158,12 +158,12 @@ catalog:
   date-fns: ^4.4.0
   date-fns-tz: ^3.2.0
   debug: ^4.3.7
-  del-cli: ^6.0.0
+  del-cli: ^8.0.1
   desm: ^1.3.1
-  dotenv: ^16
+  dotenv: ^18.0.8
   embla-carousel-react: ^8.6.0
   esbuild: ^0.27.0
-  eventsource: ^4.1.0
+  eventsource: ^5.1.3
   execa: ^8.0.1
   fast-deep-equal: ^3.1.3
   fast-glob: ^3.3.3
@@ -171,11 +171,11 @@ catalog:
   fastify-file-upload: ^4.0.0
   fastify-qs: ^5.0.0
   fastify-sse-v2: ^4.2.2
-  flydrive: ^1.3.0
+  flydrive: ^2.2.0
   fs-extra: ^11.4.1
   inflection: ^3.0.2
   input-otp: ^1.5.0
-  ioredis: ^5.8.2
+  ioredis: ^6.0.0
   jotai: ^2.14.0
   json5: ^2.2.3
   knex: ^3.2.9
@@ -194,9 +194,9 @@ catalog:
   oxfmt: ^0.74.0
   oxlint: 1.89.0
   oxlint-tsgolint: 7.0.2004
-  p-event: ^6.0.1
-  p-timeout: ^6.1.4
-  parse-imports: ^2.2.1
+  p-event: ^8.0.1
+  p-timeout: ^8.0.0
+  parse-imports: ^3.0.0
   pg: ^8.23.1
   pg-native: ^3.9.1
   pgvector: ^0.3.0
@@ -205,20 +205,20 @@ catalog:
   prompts: ^2.4.2
   prop-types: ^15.8.1
   qs: ^6.16.1
-  radashi: ^12.2.0
+  radashi: ^12.9.6
   react: ^19.3.1
   react-day-picker: ^8.10.1
   react-dom: ^19.3.1
   react-draggable: ^4.5.0
   react-hook-form: ^7.90.0
-  react-markdown: ^9.0.1
+  react-markdown: ^10.1.0
   react-resizable-panels: ^3.0.6
   react-router-dom: ^7.18.0
   react-semantic-ui-datepickers: ^2.17.1
-  react-syntax-highlighter: ^15.5.0
-  read-package-up: ^11.0.0
+  react-syntax-highlighter: ^16.1.2
+  read-package-up: ^12.0.0
   redis: ^6.3.0
-  rou3: ^0.7.10
+  rou3: ^1.0.0
   sass: ^1.105.2
   scss: ^0.2.4
   semantic-ui-css: ^2.5.0
@@ -228,7 +228,7 @@ catalog:
   sonner: ^2.0.8
   storybook: ^10.6.2
   supertest: ^7.3.1
-  supports-color: ^10.2.2
+  supports-color: ^11.0.0
   swr: ^2.5.1
   tailwind-merge: ^3.7.0
   tailwindcss: ^4.3.3
@@ -238,7 +238,7 @@ catalog:
   tsx: ^4.23.15
   typescript: 7.1.0-dev.20260831.1
   unplugin-icons: 0.20.2
-  uuid: ^13.0.2
+  uuid: ^14.0.3
   vaul: ^1.1.2
   vite: 8.3.5
   vite-plugin-dts: 5.1.2
@@ -247,7 +247,7 @@ catalog:
   voyageai: ^0.4.0
   xlsx: ^0.18.5
   zod: ^4.6.7
-  zod-compiler: 1.23.6
+  zod-compiler: 2.0.7
   zx: ^8.8.5
 
 # 릴리즈 이후 2일 이상 된 패키지만 기본적으로 사용
