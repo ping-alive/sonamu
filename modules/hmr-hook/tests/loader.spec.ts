@@ -310,19 +310,13 @@ test.group("Loader ignore", () => {
         cwd: fs.basePath,
         nodeOptions: entry === "register" ? ["--import=@sonamu-kit/hmr-hook/register"] : [],
       });
-      const result = await pEvent<
-        string,
-        {
-          type: string;
-          initial: string;
-          observed: string[];
-          invalidated: string[];
-          final: string;
-        }
-      >(server.child, "message", {
-        filter: (message) => message.type === "watch-result",
-        timeout: 4_000,
-      });
+      const result = await server.waitForMessage<{
+        type: string;
+        initial: string;
+        observed: string[];
+        invalidated: string[];
+        final: string;
+      }>("watch-result", 4_000);
       assert.equal(result.initial, "before");
       assert.deepEqual([...new Set(result.observed)], ["before"]);
       assert.deepEqual(result.invalidated, [join(fs.basePath, "app.js")]);
@@ -406,13 +400,9 @@ test.group("Loader ignore", () => {
        process.send({ type: 'hot-result', enabled: app.default })`,
     );
     const server = runProcess("server.js", { cwd: fs.basePath });
-    const result = await pEvent<string, { type: string; enabled: boolean }>(
-      server.child,
-      "message",
-      {
-        filter: (message) => message.type === "hot-result",
-        timeout: 1_000,
-      },
+    const result = await server.waitForMessage<{ type: string; enabled: boolean }>(
+      "hot-result",
+      1_000,
     );
     assert.isFalse(result.enabled);
   });

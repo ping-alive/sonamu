@@ -1,5 +1,5 @@
 import { test } from "@japa/runner";
-import { pEvent } from "p-event";
+import { type ExecaError } from "execa";
 
 import { runNode } from "../src/helpers.js";
 
@@ -17,11 +17,10 @@ test.group("Child process", () => {
       scriptArgs: [],
       nodeArgs: ["--import=../tsnode.esm.js"],
     });
-    const payload = await pEvent(childProcess, "message", { rejectionEvents: ["error"] });
+    const payload = await childProcess.getOneMessage();
+    const result = await childProcess;
 
-    await pEvent(childProcess, "close", { rejectionEvents: ["error"] });
-
-    assert.equal(childProcess.exitCode, 0);
+    assert.equal(result.exitCode, 0);
     assert.equal(payload, "ready");
   });
 
@@ -38,10 +37,10 @@ test.group("Child process", () => {
       scriptArgs: ["--watch", "--foo=bar"],
       nodeArgs: ["--import=../tsnode.esm.js"],
     });
-    const payload = await pEvent(childProcess, "message", { rejectionEvents: ["error"] });
-    await pEvent(childProcess, "close", { rejectionEvents: ["error"] });
+    const payload = await childProcess.getOneMessage();
+    const result = await childProcess;
 
-    assert.equal(childProcess.exitCode, 0);
+    assert.equal(result.exitCode, 0);
     assert.deepEqual(payload, { args: ["--watch", "--foo=bar"] });
   });
 
@@ -59,10 +58,10 @@ test.group("Child process", () => {
       nodeArgs: ["--conditions=dev", "--import=tsx"],
     });
 
-    const payload = await pEvent(childProcess, "message", { rejectionEvents: ["error"] });
-    await pEvent(childProcess, "close", { rejectionEvents: ["error"] });
+    const payload = await childProcess.getOneMessage();
+    const result = await childProcess;
 
-    assert.equal(childProcess.exitCode, 0);
+    assert.equal(result.exitCode, 0);
     assert.deepEqual(payload, {
       args: ["--enable-source-maps", "--conditions=dev", "--import=tsx"],
     });
@@ -81,8 +80,8 @@ test.group("Child process", () => {
       scriptArgs: [],
       nodeArgs: ["--import=../tsnode.esm.js"],
     });
-    await pEvent(childProcess, "close", { rejectionEvents: ["error"] });
-    assert.equal(childProcess.exitCode, 0);
+    const result = await childProcess;
+    assert.equal(result.exitCode, 0);
   });
 
   test("get child process exit code", async ({ fs, assert }) => {
@@ -99,8 +98,9 @@ test.group("Child process", () => {
       nodeArgs: ["--import=../tsnode.esm.js"],
     });
 
-    await pEvent(childProcess, "close", { rejectionEvents: ["error"] });
-    assert.equal(childProcess.exitCode, 1);
+    // execa 10은 비정상 종료를 거부로 알리므로 reject: false로 결과만 받는다
+    const result = await childProcess.catch((error: ExecaError) => error);
+    assert.equal(result.exitCode, 1);
   });
 
   test("await and get child process exit code", async ({ fs, assert }) => {
@@ -120,8 +120,9 @@ test.group("Child process", () => {
     });
     try {
       await childProcess;
-    } catch {
-      assert.equal(childProcess.exitCode, 1);
+    } catch (error) {
+      // SAFETY: execaNode의 거부 값은 exitCode를 가진 ExecaError다
+      assert.equal((error as ExecaError).exitCode, 1);
     }
   });
 });

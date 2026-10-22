@@ -4,11 +4,16 @@ import { type Key } from "node:readline";
 
 import { args, BaseCommand, flags } from "@adonisjs/ace";
 import { execa } from "execa";
-import { type ExecaChildProcess } from "execa";
+import { type ExecaError, type Message, type ResultPromise } from "execa";
 
 import { runNode } from "./helpers.js";
 import { KeybindingManager, parseKeybinding } from "./keybinding.js";
 import { type Action, type KeyBinding } from "./keybinding.js";
+
+// IPC 메시지 배열 원소가 문자열인지 판별한다 (execa Message 유니온 기준)
+function isMessageString(value: Message): value is string {
+  return Object.prototype.toString.call(value) === "[object String]";
+}
 
 export class Serve extends BaseCommand {
   static commandName = "serve";
@@ -35,12 +40,12 @@ export class Serve extends BaseCommand {
   })
   declare onKey: string[];
 
-  #httpServer?: ExecaChildProcess;
+  #httpServer?: ResultPromise;
   #keybindingManager = new KeybindingManager();
   #onReloadAsked?: (updatedFile: string, shouldBeReloadable: boolean) => void;
   #onFileInvalidated?: (invalidatedFiles: string[]) => void;
 
-  #intentionalExits = new WeakSet<ExecaChildProcess>();
+  #intentionalExits = new WeakSet<ResultPromise>();
   #restartTimer?: NodeJS.Timeout;
   #crashResetTimer?: NodeJS.Timeout;
   #keypressListener?: (_str: string, key: Key) => void;
@@ -96,7 +101,7 @@ export class Serve extends BaseCommand {
   /**
    * 서버 시작 후 일정 시간(5초) 정상 운영 시 크래시 카운터를 리셋합니다
    */
-  #scheduleCrashCounterReset(server: ExecaChildProcess) {
+  #scheduleCrashCounterReset(server: ResultPromise) {
     this.#clearCrashResetTimer();
     this.#crashResetTimer = setTimeout(() => {
       if (this.#intentionalExits.has(server)) return;
@@ -106,12 +111,46 @@ export class Serve extends BaseCommand {
   }
 
   /**
+   * 자식 프로세스의 IPC 메시지를 수신해 hmr-hook 이벤트로 변환합니다
+   */
+  async #consumeMessages(server: ResultPromise) {
+    try {
+      // execaNode는 ipc를 기본으로 켜지만 타입상 선택 속성이라 좁힌다
+      if (!server.getEachMessage) return;
+      for await (const message of server.getEachMessage()) {
+        if (this.#httpServer !== server) return;
+        if (!(message instanceof Object) || !("type" in message)) continue;
+
+        if (
+          message.type === "hmr-hook:full-reload" &&
+          "path" in message &&
+          Object.prototype.toString.call(message.path) === "[object String]" &&
+          "shouldBeReloadable" in message &&
+          (message.shouldBeReloadable === true || message.shouldBeReloadable === false)
+        ) {
+          this.#onReloadAsked?.(String(message.path), message.shouldBeReloadable);
+        }
+
+        if (
+          message.type === "hmr-hook:invalidated" &&
+          "paths" in message &&
+          Array.isArray(message.paths) &&
+          message.paths.every((invalidatedPath: Message) => isMessageString(invalidatedPath))
+        ) {
+          this.#onFileInvalidated?.(message.paths.map(String));
+        }
+      }
+    } catch {
+      // 프로세스 종료로 IPC 채널이 닫히면 반복자가 거부되며, 종료 처리는 then/catch 체인이 담당한다
+    }
+  }
+
+  /**
    * 현재 HTTP 서버를 의도적으로 종료합니다
    */
   #stopHTTPServer(signal?: NodeJS.Signals) {
     if (this.#httpServer) {
       this.#intentionalExits.add(this.#httpServer);
-      this.#httpServer.removeAllListeners();
       this.#httpServer.kill(signal ?? "SIGKILL");
     }
   }
@@ -140,31 +179,8 @@ export class Serve extends BaseCommand {
     const server = this.#httpServer;
     this.#scheduleCrashCounterReset(server);
 
-    this.#httpServer.on("message", async (message) => {
-      if (!(message instanceof Object) || !("type" in message)) return;
-
-      if (
-        message.type === "hmr-hook:full-reload" &&
-        "path" in message &&
-        Object.prototype.toString.call(message.path) === "[object String]" &&
-        "shouldBeReloadable" in message &&
-        (message.shouldBeReloadable === true || message.shouldBeReloadable === false)
-      ) {
-        this.#onReloadAsked?.(String(message.path), message.shouldBeReloadable);
-      }
-
-      if (
-        message.type === "hmr-hook:invalidated" &&
-        "paths" in message &&
-        Array.isArray(message.paths) &&
-        message.paths.every(
-          (invalidatedPath) =>
-            Object.prototype.toString.call(invalidatedPath) === "[object String]",
-        )
-      ) {
-        this.#onFileInvalidated?.(message.paths.map(String));
-      }
-    });
+    // execa 10부터 IPC는 EventEmitter 대신 getEachMessage() 비동기 반복자로 받는다. 서버가 교체되면 루프를 멈춘다
+    void this.#consumeMessages(server);
 
     this.#httpServer
       .then(() => {
@@ -187,7 +203,7 @@ export class Serve extends BaseCommand {
 
         this.#scheduleCrashRestart();
       })
-      .catch((error) => {
+      .catch((error: ExecaError) => {
         if (this.#httpServer !== server) return;
         if (this.#intentionalExits.has(server) || this.#isClosing) return;
 
