@@ -60,8 +60,13 @@ function TwoFactorSetupPage() {
       return;
     }
 
-    setTotpURI(result.data?.totpURI ?? "");
-    setBackupCodes(result.data?.backupCodes ?? []);
+    // better-auth 1.7부터 enable 응답은 method로 구분되며 TOTP 정보는 method === "totp"일 때만 담긴다
+    if (result.data?.method !== "totp") {
+      setError("TOTP 설정 정보를 받지 못했습니다");
+      return;
+    }
+    setTotpURI(result.data.totpURI);
+    setBackupCodes(result.data.backupCodes);
     setStep("qr");
   };
 
