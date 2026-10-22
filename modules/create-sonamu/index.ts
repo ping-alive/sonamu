@@ -263,10 +263,10 @@ overrides:
   axios@>=0.8.1 <0.28.0: ">=0.28.0"
   mdast-util-to-hast@>=13.0.0 <13.2.1: ">=13.2.1"
   prismjs@<1.30.0: ">=1.30.0"
-  # seroval 1.6.2 이하는 fromJSON 역직렬화 취약점(GHSA-p6vx-979v-rg4c 등)이 있어 패치 버전으로 고정합니다.
-  # @tanstack/router-core 1.143의 .d.ts는 seroval 1.6.4+의 PluginInfo 제약과 충돌하므로 1.6.3에 고정하고,
+  # seroval 1.6.2 이하는 fromJSON 역직렬화 취약점(GHSA-p6vx-979v-rg4c 등)이 있어 패치 버전 이상으로 올립니다.
+  # @tanstack/router-core 타입 선언과 seroval 1.6의 충돌은 web/tsconfig.node.json의 skipLibCheck로 흡수하고,
   # seroval-plugins 1.6 이상은 seroval에서 isStream을 import하므로 createPlugin만 쓰는 1.5.6으로 함께 고정한다.
-  seroval: 1.6.3
+  seroval: ^1.6.11
   seroval-plugins: 1.5.6
 `;
   fs.writeFileSync(path.join(targetRoot, "pnpm-workspace.yaml"), workspaceContent);

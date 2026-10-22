@@ -100,9 +100,9 @@ catalog:
   "@radix-ui/react-toggle-group": ^1.1.11
   "@radix-ui/react-tooltip": ^1.2.8
   "@sheetkit/node": ^0.5.0
-  "@storybook/addon-a11y": ^10.2.19
-  "@storybook/addon-docs": ^10.2.19
-  "@storybook/react-vite": ^10.2.19
+  "@storybook/addon-a11y": ^10.6.2
+  "@storybook/addon-docs": ^10.6.2
+  "@storybook/react-vite": ^10.6.2
   "@svgr/core": ^8.1.0
   "@svgr/plugin-jsx": ^8.1.0
   "@svgr/plugin-svgo": ^8.1.0
@@ -226,7 +226,7 @@ catalog:
   semver: ^7.8.0
   sharp: ^0.34.5
   sonner: ^2.0.7
-  storybook: ^10.2.19
+  storybook: ^10.6.2
   supertest: ^7.1.1
   supports-color: ^10.2.2
   swr: ^2.3.7
@@ -330,10 +330,8 @@ overrides:
   qs@>=6.7.0 <=6.14.1: ">=6.14.2"
   qs@>=6.11.1 <6.16.0: ">=6.16.0"
   rollup@>=4.0.0 <4.59.0: ">=4.59.0"
-  seroval@<1.4.1: ">=1.4.1"
-  seroval@<=1.4.0: ">=1.4.1"
-  # @tanstack/router-core 1.143 타입은 seroval 1.6.4+의 PluginInfo 제약과 충돌하므로 취약점이 패치된 최소 버전에 고정한다 (GHSA: <=1.6.2)
-  seroval: 1.6.3
+  # seroval 1.6.2 이하 역직렬화 취약점(GHSA-p6vx-979v-rg4c 등). router-core 타입 충돌은 web tsconfig.node.json의 skipLibCheck로 흡수한다
+  seroval: ^1.6.11
   svgo@>=3.0.0 <3.3.3: ">=3.3.3"
   yaml@>=2.0.0 <2.8.3: ">=2.8.3"
   postcss@<8.5.23: ">=8.5.23"
