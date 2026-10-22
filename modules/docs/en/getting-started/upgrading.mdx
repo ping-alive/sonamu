@@ -3,9 +3,11 @@ title: "Upgrading"
 description: "Changes required when upgrading Sonamu"
 ---
 
-## 0.12.x: Fastify 5
+## 0.13.0
 
-Starting with Sonamu 0.12, the framework runs on Fastify 5 and the matching major versions of
+### Fastify 5
+
+Starting with Sonamu 0.13, the framework runs on Fastify 5 and the matching major versions of
 the `@fastify/*` plugins. Fastify and its plugins are dependencies of `sonamu`, so bumping
 `sonamu` and re-running `pnpm install` upgrades them together. If your project declares
 `fastify` directly, align it to `^5` or remove it.
@@ -16,13 +18,14 @@ directly.
 
 <Steps>
   <Step title="server.plugins.ws.errorHandler">
-    Starting with `@fastify/websocket` 11, the second argument is the `ws.WebSocket` instance
-    instead of a `{ socket }` wrapper. Replace `connection.socket` with `socket`.
+    From `@fastify/websocket` 11, the second argument is the `ws.WebSocket` instance instead
+    of a `{ socket }` wrapper. Replace `connection.socket` with `socket`.
   </Step>
   <Step title="server.plugins.custom, lifecycle.onError">
     Fastify 4-only APIs (`request.routerPath`, `reply.context`, `reply.getResponseTime()`,
-    the `reply.redirect(code, url)` argument order, and others) were removed or changed. See the
-    Fastify 5 [migration guide](https://fastify.dev/docs/latest/Guides/Migration-Guide-V5/). The
+    the `reply.redirect(code, url)` argument order, and others) were removed or changed. See
+    the Fastify 5
+    [migration guide](https://fastify.dev/docs/latest/Guides/Migration-Guide-V5/). The
     `server.fastify` option no longer accepts `logger`; Sonamu configures the logger through
     `loggerInstance`.
   </Step>
@@ -31,6 +34,26 @@ directly.
     `request.headers.host` when you need it.
   </Step>
 </Steps>
+
+### Peer dependency changes
+
+These `sonamu` peer dependency ranges changed in 0.13.0. Align the catalog in your project’s
+`pnpm-workspace.yaml` to the same ranges.
+
+| Package | Before | 0.13.0 | What to check |
+| --- | --- | --- | --- |
+| `better-auth`, `@better-auth/*` | `~1.6` | `~1.7` | `twoFactor.enable()` now returns a union discriminated by `method`; `totpURI` and `backupCodes` exist only when `method === "totp"`. |
+| `zod` | `^4.3` | `^4.6` | Required by better-auth 1.7. Two installed copies of zod cause type errors, so align the catalog, then run `pnpm dedupe`. |
+| `ioredis` | `^5` | `^6` | Sonamu’s cache and WebSocket adapters work without code changes. If you use ioredis directly, see the [ioredis 6 release notes](https://github.com/redis/ioredis/releases). |
+| `pgvector` | `^0.2` | `^0.3` | None |
+| `voyageai` | `^0.0.8` | `^0.4` | None. Sonamu only calls `VoyageAIClient.embed()`. |
+
+`fastify` is covered in the Fastify 5 section above. All other peer ranges, including the AI SDK
+(`ai` 6, `@ai-sdk/*` 3) and `knex`, are unchanged. `ai` 7 and `@ai-sdk/*` 4 are not supported yet.
+
+The template project’s dev dependencies moved as well. `vitest` 5 (with `@vitest/coverage-v8`)
+enables `clearMocks` by default, so tests that rely on mock call history from earlier tests
+will fail. `vite` 8.3 and `dotenv` 18 need no attention.
 
 ### Projects generated with create-sonamu
 

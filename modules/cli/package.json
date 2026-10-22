@@ -55,6 +55,6 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "sonamu": "^0.12.0"
+    "sonamu": "^0.13.0"
   }
 }
