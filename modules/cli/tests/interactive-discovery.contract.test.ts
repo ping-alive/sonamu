@@ -27,17 +27,15 @@ function createPrompt() {
         cancelled: true,
       }),
     ),
-    multiselect: vi.fn(
-      async (): Promise<{ value?: readonly string[]; cancelled?: boolean }> => ({
-        cancelled: true,
-      }),
-    ),
-    text: vi.fn(
-      async (): Promise<{ value?: string; cancelled?: boolean }> => ({ cancelled: true }),
-    ),
-    confirm: vi.fn(
-      async (): Promise<{ value?: boolean; cancelled?: boolean }> => ({ cancelled: true }),
-    ),
+    multiselect: vi.fn(async (): Promise<{ value?: readonly string[]; cancelled?: boolean }> => ({
+      cancelled: true,
+    })),
+    text: vi.fn(async (): Promise<{ value?: string; cancelled?: boolean }> => ({
+      cancelled: true,
+    })),
+    confirm: vi.fn(async (): Promise<{ value?: boolean; cancelled?: boolean }> => ({
+      cancelled: true,
+    })),
   };
 }
 

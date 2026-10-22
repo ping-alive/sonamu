@@ -323,54 +323,52 @@ export async function sonamuUIApiPlugin(fastify: FastifyInstance) {
           filter?: "enums" | "types";
           reload?: "1";
         };
-      }>(
-        "/api/entity/typeIds",
-        (request): Promise<{ typeIds: string[] }> =>
-          forwardAsyncErrors(async () => {
-            const { filter, reload } = request.query;
+      }>("/api/entity/typeIds", (request): Promise<{ typeIds: string[] }> =>
+        forwardAsyncErrors(async () => {
+          const { filter, reload } = request.query;
 
-            if (reload === "1") {
-              await Sonamu.syncer.autoloadTypes();
+          if (reload === "1") {
+            await Sonamu.syncer.autoloadTypes();
+          }
+
+          const typeIds = (() => {
+            // 프로젝트에서 정의한 타입들
+            const projectTypeIds = Object.entries(Sonamu.syncer.types)
+              .filter(([_typeId, zodType]) => {
+                const { _zod: zodMetadata } = zodType;
+                return (
+                  /* SAFETY: UI 도구의 Zod 입력 스키마가 이 값의 타입을 보장한다. */ (zodMetadata
+                    .def.type as string) !== "enum"
+                );
+              })
+              .map(([typeId, _zodType]) => typeId);
+
+            // 내장 타입들 (sonamu 코어에서 제공)
+            const builtInTypeIds = [...BUILT_IN_TYPE_IDS];
+
+            // 모든 타입 병합
+            const allTypeIds = [...builtInTypeIds, ...projectTypeIds];
+
+            if (filter === "types") {
+              return allTypeIds;
             }
 
-            const typeIds = (() => {
-              // 프로젝트에서 정의한 타입들
-              const projectTypeIds = Object.entries(Sonamu.syncer.types)
-                .filter(([_typeId, zodType]) => {
-                  const { _zod: zodMetadata } = zodType;
-                  return (
-                    /* SAFETY: UI 도구의 Zod 입력 스키마가 이 값의 타입을 보장한다. */ (zodMetadata
-                      .def.type as string) !== "enum"
-                  );
-                })
-                .map(([typeId, _zodType]) => typeId);
+            const enumIds = EntityManager.getAllIds().flatMap((entityId) => {
+              const entity = EntityManager.get(entityId);
+              return Object.keys(entity.enumLabels);
+            });
 
-              // 내장 타입들 (sonamu 코어에서 제공)
-              const builtInTypeIds = [...BUILT_IN_TYPE_IDS];
+            if (filter === "enums") {
+              return enumIds;
+            } else {
+              return [...allTypeIds, ...enumIds];
+            }
+          })();
 
-              // 모든 타입 병합
-              const allTypeIds = [...builtInTypeIds, ...projectTypeIds];
-
-              if (filter === "types") {
-                return allTypeIds;
-              }
-
-              const enumIds = EntityManager.getAllIds().flatMap((entityId) => {
-                const entity = EntityManager.get(entityId);
-                return Object.keys(entity.enumLabels);
-              });
-
-              if (filter === "enums") {
-                return enumIds;
-              } else {
-                return [...allTypeIds, ...enumIds];
-              }
-            })();
-
-            return {
-              typeIds,
-            };
-          }),
+          return {
+            typeIds,
+          };
+        }),
       );
 
       server.post<{
@@ -902,25 +900,23 @@ export async function sonamuUIApiPlugin(fastify: FastifyInstance) {
             enumId?: string;
           };
         };
-      }>(
-        "/api/scaffolding/preview",
-        (request): Promise<{ pathAndCodes: PathAndCode[] }> =>
-          forwardAsyncErrors(async () => {
-            const { option } = request.body;
+      }>("/api/scaffolding/preview", (request): Promise<{ pathAndCodes: PathAndCode[] }> =>
+        forwardAsyncErrors(async () => {
+          const { option } = request.body;
 
-            try {
-              const { templateKey, ...templateOptions } = option;
-              const pathAndCodes = await Sonamu.syncer.renderTemplate(
-                /* SAFETY: UI 도구의 Zod 입력 스키마가 이 값의 타입을 보장한다. */ templateKey as TemplateKey,
-                templateOptions,
-              );
+          try {
+            const { templateKey, ...templateOptions } = option;
+            const pathAndCodes = await Sonamu.syncer.renderTemplate(
+              /* SAFETY: UI 도구의 Zod 입력 스키마가 이 값의 타입을 보장한다. */ templateKey as TemplateKey,
+              templateOptions,
+            );
 
-              return { pathAndCodes };
-            } catch (e) {
-              console.error(e);
-              throw e;
-            }
-          }),
+            return { pathAndCodes };
+          } catch (e) {
+            console.error(e);
+            throw e;
+          }
+        }),
       );
 
       server.post("/api/fixture", (request) =>

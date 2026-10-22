@@ -549,14 +549,11 @@ describe("AuditEventModel findByPayloadKey()", () => {
   test("개수를 생략하면 최신 20건만 반환하고 21번째 과거 행을 제외한다", async () => {
     const key = `default-limit-${randomUUID()}`;
     const baseTime = new Date("2026-09-19T00:00:00.000Z").getTime();
-    const seeds = Array.from(
-      { length: 21 },
-      (_, index): PayloadAuditEventSeed => ({
-        eventType: `payload-default-${index}-${randomUUID()}`,
-        payload: { [key]: `감사 값 ${index + 1}`, triggeredBy: `사용자 ${index + 1}` },
-        occurredAt: new Date(baseTime + index * 60_000),
-      }),
-    );
+    const seeds = Array.from({ length: 21 }, (_, index): PayloadAuditEventSeed => ({
+      eventType: `payload-default-${index}-${randomUUID()}`,
+      payload: { [key]: `감사 값 ${index + 1}`, triggeredBy: `사용자 ${index + 1}` },
+      occurredAt: new Date(baseTime + index * 60_000),
+    }));
     const inserted = await seedPayloadAuditEvents(seeds);
     const idByEventType = new Map(inserted.map((row) => [row.eventType, row.id]));
 

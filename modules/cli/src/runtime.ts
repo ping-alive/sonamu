@@ -823,7 +823,7 @@ export async function applyDiscovery(
       }
     }
 
-    for (let nested = nestedCommandDiscovery(args, candidatePaths); nested !== undefined; ) {
+    for (let nested = nestedCommandDiscovery(args, candidatePaths); nested !== undefined;) {
       const command = await discovery.command(nested.input, nested.candidates);
       if (command === undefined) throw commandCancellation();
       if (command === nested.input) break;

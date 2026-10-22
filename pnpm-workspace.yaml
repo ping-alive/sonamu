@@ -70,7 +70,7 @@ catalog:
   "@optique/run": 1.2.4
   "@optique/zod": 1.2.4
   "@oxc-project/runtime": ^0.79.0
-  "@oxlint/plugins": 1.80.0
+  "@oxlint/plugins": 1.89.0
 
   "@radix-ui/react-accordion": ^1.2.12
   "@radix-ui/react-alert-dialog": ^1.1.15
@@ -191,9 +191,9 @@ catalog:
   nodemon: ^3.1.10
   npm-run-all: ^4.1.5
   oxc-transform: ^0.123.0
-  oxfmt: ^0.55.0
-  oxlint: 1.86.0
-  oxlint-tsgolint: 7.0.2003
+  oxfmt: ^0.74.0
+  oxlint: 1.89.0
+  oxlint-tsgolint: 7.0.2004
   p-event: ^6.0.1
   p-timeout: ^6.1.4
   parse-imports: ^2.2.1

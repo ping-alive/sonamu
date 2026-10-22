@@ -305,20 +305,19 @@ export class Template__view_list extends Template {
       });
 
     // 필터 컬럼
-    const filterColumns =
-      /* SAFETY: ListParams 렌더링 노드의 자식은 모두 필터 컬럼 노드다. */ (
-        listParamsNode.children as RenderingNode[]
+    const filterColumns = /* SAFETY: ListParams 렌더링 노드의 자식은 모두 필터 컬럼 노드다. */ (
+      listParamsNode.children as RenderingNode[]
+    )
+      .filter(
+        (col) =>
+          col.name !== "id" &&
+          col.name !== "queryMode" &&
+          ["enums", "number-id", "number-fk_id", "string-fk_id"].includes(col.renderType),
       )
-        .filter(
-          (col) =>
-            col.name !== "id" &&
-            col.name !== "queryMode" &&
-            ["enums", "number-id", "number-fk_id", "string-fk_id"].includes(col.renderType),
-        )
-        // orderBy가 가장 뒤로 오게 순서 조정
-        .toSorted((a) => {
-          return a.name === "orderBy" ? 1 : -1;
-        });
+      // orderBy가 가장 뒤로 오게 순서 조정
+      .toSorted((a) => {
+        return a.name === "orderBy" ? 1 : -1;
+      });
 
     // 필터 컬럼을 프리 템플릿으로 설정
     const preTemplates: RenderedTemplate["preTemplates"] = [];

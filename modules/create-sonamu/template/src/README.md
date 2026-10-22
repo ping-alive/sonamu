@@ -216,8 +216,9 @@ export const UserModel = new UserModelClass();
 
 ```tsx
 // web/src/routes/users/$id.tsx
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+
 import { UserService } from "@/services/user/user.service";
 
 export const Route = createFileRoute("/users/$id")({
