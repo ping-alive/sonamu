@@ -43,7 +43,7 @@ export class BaseAgentClass<TStore> {
           needsApproval: def.needsApproval ?? false,
           toModelOutput: def.toModelOutput,
           providerOptions: def.providerOptions,
-          execute: <Input>(input: Input, options: ToolExecutionOptions) => {
+          execute: <Input>(input: Input, options: ToolExecutionOptions<unknown>) => {
             const bound = def.method.bind(this);
             return bound(input, options);
           },

@@ -20,11 +20,11 @@ allowBuilds:
 catalog:
   "@adonisjs/ace": ^14.1.1
   "@adonisjs/tsconfig": ^2.0.0
-  "@ai-sdk/anthropic": ^3.0.0
-  "@ai-sdk/openai": ^3.0.0
-  "@ai-sdk/provider": ^3.0.0
-  "@ai-sdk/provider-utils": ^4.0.0
-  "@ai-sdk/react": ^3.0.280
+  "@ai-sdk/anthropic": ^4.0.0
+  "@ai-sdk/openai": ^4.0.0
+  "@ai-sdk/provider": ^4.0.0
+  "@ai-sdk/provider-utils": ^5.0.0
+  "@ai-sdk/react": ^4.0.0
   "@aws-sdk/client-ecr-public": ^3.1153.0
   "@aws-sdk/client-s3": ^3.1153.0
   "@aws-sdk/ecr-public": ^3.958.0
@@ -140,7 +140,7 @@ catalog:
   "@vitest/coverage-v8": ^5.0.5
   "@xyflow/react": ^12.12.0
   agentation: ^3.1.2
-  ai: ^6.0.1
+  ai: ^7.0.0
   autoprefixer: ^10.6.1
   axios: ^1.20.0
   bcrypt: ^6.0.0

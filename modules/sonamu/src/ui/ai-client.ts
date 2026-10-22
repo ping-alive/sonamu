@@ -52,7 +52,7 @@ class AIClient {
   handleFixture(
     messages: ModelMessage[],
     fixtureRecords: FixtureRecord[],
-  ): StreamTextResult<any, any> {
+  ): StreamTextResult<any, any, any> {
     if (!this.aiSdk || !this.model) {
       throw new Error("AI SDK not initialized. Call init() first.");
     }
@@ -253,7 +253,7 @@ class AIClient {
     });
   }
 
-  handleEntity(messages: ModelMessage[]): StreamTextResult<any, any> {
+  handleEntity(messages: ModelMessage[]): StreamTextResult<any, any, any> {
     if (!this.aiSdk || !this.model) {
       throw new Error("AI SDK not initialized. Call init() first.");
     }

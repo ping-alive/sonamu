@@ -24,7 +24,8 @@ export async function setAiApi(server: FastifyInstance) {
     const result = aiClient.handleFixture(await convertToModelMessages(messages), fixtureRecords);
     const response = result.toUIMessageStreamResponse();
 
-    reply.raw.writeHead(response.status, Object.fromEntries(Object.entries(response.headers)));
+    // ai 7의 Response.headers는 Headers 인스턴스라 entries()로 풀어야 Node 응답 헤더로 전달된다
+    reply.raw.writeHead(response.status, Object.fromEntries(response.headers.entries()));
 
     if (response.body) {
       const reader = response.body.getReader();
@@ -49,7 +50,8 @@ export async function setAiApi(server: FastifyInstance) {
     const result = aiClient.handleEntity(await convertToModelMessages(messages));
     const response = result.toUIMessageStreamResponse();
 
-    reply.raw.writeHead(response.status, Object.fromEntries(Object.entries(response.headers)));
+    // ai 7의 Response.headers는 Headers 인스턴스라 entries()로 풀어야 Node 응답 헤더로 전달된다
+    reply.raw.writeHead(response.status, Object.fromEntries(response.headers.entries()));
 
     if (response.body) {
       const reader = response.body.getReader();
