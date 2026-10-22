@@ -66,12 +66,26 @@ overrides:
   seroval-plugins: 1.5.6
 ```
 
-`@tanstack/router-core` 1.171 미만은 타입 선언이 `seroval` 1.6과 맞지 않아 `sonamu build`의
-web 타입 검사가 실패합니다. catalog의 `@tanstack/react-router`와 `@tanstack/router-plugin`을
-`1.170.45` 이상으로 올리세요. 1.170 generator는 `routeTree.gen.ts`를 새 형식으로 다시 쓰므로
-첫 `sonamu dev` 실행 뒤 그 변경을 커밋하면 됩니다.
+`web/tsconfig.node.json`은 `vite.config.ts`를 검사하는데, Vite 플러그인의 타입 선언이 설치되지 않은
+선택적 번들러(`webpack`, `rollup` 등)를 참조해 `sonamu build`의 web 타입 검사가 실패합니다.
+`tsconfig.app.json`과 같이 `skipLibCheck`를 추가하세요.
 
-TanStack Router를 아직 올릴 수 없다면 대신 `web/tsconfig.node.json`에 `"skipLibCheck": true`를
-추가해 타입 검사를 통과시킬 수 있습니다.
+```json web/tsconfig.node.json
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}
+```
+
+TanStack Router를 `1.170.45` 이상으로 올리는 것도 권장합니다. 1.170 generator는 `routeTree.gen.ts`를
+새 형식으로 다시 쓰므로 첫 `sonamu dev` 실행 뒤 그 변경을 커밋하면 됩니다.
 
 새로 생성하는 프로젝트에는 두 변경이 이미 적용되어 있습니다.
