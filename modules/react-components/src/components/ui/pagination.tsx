@@ -20,7 +20,7 @@ export const Pagination = React.forwardRef<HTMLDivElement, PaginationProps>(
     const { SD } = useSonamuBaseContext<RCKeys>();
     const totalPages = Math.ceil(total / itemsPerPage);
     const currentPage = value;
-    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const startItem = Math.min((currentPage - 1) * itemsPerPage + 1, total);
     const endItem = Math.min(currentPage * itemsPerPage, total);
     const showingTranslation = SD("rc.pagination.showing");
     const showingLabel = isFunction(showingTranslation)
@@ -66,7 +66,7 @@ export const Pagination = React.forwardRef<HTMLDivElement, PaginationProps>(
             variant="outline"
             size="sm"
             className="h-8 px-3 text-xs"
-            disabled={currentPage === totalPages}
+            disabled={currentPage >= totalPages}
             onClick={() => onValueChange(currentPage + 1)}
           >
             {SD("rc.pagination.next")}

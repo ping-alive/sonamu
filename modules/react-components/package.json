@@ -1,6 +1,6 @@
 {
   "name": "@sonamu-kit/react-components",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "author": "CartaNova <dev@cartanova.ai>",
   "repository": {
@@ -135,7 +135,7 @@
   },
   "peerDependencies": {
     "@tanstack/react-query": "catalog:",
-    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-router": "^1.143.11",
     "better-auth": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
