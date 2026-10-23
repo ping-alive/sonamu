@@ -411,6 +411,12 @@ class SonamuClass {
     const { EntityManager } = await import("../entity/entity-manager");
     await EntityManager.autoload(doSilent);
 
+    // 테스트와 CLI에서도 URL 생성에 쓰며, 드라이버는 use() 시점까지 생성하지 않는다.
+    if (this.config.server.storage) {
+      const { StorageManager } = await import("../storage/storage-manager");
+      this.storageValue = new StorageManager(this.config.server.storage);
+    }
+
     // Cache 초기화
     await this.initializeCache(this.config.server.cache, forTesting);
 
@@ -489,12 +495,6 @@ class SonamuClass {
     });
     this.server = server;
     this.websocketRuntime = new WebSocketRuntime(options.websocket);
-
-    // Storage 설정 → StorageManager 생성
-    if (options.storage) {
-      const { StorageManager } = await import("../storage/storage-manager");
-      this.storageValue = new StorageManager(options.storage);
-    }
 
     // 플러그인 등록
     if (options.plugins) {

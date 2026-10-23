@@ -1,22 +1,21 @@
 import { Disk } from "flydrive";
 
 import { assertDefined } from "../utils/utils";
-import { type DriverKey } from "./drivers";
-import { type StorageConfig } from "./types";
+import { type DiskName, type StorageConfig } from "./types";
 
 /**
  * 여러 디스크를 관리하는 매니저
  */
 export class StorageManager {
-  private disks: Map<DriverKey, Disk> = new Map();
+  private disks: Map<DiskName, Disk> = new Map();
 
   constructor(private config: StorageConfig) {}
 
   /**
    * 디스크 인스턴스 반환 (lazy initialization)
-   * @param diskName 디스크 이름 (없으면 default)
+   * @param diskName 설정에 등록한 디스크 이름
    */
-  use(diskName: DriverKey): Disk {
+  use(diskName: DiskName): Disk {
     if (!this.disks.has(diskName)) {
       const factory = this.config.drivers[diskName];
       if (!factory) {

@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 import { type MultipartFile } from "@fastify/multipart";
 
 import { BaseFile } from "./base-file";
-import { type DriverKey } from "./drivers";
+import { type DiskName } from "./types";
 
 /**
  * Buffer 모드로 업로드된 파일
@@ -35,11 +35,11 @@ export class BufferedFile extends BaseFile {
 
   /**
    * 파일을 디스크에 저장
-   * @param diskName 디스크 이름 ("fs" 또는 "s3")
+   * @param diskName 설정에 등록한 디스크 이름
    * @param key 저장 경로 (예: 'uploads/avatar.png')
    * @returns 저장된 파일의 URL
    */
-  async saveToDisk(diskName: DriverKey, key: string): Promise<string> {
+  async saveToDisk(diskName: DiskName, key: string): Promise<string> {
     // 순환 의존성 방지를 위해 동적 import
     const { Sonamu } = await import("../api/sonamu");
     const disk = Sonamu.storage.use(diskName);

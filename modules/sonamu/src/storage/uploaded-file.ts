@@ -1,5 +1,5 @@
 import { BaseFile } from "./base-file";
-import { type DriverKey } from "./drivers";
+import { type DiskName } from "./types";
 
 /**
  * Stream 모드로 업로드된 파일
@@ -7,7 +7,7 @@ import { type DriverKey } from "./drivers";
  */
 export class UploadedFile extends BaseFile {
   private keyValue: string;
-  private diskNameValue: DriverKey;
+  private diskNameValue: DiskName;
 
   constructor(params: {
     filename: string;
@@ -16,7 +16,7 @@ export class UploadedFile extends BaseFile {
     url: string;
     signedUrl: string;
     key: string;
-    diskName: DriverKey;
+    diskName: DiskName;
   }) {
     super({
       filename: params.filename,
@@ -35,7 +35,7 @@ export class UploadedFile extends BaseFile {
   }
 
   /** 저장된 디스크 이름 */
-  get diskName(): DriverKey {
+  get diskName(): DiskName {
     return this.diskNameValue;
   }
 

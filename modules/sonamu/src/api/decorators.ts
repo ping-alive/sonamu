@@ -15,8 +15,7 @@ import { PuriTransactionWrapper } from "../database/puri-wrapper";
 import { type TransactionalOptions } from "../database/puri-wrapper";
 import { UpsertBuilder } from "../database/upsert-builder";
 import { convertDomainToCategory } from "../logger/category";
-import { type DriverKey } from "../storage/drivers";
-import { type KeyGenerator } from "../storage/types";
+import { type DiskName, type KeyGenerator } from "../storage/types";
 import { type ApiParam, type ApiParamType } from "../types/types";
 import { getModelNameFromClassName } from "../utils/class-name";
 import { BaseFrameClass } from "./base-frame";
@@ -85,7 +84,7 @@ type BufferUploadOptions = {
 };
 type StreamUploadOptions = {
   consume: "stream";
-  destination: DriverKey;
+  destination: DiskName;
   keyGenerator?: KeyGenerator;
 };
 export type UploadDecoratorOptions = {
