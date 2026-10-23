@@ -131,6 +131,38 @@ describe("Puri 중첩 select 결과", () => {
     expect(await selected).toEqual([{ colleague: { nickname: null } }]);
   });
 
+  it.each([false, true])(
+    "다른 이름의 관계 그룹도 id 원본 LEFT JOIN을 따른다 (원시 표현식: %s)",
+    async (raw) => {
+      const selected = query()
+        .leftJoin({ staffs: "users" }, (join) => join.on("users.id", "staffs.id"))
+        .select({ manager: { id: "staffs.id", name: "staffs.name" } });
+      if (raw) selected.appendSelect({ total: Puri.rawNumber("(SELECT COUNT(*) FROM users)") });
+      result(
+        selected.rawQuery(),
+        [
+          { manager__id: 1, manager__name: "담당자" },
+          { manager__id: null, manager__name: null },
+        ],
+        { staffs: [true, false] },
+      );
+      expect(await selected.clone()).toEqual([
+        { manager: { id: 1, name: "담당자" } },
+        { manager: null },
+      ]);
+    },
+  );
+
+  it("관계 id 선택을 clear한 뒤 일반 nullable id 그룹을 선택하면 관계 의미도 지운다", async () => {
+    const selected = query()
+      .leftJoin({ staffs: "users" }, (join) => join.on("users.id", "staffs.id"))
+      .select({ manager: { id: "staffs.id" } })
+      .clear("select")
+      .select({ manager: { id: "users.nickname" } });
+    result(selected.rawQuery(), [{ manager__id: null }]);
+    expect(await selected).toEqual([{ manager: { id: null } }]);
+  });
+
   it("객체 키 안의 구분자는 중첩 경로로 다시 해석하지 않는다", async () => {
     const selected = query().select({ user__profile: { display__name: "users.name" } });
     result(selected.rawQuery(), [{ user__profile__display__name: "이름" }]);

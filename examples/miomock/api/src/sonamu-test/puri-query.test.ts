@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Naite, parseFuzzyOperator, Puri } from "sonamu";
 import { bootstrap, test } from "sonamu/test";
 import { afterEach, beforeAll, describe, expect, vi } from "vitest";
+import { z } from "zod";
 
 import { UserModel } from "../application/user/user.model";
 import { expectQuery } from "../testing/expect-query";
@@ -45,6 +46,45 @@ async function expectConflictJsonValue(value: ConflictJsonValue) {
 }
 
 describe("Puri Query", () => {
+  test("이름이 다른 담당자 관계는 원시 집계 표현식과 수동 hydrate 후에도 nullable 계약을 지킨다", async () => {
+    type ManagerSchema = {
+      roots: { id: number };
+      staffs: { id: number; root_id: number; user_id: number };
+      users: { id: number; name: string };
+    };
+    const knex = UserModel.getPuri("r").knex;
+    const base = new Puri<ManagerSchema, { roots: ManagerSchema["roots"] }, ManagerSchema["roots"]>(
+      knex,
+      "roots",
+    );
+    base
+      .rawQuery()
+      .with("roots", knex.raw("SELECT * FROM (VALUES (1), (2)) AS fixture(id)"))
+      .with("staffs", knex.raw("SELECT 10 AS id, 1 AS root_id, 100 AS user_id"))
+      .with("users", knex.raw("SELECT 100 AS id, '담당자'::text AS name"));
+    const selected = base
+      .leftJoin("staffs", (join) => join.on("roots.id", "staffs.root_id"))
+      .leftJoin("users", (join) => join.on("staffs.user_id", "users.id"))
+      .select({
+        id: "roots.id",
+        manager: { id: "staffs.id", name: "users.name" },
+        total: Puri.rawNumber("(SELECT COUNT(*)::integer FROM staffs)"),
+      })
+      .orderBy("roots.id");
+    const rows = UserModel.hydrate(await selected);
+    const schema = z.array(
+      z.object({
+        id: z.number(),
+        manager: z.object({ id: z.number(), name: z.string() }).nullable(),
+        total: z.number(),
+      }),
+    );
+    expect(schema.parse(rows)).toEqual([
+      { id: 1, manager: { id: 10, name: "담당자" }, total: 1 },
+      { id: 2, manager: null, total: 1 },
+    ]);
+  });
+
   test("LEFT JOIN의 nullable 필드만 조회해도 존재하는 행과 없는 행을 구분한다", async () => {
     type PresenceSchema = {
       roots: { id: number };

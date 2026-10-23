@@ -16,7 +16,7 @@ const rows = await puri.select({ files: { id: "files.id", key: "files.key" } });
 
 If you accessed flat runtime keys such as `files__id`, switch to nested property access. Explicit flat aliases (`{ files__id: "files.id" }`) and keys inside JSON values are not transformed. Subset queries retain their loader-before-hydration order. Existing manual `BaseModel.hydrate()` calls can remain, but calls used only to restore a nested select are no longer necessary. Manual hydration still transforms explicit `__` aliases.
 
-For plain row queries, nested groups matching a LEFT JOIN alias use actual row presence. A matched row remains an object even when every selected value is `null`; only an absent row becomes `null`. Arbitrary grouping objects remain objects.
+For plain row queries, nested groups matching a LEFT JOIN alias, or whose selected `id` comes from a LEFT JOIN table, use actual row presence. A renamed group such as `manager: { id: "staffs.id" }` follows the source relation. A matched row remains an object even when every selected value is `null`; only an absent row becomes `null`. Arbitrary grouping objects remain objects.
 
 Queries with `GROUP BY`, aggregates, `DISTINCT`, `UNION`, `*`, or SQL expressions do not receive extra presence columns that could change their semantics. In these queries, an explicitly selected `id` is used when available; an all-null group without an ID remains an object. Do not treat an aggregate result group as an individual related record.
 

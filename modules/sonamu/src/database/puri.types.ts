@@ -208,6 +208,14 @@ export type ParseSelectObject<
   TSelect extends SelectObject<TTables>,
 > = ParseSelectObjectWithPath<TTables, TSelect, "">;
 
+// 별칭이 다른 관계 그룹도 명시한 id의 nullable JOIN 원본을 따릅니다.
+type IsNullableSelectGroup<TTables, TSelect, Path extends string> =
+  IsNullableJoinedTable<TTables, Path> extends true
+    ? true
+    : TSelect extends { id: `${infer Alias}.${string}` }
+      ? IsNullableJoinedTable<TTables, Alias>
+      : false;
+
 // 경로를 추적하면서 Select 결과 타입을 추론합니다.
 type ParseSelectObjectWithPath<
   TTables extends object,
@@ -218,7 +226,7 @@ type ParseSelectObjectWithPath<
     ? ParseSqlExpression<TSelect[K]>
     : IsNestedObject<TSelect[K]> extends true
       ? TSelect[K] extends NestedSelectObject<TTables>
-        ? IsNullableJoinedTable<TTables, JoinPath<Prefix, K & string>> extends true // 주어진 테이블이 FK nullable에 leftJoin되었는지 여부에 따라 select 결과 객체의 타입이 달라집니다.
+        ? IsNullableSelectGroup<TTables, TSelect[K], JoinPath<Prefix, K & string>> extends true // 주어진 테이블이 FK nullable에 leftJoin되었는지 여부에 따라 select 결과 객체의 타입이 달라집니다.
           ? Expand<ParseSelectObjectInner<TTables, TSelect[K], JoinPath<Prefix, K & string>>> | null // 만약 해당한다면 해당 객체 자체는 nullable 하며,
           : Expand<ParseSelectObjectInner<TTables, TSelect[K], JoinPath<Prefix, K & string>>> // 그렇지 않다면 non-nullable 합니다.
         : never
@@ -237,7 +245,7 @@ type ParseSelectObjectInner<
     ? ParseSqlExpression<TSelect[K]>
     : IsNestedObject<TSelect[K]> extends true
       ? TSelect[K] extends NestedSelectObject<TTables>
-        ? IsNullableJoinedTable<TTables, JoinPath<Prefix, K & string>> extends true
+        ? IsNullableSelectGroup<TTables, TSelect[K], JoinPath<Prefix, K & string>> extends true
           ? Expand<ParseSelectObjectInner<TTables, TSelect[K], JoinPath<Prefix, K & string>>> | null
           : Expand<ParseSelectObjectInner<TTables, TSelect[K], JoinPath<Prefix, K & string>>>
         : never

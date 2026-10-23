@@ -936,3 +936,18 @@ describe("Puri 중첩 결과 실행 타입", () => {
     expectTypeOf(selected.first().finally()).resolves.toEqualTypeOf<Rows[number]>();
   });
 });
+
+describe("이름이 다른 관계 그룹의 null 추론", () => {
+  it("명시한 id의 nullable LEFT JOIN 원본을 그룹 nullability에 반영한다", () => {
+    type Tables = {
+      users: MockSchema["users"];
+      staffs: MockSchema["employees"] & LeftJoinedMarker;
+    };
+    type Selected = ParseSelectObject<Tables, { manager: { id: "staffs.id"; name: "users.name" } }>;
+    expectTypeOf<Selected>().toEqualTypeOf<{ manager: { id: number; name: string } | null }>();
+    type Nested = ParseSelectObject<Tables, { location: { manager: { id: "staffs.id" } } }>;
+    expectTypeOf<Nested>().toEqualTypeOf<{ location: { manager: { id: number } | null } }>();
+    type Plain = ParseSelectObject<Tables, { profile: { id: "users.department_id" } }>;
+    expectTypeOf<Plain>().toEqualTypeOf<{ profile: { id: number | null } }>();
+  });
+});

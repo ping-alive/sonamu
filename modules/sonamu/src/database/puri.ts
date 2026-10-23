@@ -199,11 +199,26 @@ type SelectResultValue =
 type SelectRow = { [column: string]: SelectResultValue };
 type SelectResult = SelectRow | SelectRow[] | undefined;
 
+function getSelectRelationAlias(
+  path: string,
+  correlations: ReadonlyMap<string, CorrelationRegistration>,
+  identitySources: ReadonlyMap<string, string>,
+): string | undefined {
+  const identityAlias = identitySources.get(`${path}__id`);
+  const identityRelation =
+    identityAlias === undefined ? undefined : correlations.get(identityAlias);
+  if (identityRelation?.kind === "join" && identityRelation.joinType === "leftJoin")
+    return identityAlias;
+  const relation = correlations.get(path);
+  return relation?.kind === "join" && relation.joinType === "leftJoin" ? path : undefined;
+}
+
 function hydrateSelectResult(
   result: SelectResult,
   paths: ReadonlyMap<string, readonly string[]>,
   correlations: ReadonlyMap<string, CorrelationRegistration>,
   presenceColumns: ReadonlyMap<string, string>,
+  identitySources: ReadonlyMap<string, string>,
 ): SelectResult {
   if (paths.size === 0 || result === undefined) return result;
 
@@ -235,13 +250,12 @@ function hydrateSelectResult(
         }
       }
       const value = Object.fromEntries(entries);
-      // 실제 LEFT JOIN 별칭과 일치하는 경로만 관계 없음으로 축약합니다.
-      // 임의의 그룹에 nullable 필드만 들어 있어도 그룹 자체는 객체로 유지합니다.
-      const relation = correlations.get(path.join("__"));
-      const presenceColumn = presenceColumns.get(path.join("__"));
+      // 그룹 이름이 달라도 명시한 id의 LEFT JOIN 원본으로 관계 존재 여부를 판단합니다.
+      const relationAlias = getSelectRelationAlias(path.join("__"), correlations, identitySources);
+      const presenceColumn =
+        relationAlias === undefined ? undefined : presenceColumns.get(relationAlias);
       if (
-        relation?.kind === "join" &&
-        relation.joinType === "leftJoin" &&
+        relationAlias !== undefined &&
         (presenceColumn !== undefined
           ? row[presenceColumn] === false
           : Object.hasOwn(value, "id") && value.id === null)
@@ -271,6 +285,7 @@ export class Puri<TSchema, TTables extends object, TResult> {
   private knexQuery: Knex.QueryBuilder;
   private tableSpec: TableSpec | null = null;
   private nestedSelectPaths = new Map<string, readonly string[]>();
+  private nestedSelectIdentitySources = new Map<string, string>();
   private correlationRegistry = new Map<string, CorrelationRegistration>();
 
   // 생성자 시그니처들
@@ -714,6 +729,10 @@ export class Puri<TSchema, TTables extends object, TResult> {
       } else {
         if (fieldPath.length > 1) this.nestedSelectPaths.set(fullKey, fieldPath);
         else this.nestedSelectPaths.delete(fullKey);
+        this.nestedSelectIdentitySources.delete(fullKey);
+        if (fieldPath.length > 1 && key === "id" && isStringValue(value) && value.includes(".")) {
+          this.nestedSelectIdentitySources.set(fullKey, value.slice(0, value.lastIndexOf(".")));
+        }
         yield [fullKey, value];
       }
     }
@@ -770,7 +789,10 @@ export class Puri<TSchema, TTables extends object, TResult> {
   // CLEAR
   clear(statement: ClearStatements): this {
     this.knexQuery.clear(statement);
-    if (statement === "select" || statement === "columns") this.nestedSelectPaths.clear();
+    if (statement === "select" || statement === "columns") {
+      this.nestedSelectPaths.clear();
+      this.nestedSelectIdentitySources.clear();
+    }
     if (statement === "join") {
       this.clearJoinRegistrations();
     }
@@ -1583,14 +1605,12 @@ export class Puri<TSchema, TTables extends object, TResult> {
       const sql = this.toQuery();
       for (const path of this.nestedSelectPaths.values()) {
         for (let length = 1; length < path.length; length++) {
-          const alias = path.slice(0, length).join("__");
-          const relation = this.correlationRegistry.get(alias);
-          if (
-            relation?.kind !== "join" ||
-            relation.joinType !== "leftJoin" ||
-            presenceColumns.has(alias)
-          )
-            continue;
+          const alias = getSelectRelationAlias(
+            path.slice(0, length).join("__"),
+            this.correlationRegistry,
+            this.nestedSelectIdentitySources,
+          );
+          if (alias === undefined || presenceColumns.has(alias)) continue;
           let column: string;
           do {
             column = `__sonamu_presence_${randomUUID().replaceAll("-", "")}`;
@@ -1625,6 +1645,7 @@ export class Puri<TSchema, TTables extends object, TResult> {
         this.nestedSelectPaths,
         this.correlationRegistry,
         presenceColumns,
+        this.nestedSelectIdentitySources,
       ),
     );
   }
@@ -1795,6 +1816,7 @@ export class Puri<TSchema, TTables extends object, TResult> {
     newPuri.knexQuery = this.knexQuery.clone();
     newPuri.tableSpec = this.tableSpec;
     newPuri.nestedSelectPaths = new Map(this.nestedSelectPaths);
+    newPuri.nestedSelectIdentitySources = new Map(this.nestedSelectIdentitySources);
     newPuri.correlationRegistry = new Map(this.correlationRegistry);
     return newPuri;
   }
