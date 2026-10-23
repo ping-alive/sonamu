@@ -25,7 +25,7 @@
   },
   {
     "path": "api/src/application/audit-log/audit-log.model.ts",
-    "checksum": "e1908cc7b46f67c9df45549b3ac901e050696d78"
+    "checksum": "2a8e6843a91a299cbd558adf6805c64508a85d8d"
   },
   {
     "path": "api/src/application/audit-log/audit-log.types.ts",
@@ -33,7 +33,7 @@
   },
   {
     "path": "api/src/application/chat/chat.frame.ts",
-    "checksum": "ed97104fba8ba92b85e392afa6398079afb4fbd0"
+    "checksum": "f2a8c50e5cdc2eba47237d16d86efc4e8406f579"
   },
   {
     "path": "api/src/application/chat/chat.types.ts",
@@ -53,7 +53,7 @@
   },
   {
     "path": "api/src/application/dashboard/dashboard.frame.ts",
-    "checksum": "bf1901b620689bd8a5be02640c8cf6df72d6117b"
+    "checksum": "3a9dab413d0ab6dd36130251cda9719dbd9f4065"
   },
   {
     "path": "api/src/application/dashboard/dashboard.types.ts",
@@ -161,7 +161,7 @@
   },
   {
     "path": "api/src/application/sonamu.generated.ts",
-    "checksum": "aa121b401a00d121d211220622a1a3f2c2073224"
+    "checksum": "52aacaa29a4fcad54d6684c65675478e90b0b962"
   },
   {
     "path": "api/src/application/sonamu.validators.generated.ts",
@@ -209,7 +209,7 @@
   },
   {
     "path": "api/src/application/two-factor/two-factor.entity.json",
-    "checksum": "c8ec679ddf6dbfe41074552eb92153d405ed57fc"
+    "checksum": "0ec2fb73fa30f5cf6d1640f28f82d87b96f7c669"
   },
   {
     "path": "api/src/application/two-factor/two-factor.types.ts",
@@ -253,7 +253,7 @@
   },
   {
     "path": "api/src/i18n/sd.generated.ts",
-    "checksum": "d38289ccf030e9dae682a6a09b9fe355cc7957e7"
+    "checksum": "0fb2eccb25a3e760ca760a27fa28eb015587e6b9"
   },
   {
     "path": "api/src/sonamu.config.ts",
@@ -273,7 +273,7 @@
   },
   {
     "path": "web/src/i18n/sd.generated.ts",
-    "checksum": "89b2bb119af2982f4f044afd7e9ae9afc679b65b"
+    "checksum": "04bcd34328c41708951c8e684213de0c0bf0d545"
   },
   {
     "path": "web/src/services/account/account.types.ts",
@@ -337,7 +337,7 @@
   },
   {
     "path": "web/src/services/sonamu.generated.ts",
-    "checksum": "9bcd8a8918b83b300e48561f6968b734a65be687"
+    "checksum": "3360552be25434fcf0c0953d4f7caa67bce71812"
   },
   {
     "path": "web/src/services/sync-fixture/sync-fixture.types.ts",

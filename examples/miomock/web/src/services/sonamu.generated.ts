@@ -535,12 +535,22 @@ export const TwoFactorBaseSchema = z.object({
   id: z.string(),
   secret: z.string(),
   backup_codes: z.string(),
+  verified: z.boolean(),
+  failed_verification_count: z.int(),
+  locked_until: z.date().nullable(),
   created_at: z.date(),
   updated_at: z.date(),
   user_id: z.string(),
 });
 export type TwoFactorBaseSchema = z.infer<typeof TwoFactorBaseSchema> & {
-  readonly __hasDefault__: readonly ["created_at", "updated_at", "id"];
+  readonly __hasDefault__: readonly [
+    "verified",
+    "failed_verification_count",
+    "locked_until",
+    "created_at",
+    "updated_at",
+    "id",
+  ];
 };
 
 // BaseSchema: User

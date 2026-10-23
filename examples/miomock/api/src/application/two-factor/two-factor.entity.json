@@ -6,6 +6,14 @@
     { "name": "id", "type": "string", "desc": "ID" },
     { "name": "secret", "type": "string", "desc": "비밀 키" },
     { "name": "backup_codes", "type": "string", "desc": "백업 코드" },
+    { "name": "verified", "type": "boolean", "dbDefault": "true", "desc": "TOTP 검증 여부" },
+    {
+      "name": "failed_verification_count",
+      "type": "integer",
+      "dbDefault": "0",
+      "desc": "연속 검증 실패 횟수"
+    },
+    { "name": "locked_until", "type": "date", "nullable": true, "desc": "검증 잠금 해제 일시" },
     { "name": "created_at", "type": "date", "dbDefault": "CURRENT_TIMESTAMP", "desc": "생성일시" },
     { "name": "updated_at", "type": "date", "dbDefault": "CURRENT_TIMESTAMP", "desc": "수정일시" },
     {
