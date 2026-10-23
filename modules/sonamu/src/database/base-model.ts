@@ -9,6 +9,7 @@ import { EntityManager } from "../entity/entity-manager";
 import { type FilterOperator, type FilterQuery } from "../filter/types";
 import { normalizeFilterQuery, validateSonamuFilters } from "../filter/utils";
 import { convertDomainToCategory } from "../logger/category";
+import { Naite } from "../naite/naite";
 import { type DatabaseSchemaExtend, type SonamuQueryMode } from "../types/types";
 import { type ListResult } from "../utils/model";
 import { isObjectValue } from "../utils/runtime-value";
@@ -517,7 +518,9 @@ export class BaseModelClass<
         return qb.limit(num).offset(num * (page - 1));
       }
     })();
-    let unloadedRows = await limitedQb;
+    // 로더는 평평한 refId 별칭을 사용하므로 로딩을 마친 뒤 hydrate합니다.
+    Naite.t("puri:executed-query", limitedQb.toQuery());
+    let unloadedRows = await limitedQb.rawQuery();
 
     if (debug) {
       qb.debug();
@@ -554,8 +557,9 @@ export class BaseModelClass<
         resolveLoaderQb.debug();
       }
 
-      // SAFETY: 쿼리 빌더의 제네릭 계약과 선행 검증이 이 타입을 보장합니다.
-      let loadedRows = (await resolveLoaderQb) as any[];
+      Naite.t("puri:executed-query", resolveLoaderQb.toQuery());
+      // SAFETY: 로더의 select 쿼리는 평평한 레코드 배열을 반환합니다.
+      let loadedRows = (await resolveLoaderQb.rawQuery()) as any[];
 
       // 중첩 loaders가 있으면 재귀 처리
       if (nestedLoaders && nestedLoaders.length > 0) {

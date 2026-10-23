@@ -922,3 +922,17 @@ describe("Puri ensureJoin methods", () => {
     });
   });
 });
+
+describe("Puri 중첩 결과 실행 타입", () => {
+  it("then, catch, finally가 동일한 중첩 레코드 배열을 반환한다", () => {
+    type Query = Puri<MockSchema, { users: MockSchema["users"] }, MockSchema["users"]>;
+    // SAFETY: 실행 없이 공개 쿼리 메서드의 반환 타입만 검사합니다.
+    const query = {} as Query;
+    const selected = query.select({ user: { id: "users.id", name: "users.name" } });
+    type Rows = { user: { id: number; name: string } }[];
+    expectTypeOf(selected.then()).resolves.toEqualTypeOf<Rows>();
+    expectTypeOf(selected.catch()).resolves.toEqualTypeOf<Rows>();
+    expectTypeOf(selected.finally()).resolves.toEqualTypeOf<Rows>();
+    expectTypeOf(selected.first().finally()).resolves.toEqualTypeOf<Rows[number]>();
+  });
+});

@@ -3,6 +3,29 @@ title: "업그레이드 안내"
 description: "Sonamu 버전을 올릴 때 필요한 변경 사항"
 ---
 
+## 0.13.3
+
+### 중첩 Puri select 결과
+
+중첩 객체로 `select`·`appendSelect`한 결과는 이제 일반 Puri 조회에서도 자동으로 중첩 객체가 됩니다. `await`, `then`, `catch`, `finally`, `first`에 동일하게 적용됩니다.
+
+```typescript
+const rows = await puri.select({ files: { id: "files.id", key: "files.key" } });
+// rows[0].files.id, rows[0].files.key
+```
+
+이전 런타임 결과의 `files__id` 같은 키를 직접 읽었다면 중첩 프로퍼티 접근으로 바꾸세요. 직접 지정한 평평한 별칭(`{ files__id: "files.id" }`)과 JSON 값 내부의 키는 변환하지 않습니다. 서브셋 조회의 로더와 hydrate 순서는 유지됩니다. 기존 수동 `BaseModel.hydrate()` 호출도 남겨둘 수 있지만, 일반 중첩 select만 복원하기 위해 호출했다면 제거할 수 있습니다. 수동 hydrate 자체는 여전히 직접 지정한 `__` 별칭도 변환합니다.
+
+일반 행 조회에서는 LEFT JOIN 별칭과 일치하는 중첩 그룹의 실제 행 존재 여부를 확인합니다. 따라서 매칭된 행의 선택 값이 모두 `null`이어도 객체를 유지하고, 매칭된 행이 없을 때만 `null`이 됩니다. 임의로 묶은 그룹은 객체로 유지합니다.
+
+`GROUP BY`, 집계, `DISTINCT`, `UNION`, `*` 또는 SQL 표현식이 있는 조회에는 결과 의미를 바꿀 수 있는 존재 확인 컬럼을 추가하지 않습니다. 이 경우 명시적으로 선택한 `id`가 있으면 이를 기준으로 판별하고, ID 없이 모두 `null`인 그룹은 객체로 유지합니다. 집계 결과의 그룹을 개별 관계 레코드로 간주하지 마세요.
+
+### 스토리지 초기화와 디스크 이름
+
+`server.storage` 설정이 있으면 `init()`과 `initForTesting()`에서도 스토리지를 사용할 수 있습니다. `createServer()`는 이미 생성한 매니저를 재사용합니다. 드라이버는 해당 디스크의 첫 `use()` 때 생성됩니다.
+
+디스크 이름은 `fs`·`s3`에 제한되지 않습니다. `drivers: { images: drivers.s3(options) }`로 등록하고 `Sonamu.storage.use("images")`로 사용하세요. `DiskName`은 문자열이고, `DriverKey`는 드라이버 팩토리 종류인 `"fs" | "s3"`를 유지합니다. 이름 때문에 추가한 `as never` 캐스팅은 제거할 수 있습니다. 등록하지 않은 이름은 `use()`에서 오류를 냅니다.
+
 ## 0.13.0
 
 ### Fastify 5

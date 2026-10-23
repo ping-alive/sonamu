@@ -1,6 +1,8 @@
 /* oxlint-disable @typescript-eslint/no-explicit-any */ // Puri는 다양한 타입을 사용하고 있습니다.
 
 import assert from "assert";
+import { randomUUID } from "node:crypto";
+import { type EventEmitter } from "node:events";
 
 import chalk from "chalk";
 import inflection from "inflection";
@@ -182,9 +184,93 @@ function isNestedSelectObject<TTables extends object>(
   return isObjectValue(value) && !("_type" in value);
 }
 
+type SelectProjection = Map<string, string | SelectProjection>;
+type SelectResultValue =
+  | string
+  | number
+  | boolean
+  | bigint
+  | Date
+  | Buffer
+  | null
+  | undefined
+  | SelectRow
+  | SelectResultValue[];
+type SelectRow = { [column: string]: SelectResultValue };
+type SelectResult = SelectRow | SelectRow[] | undefined;
+
+function hydrateSelectResult(
+  result: SelectResult,
+  paths: ReadonlyMap<string, readonly string[]>,
+  correlations: ReadonlyMap<string, CorrelationRegistration>,
+  presenceColumns: ReadonlyMap<string, string>,
+): SelectResult {
+  if (paths.size === 0 || result === undefined) return result;
+
+  const hiddenColumns = new Set(presenceColumns.values());
+  const projection: SelectProjection = new Map();
+  for (const [alias, path] of paths) {
+    let parent = projection;
+    for (const key of path.slice(0, -1)) {
+      let child = parent.get(key);
+      if (!(child instanceof Map)) {
+        child = new Map();
+        parent.set(key, child);
+      }
+      parent = child;
+    }
+    const leaf = path[path.length - 1];
+    assert(leaf !== undefined);
+    parent.set(leaf, alias);
+  }
+
+  const hydrateRow = (row: SelectRow) => {
+    const project = (fields: SelectProjection, path: readonly string[]): SelectRow | null => {
+      const entries: [string, SelectResultValue][] = [];
+      for (const [key, field] of fields) {
+        if (field instanceof Map) {
+          entries.push([key, project(field, [...path, key])]);
+        } else if (Object.hasOwn(row, field)) {
+          entries.push([key, row[field]]);
+        }
+      }
+      const value = Object.fromEntries(entries);
+      // 실제 LEFT JOIN 별칭과 일치하는 경로만 관계 없음으로 축약합니다.
+      // 임의의 그룹에 nullable 필드만 들어 있어도 그룹 자체는 객체로 유지합니다.
+      const relation = correlations.get(path.join("__"));
+      const presenceColumn = presenceColumns.get(path.join("__"));
+      if (
+        relation?.kind === "join" &&
+        relation.joinType === "leftJoin" &&
+        (presenceColumn !== undefined
+          ? row[presenceColumn] === false
+          : Object.hasOwn(value, "id") && value.id === null)
+      ) {
+        return null;
+      }
+      return value;
+    };
+    return {
+      ...Object.fromEntries(
+        Object.entries(row).filter(([key]) => !paths.has(key) && !hiddenColumns.has(key)),
+      ),
+      ...Object.fromEntries(
+        [...projection].map(([key, fields]) => {
+          assert(fields instanceof Map);
+          return [key, project(fields, [key])];
+        }),
+      ),
+    };
+  };
+
+  // JSON 내부와 직접 지정한 __ 별칭은 중첩 select의 경로가 아니므로 탐색하지 않습니다.
+  return Array.isArray(result) ? result.map(hydrateRow) : hydrateRow(result);
+}
+
 export class Puri<TSchema, TTables extends object, TResult> {
   private knexQuery: Knex.QueryBuilder;
   private tableSpec: TableSpec | null = null;
+  private nestedSelectPaths = new Map<string, readonly string[]>();
   private correlationRegistry = new Map<string, CorrelationRegistration>();
 
   // 생성자 시그니처들
@@ -617,21 +703,24 @@ export class Puri<TSchema, TTables extends object, TResult> {
    */
   private *flattenSelectEntries(
     selectObj: SelectObject<TTables>,
-    prefix = "",
+    path: readonly string[] = [],
   ): Generator<[string, SelectValue<TTables>], void> {
     for (const [key, value] of Object.entries(selectObj)) {
-      const fullKey = prefix ? `${prefix}__${key}` : key;
+      const fieldPath = [...path, key];
+      const fullKey = fieldPath.join("__");
 
       if (isNestedSelectObject(value)) {
-        yield* this.flattenSelectEntries(value, fullKey);
+        yield* this.flattenSelectEntries(value, fieldPath);
       } else {
+        if (fieldPath.length > 1) this.nestedSelectPaths.set(fullKey, fieldPath);
+        else this.nestedSelectPaths.delete(fullKey);
         yield [fullKey, value];
       }
     }
   }
 
-  private flattenSelect(selectObj: SelectObject<TTables>, prefix = "") {
-    return Object.fromEntries(this.flattenSelectEntries(selectObj, prefix));
+  private flattenSelect(selectObj: SelectObject<TTables>) {
+    return Object.fromEntries(this.flattenSelectEntries(selectObj));
   }
 
   // SELECT (select는 overwrite, appendSelect는 append)
@@ -681,6 +770,7 @@ export class Puri<TSchema, TTables extends object, TResult> {
   // CLEAR
   clear(statement: ClearStatements): this {
     this.knexQuery.clear(statement);
+    if (statement === "select" || statement === "columns") this.nestedSelectPaths.clear();
     if (statement === "join") {
       this.clearJoinRegistrations();
     }
@@ -1484,28 +1574,102 @@ export class Puri<TSchema, TTables extends object, TResult> {
     return this;
   }
 
+  private executeSelect(): Promise<SelectResult> {
+    if (this.nestedSelectPaths.size === 0) return this.knexQuery.then();
+    const presenceColumns = new Map<string, string>();
+    // 원본 쿼리는 rawQuery와 서브셋 로더가 공유하므로 실행 복제본에만 판별식을 추가합니다.
+    let executable = this.knexQuery;
+    if (this.canSelectRelationPresence()) {
+      const sql = this.toQuery();
+      for (const path of this.nestedSelectPaths.values()) {
+        for (let length = 1; length < path.length; length++) {
+          const alias = path.slice(0, length).join("__");
+          const relation = this.correlationRegistry.get(alias);
+          if (
+            relation?.kind !== "join" ||
+            relation.joinType !== "leftJoin" ||
+            presenceColumns.has(alias)
+          )
+            continue;
+          let column: string;
+          do {
+            column = `__sonamu_presence_${randomUUID().replaceAll("-", "")}`;
+          } while (sql.includes(column));
+          if (presenceColumns.size === 0) {
+            executable = this.knexQuery.clone();
+            // Knex.clone이 복제하지 않는 실행 제한과 이벤트는 원본의 계약을 유지합니다.
+            // SAFETY: timeout은 Knex QueryBuilder가 보관하는 실행 옵션입니다.
+            const timeout = (this.knexQuery as any)._timeout;
+            if (isNumberValue(timeout)) {
+              // SAFETY: cancelOnTimeout은 timeout 옵션과 함께 Knex가 기록하는 불리언입니다.
+              executable.timeout(timeout, {
+                cancel: (this.knexQuery as any)._cancelOnTimeout === true,
+              });
+            }
+            // SAFETY: Knex QueryBuilder는 EventEmitter를 상속하지만 공개 타입에는 일부 메서드만 있습니다.
+            const emitter = this.knexQuery as Knex.QueryBuilder & EventEmitter;
+            // SAFETY: 실행 복제본도 동일한 Knex EventEmitter 구현입니다.
+            const executionEmitter: EventEmitter = executable as Knex.QueryBuilder & EventEmitter;
+            for (const event of emitter.eventNames()) {
+              executionEmitter.on(event, (...args: any[]) => emitter.emit(event, ...args));
+            }
+          }
+          presenceColumns.set(alias, column);
+          executable.select(this.knex.raw("??.* IS DISTINCT FROM NULL AS ??", [alias, column]));
+        }
+      }
+    }
+    return executable.then((result) =>
+      hydrateSelectResult(
+        result,
+        this.nestedSelectPaths,
+        this.correlationRegistry,
+        presenceColumns,
+      ),
+    );
+  }
+
+  private canSelectRelationPresence(): boolean {
+    // 그룹·집계·DISTINCT·원시 표현식에는 열을 추가하면 SQL 의미가 바뀔 수 있습니다.
+    // SAFETY: Knex의 statement 구조는 다른 JOIN/벡터 처리와 동일한 내부 계약으로 읽습니다.
+    const statements = (this.knexQuery as any)._statements;
+    return statements.every((statement: any) => {
+      if (["group", "having", "union"].includes(statement.grouping)) return false;
+      if (statement.grouping !== "columns") return true;
+      if (statement.distinct || statement.distinctOn || statement.type) return false;
+      return statement.value.every((column: string | { ref?: string }) =>
+        isStringValue(column)
+          ? !column.includes("*")
+          : isObjectValue(column) && isStringValue(column.ref),
+      );
+    });
+  }
+
   // 실행 메서드들 - thenable 구현
   then<TResult1 = Expand<TResult>[], TResult2 = never>(
     onfulfilled?: ((value: Expand<TResult>[]) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
     Naite.t("puri:executed-query", this.toQuery());
-    // SAFETY: 쿼리 빌더의 제네릭 계약과 선행 검증이 이 타입을 보장합니다.
-    return this.knexQuery.then(onfulfilled as any, onrejected);
+    // SAFETY: SQL 결과에 선택 경로만 복원하므로 선언된 결과 배열 타입을 유지합니다.
+    return this.executeSelect().then(onfulfilled as any, onrejected);
   }
   catch<TResult2 = never>(
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null,
-  ): Promise<TResult | TResult2> {
-    return this.knexQuery.catch(onrejected);
+  ): Promise<Expand<TResult>[] | TResult2> {
+    return this.then().catch(onrejected);
   }
-  finally(onfinally?: (() => void) | null): Promise<TResult> {
-    return this.knexQuery.finally(onfinally);
+  finally(onfinally?: (() => void) | null): Promise<Expand<TResult>[]> {
+    return this.then().finally(onfinally);
   }
 
   // 하나만 쿼리
   first(): ResolvedPuri<Expand<TResult>, never> {
     this.knexQuery.first();
-    return new ResolvedPuri(this.knexQuery, this.knex, this.tableSpec);
+    return new ResolvedPuri(this.knexQuery, this.knex, this.tableSpec, () => {
+      // SAFETY: first의 SQL 결과에 선택 경로만 복원하므로 선언된 단일 레코드 타입을 유지합니다.
+      return this.executeSelect() as Promise<Expand<TResult>>;
+    });
   }
 
   // 쿼리한 레코드에서 특정 컬럼만 추출한 배열 리턴
@@ -1630,6 +1794,7 @@ export class Puri<TSchema, TTables extends object, TResult> {
     const newPuri = new Puri<TSchema, TTables, TResult>(this.knex, "dual");
     newPuri.knexQuery = this.knexQuery.clone();
     newPuri.tableSpec = this.tableSpec;
+    newPuri.nestedSelectPaths = new Map(this.nestedSelectPaths);
     newPuri.correlationRegistry = new Map(this.correlationRegistry);
     return newPuri;
   }
@@ -2156,6 +2321,7 @@ export class ResolvedPuri<TResolved, TReturning> implements Promise<TResolved> {
     public knexQuery: Knex.QueryBuilder,
     private knex: Knex,
     private tableSpec: TableSpec | null = null,
+    private resolveResult?: () => Promise<TResolved>,
   ) {}
 
   [Symbol.toStringTag]: string = "Promise";
@@ -2174,18 +2340,19 @@ export class ResolvedPuri<TResolved, TReturning> implements Promise<TResolved> {
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResult1 | TResult2> {
     Naite.t("puri:executed-query", this.toQuery());
+    const result = this.resolveResult ? this.resolveResult() : this.knexQuery;
     // SAFETY: 쿼리 빌더의 제네릭 계약과 선행 검증이 이 타입을 보장합니다.
-    return this.knexQuery.then(onfulfilled as any, onrejected);
+    return result.then(onfulfilled as any, onrejected);
   }
 
   catch<TResult2 = never>(
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null,
   ): Promise<TResolved | TResult2> {
-    return this.knexQuery.catch(onrejected);
+    return this.then().catch(onrejected);
   }
 
   finally(onfinally?: (() => void) | null): Promise<TResolved> {
-    return this.knexQuery.finally(onfinally);
+    return this.then().finally(onfinally);
   }
 
   // ON CONFLICT - 컬럼 기반

@@ -45,6 +45,108 @@ async function expectConflictJsonValue(value: ConflictJsonValue) {
 }
 
 describe("Puri Query", () => {
+  test("LEFT JOIN의 nullable 필드만 조회해도 존재하는 행과 없는 행을 구분한다", async () => {
+    type PresenceSchema = {
+      roots: { id: number };
+      details: {
+        root_id: number;
+        note: string | null;
+        extra: string | null;
+        detail: string | null;
+      };
+    };
+    const knex = UserModel.getPuri("r").knex;
+    const base = new Puri<
+      PresenceSchema,
+      { roots: PresenceSchema["roots"] },
+      PresenceSchema["roots"]
+    >(knex, "roots");
+    base
+      .rawQuery()
+      .with("roots", knex.raw("SELECT * FROM (VALUES (1), (2)) AS fixture(id)"))
+      .with(
+        "details",
+        knex.raw(
+          "SELECT 1 AS root_id, NULL::text AS note, NULL::text AS extra, NULL::text AS detail",
+        ),
+      );
+    const selected = base
+      .leftJoin({ detail: "details" }, (join) => join.on("roots.id", "detail.root_id"))
+      .select({ id: "roots.id", detail: { note: "detail.note", extra: "detail.extra" } })
+      .orderBy("roots.id");
+    const onQuery = vi.fn();
+    const onResponse = vi.fn();
+    selected
+      .rawQuery()
+      .timeout(5000, { cancel: true })
+      .on("query", onQuery)
+      .on("query-response", onResponse);
+    expect(await selected).toEqual([
+      { id: 1, detail: { note: null, extra: null } },
+      { id: 2, detail: null },
+    ]);
+    expect(onQuery).toHaveBeenCalledOnce();
+    expect(onQuery.mock.calls[0]?.[0]).toMatchObject({ timeout: 5000, cancelOnTimeout: true });
+    expect(onResponse).toHaveBeenCalledOnce();
+    expect(await selected.clone().first()).toEqual({ id: 1, detail: { note: null, extra: null } });
+    expect(await selected.clone().where("roots.id", 2).first()).toEqual({ id: 2, detail: null });
+    expect(await selected.rawQuery()).toEqual([
+      { id: 1, detail__note: null, detail__extra: null },
+      { id: 2, detail__note: null, detail__extra: null },
+    ]);
+
+    const projection = selected
+      .clone()
+      .clear("select")
+      .clear("order")
+      .select({ detail: { note: "detail.note" } });
+    expect(await projection.clone().groupBy("detail.note")).toEqual([{ detail: { note: null } }]);
+    expect(await projection.clone().distinct()).toEqual([{ detail: { note: null } }]);
+    const count = projection
+      .clone()
+      .clear("select")
+      .select({ detail: { total: Puri.count("detail.root_id") } });
+    expect(await count).toEqual([{ detail: { total: 1 } }]);
+  });
+
+  test("중첩 select는 실제 SQL 결과를 복원하고 수동 hydrate와 호환된다", async () => {
+    const query = UserModel.getPuri("r")
+      .table("users")
+      .select({ user: { id: "users.id", name: "users.username" }, literal__id: "users.id" })
+      .limit(1);
+    const [raw] = await query.clone().rawQuery();
+    expect(raw).toBeDefined();
+    const rows = await query.clone();
+    expect(rows).toEqual([
+      {
+        user: { id: raw.user__id, name: raw.user__name },
+        literal__id: raw.literal__id,
+      },
+    ]);
+    const first = await query.clone().first();
+    expect(first).toEqual(rows[0]);
+    const nestedOnly = await UserModel.getPuri("r")
+      .table("users")
+      .select({ user: { id: "users.id", name: "users.username" } })
+      .limit(1);
+    expect(UserModel.hydrate(nestedOnly)).toEqual(nestedOnly);
+  });
+
+  test("중첩 select의 매칭되지 않은 LEFT JOIN은 null로 반환한다", async () => {
+    const row = await UserModel.getPuri("r")
+      .table("users")
+      .leftJoin({ employee: "employees" }, (join) => {
+        join.on("users.id", "employee.user_id").andOnVal("employee.id", -1);
+      })
+      .select({
+        id: "users.id",
+        employee: { id: "employee.id", number: "employee.employee_number" },
+      })
+      .first();
+    expect(row).toBeDefined();
+    expect(row.employee).toBeNull();
+  });
+
   describe("A. BASIC CRUD", () => {
     afterEach(async () => {
       await cleanupTestRecords(fixtureMaxIds);

@@ -3,6 +3,29 @@ title: "Upgrading"
 description: "Changes required when upgrading Sonamu"
 ---
 
+## 0.13.3
+
+### Nested Puri select results
+
+Nested objects passed to `select` or `appendSelect` now produce nested results in standalone Puri queries as well. This applies to `await`, `then`, `catch`, `finally`, and `first`.
+
+```typescript
+const rows = await puri.select({ files: { id: "files.id", key: "files.key" } });
+// rows[0].files.id, rows[0].files.key
+```
+
+If you accessed flat runtime keys such as `files__id`, switch to nested property access. Explicit flat aliases (`{ files__id: "files.id" }`) and keys inside JSON values are not transformed. Subset queries retain their loader-before-hydration order. Existing manual `BaseModel.hydrate()` calls can remain, but calls used only to restore a nested select are no longer necessary. Manual hydration still transforms explicit `__` aliases.
+
+For plain row queries, nested groups matching a LEFT JOIN alias use actual row presence. A matched row remains an object even when every selected value is `null`; only an absent row becomes `null`. Arbitrary grouping objects remain objects.
+
+Queries with `GROUP BY`, aggregates, `DISTINCT`, `UNION`, `*`, or SQL expressions do not receive extra presence columns that could change their semantics. In these queries, an explicitly selected `id` is used when available; an all-null group without an ID remains an object. Do not treat an aggregate result group as an individual related record.
+
+### Storage initialization and disk names
+
+With `server.storage` configured, storage is available after `init()` and `initForTesting()`. `createServer()` reuses that manager. Each driver is still created lazily on the first `use()` of its disk.
+
+Disk names are no longer restricted to `fs` and `s3`. Register `drivers: { images: drivers.s3(options) }` and use `Sonamu.storage.use("images")`. `DiskName` is a string; `DriverKey` still identifies the `"fs" | "s3"` factory kinds. Remove `as never` casts added solely for named disks. Unregistered names still throw when passed to `use()`.
+
 ## 0.13.0
 
 ### Fastify 5
