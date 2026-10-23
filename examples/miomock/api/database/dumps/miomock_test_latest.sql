@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict yXADDX04npsN3vSIe5lEekLIXYnlA94DzrWKHtJRA6k3CESLMbTuzgtau0hp5xO
+\restrict mqXwgqDyRJRXlSHgzJZ8dPyiZfPqDfFsasEoAtjSSWXwl5zaxNNvIifX3dzjx2p
 
--- Dumped from database version 18.1 (Debian 18.1-1.pgdg12+2)
--- Dumped by pg_dump version 18.1
+-- Dumped from database version 18.4 (Debian 18.4-1.pgdg12+1)
+-- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -630,7 +630,10 @@ CREATE TABLE public.two_factors (
     backup_codes text NOT NULL,
     created_at timestamp(3) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp(3) with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    user_id text NOT NULL
+    user_id text NOT NULL,
+    verified boolean DEFAULT true NOT NULL,
+    failed_verification_count integer DEFAULT 0 NOT NULL,
+    locked_until timestamp(3) with time zone
 );
 
 
@@ -937,6 +940,7 @@ INSERT INTO public.knex_migrations VALUES (88, '20260309161828_create__audit_log
 INSERT INTO public.knex_migrations VALUES (89, '20260410140734_create__audit_events.ts', 16, '2026-04-13 20:01:36.37+09');
 INSERT INTO public.knex_migrations VALUES (90, '20260414130146_alter_sessions_add1_alter3.ts', 17, '2026-04-14 13:43:33.236+09');
 INSERT INTO public.knex_migrations VALUES (91, '20260414130147_alter_users_add3_alter6.ts', 17, '2026-04-14 13:43:33.237+09');
+INSERT INTO public.knex_migrations VALUES (92, '20261023115028_alter_two_factors_add3.ts', 18, '2026-10-23 12:13:22.563+09');
 
 
 --
@@ -2128,7 +2132,7 @@ SELECT pg_catalog.setval('public.files_id_seq', 1, true);
 -- Name: knex_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.knex_migrations_id_seq', 91, true);
+SELECT pg_catalog.setval('public.knex_migrations_id_seq', 92, true);
 
 
 --
@@ -2650,5 +2654,5 @@ ALTER TABLE ONLY public.two_factors
 -- PostgreSQL database dump complete
 --
 
-\unrestrict yXADDX04npsN3vSIe5lEekLIXYnlA94DzrWKHtJRA6k3CESLMbTuzgtau0hp5xO
+\unrestrict mqXwgqDyRJRXlSHgzJZ8dPyiZfPqDfFsasEoAtjSSWXwl5zaxNNvIifX3dzjx2p
 
